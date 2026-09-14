@@ -109,10 +109,19 @@
   vector-effect: non-scaling-stroke;
 }
 
+.nr .geo-world-foundation path,
 .nr .geo-world-relief path {
   fill: url("#oona-land");
   fill-rule: evenodd;
   stroke: none;
+}
+
+.nr .geo-world-foundation path {
+  filter: drop-shadow(0 6px 4px rgba(0, 0, 0, 0.86));
+}
+
+.nr .geo-world-relief {
+  opacity: 0.78;
 }
 
 .nr .geo-world-lighting {

@@ -139,6 +139,9 @@ export default function GeoWorldMap({ showAdminOutlines = false }: { showAdminOu
         </filter>
       </defs>
 
+      <g className="geo-world-foundation">
+        {countryPaths.map((country) => <path key={`foundation-${country.key}`} d={country.path} />)}
+      </g>
       <g className="geo-world-relief" filter="url(#oona-land-relief)">
         {countryPaths.map((country) => <path key={`relief-${country.key}`} d={country.path} />)}
       </g>

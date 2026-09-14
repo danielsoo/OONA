@@ -18,7 +18,8 @@ import { useSchoolsFeed } from "@/hooks/useSchoolsFeed";
 import type { SchoolListItem } from "@/types/school";
 import "@/components/school/northreach-map.css";
 
-type Region = "All Regions" | "North America" | "Europe" | "Asia-Pacific";
+type SchoolRegion = "North America" | "Europe" | "Asia-Pacific";
+type Region = "All Regions" | "United States" | SchoolRegion;
 type LabelSide = "left" | "right" | "above" | "below";
 
 type MapSchool = {
@@ -28,7 +29,8 @@ type MapSchool = {
   count: string;
   countDetail?: string;
   students: number;
-  region: Exclude<Region, "All Regions">;
+  region: SchoolRegion;
+  countryCode?: string;
   latitude?: number;
   longitude?: number;
   labelOffset?: { x?: number; y?: number };
@@ -38,7 +40,7 @@ type MapSchool = {
   logo?: string;
 };
 
-const REGIONS: Region[] = ["All Regions", "North America", "Europe", "Asia-Pacific"];
+const REGIONS: Region[] = ["All Regions", "United States", "North America", "Europe", "Asia-Pacific"];
 
 const AdminMapDiagnosticsControl = dynamic(
   () => import("@/components/school/AdminMapDiagnosticsControl"),
@@ -70,8 +72,8 @@ const EUROPE_COUNTRY_CODES = new Set([
   "IT", "NL", "NO", "PL", "PT", "RO", "SE", "UA",
 ]);
 
-function regionForSchool(school: SchoolListItem): Exclude<Region, "All Regions"> {
-  const countryCode = school.location?.countryCode ?? "";
+function regionForSchool(school: SchoolListItem): SchoolRegion {
+  const countryCode = (school.location?.countryCode ?? "").toUpperCase();
   if (EUROPE_COUNTRY_CODES.has(countryCode)) return "Europe";
   if (["US", "CA", "MX"].includes(countryCode)) return "North America";
   if ((school.location?.longitude ?? 0) < -30) return "North America";
@@ -89,6 +91,7 @@ function registeredMapSchool(school: SchoolListItem): MapSchool | null {
     countDetail: works > 0 ? `${works} published works` : "Newly registered school",
     students: 0,
     region: regionForSchool(school),
+    countryCode: school.location.countryCode?.toUpperCase(),
     latitude: school.location.latitude,
     longitude: school.location.longitude,
     labelSide: school.location.longitude > 115 ? "left" : "right",
@@ -99,21 +102,21 @@ function registeredMapSchool(school: SchoolListItem): MapSchool | null {
 }
 
 const SCHOOLS: MapSchool[] = [
-  { id: "penn-state", name: "Penn State", short: "PS", count: "2.3K", students: 2300, region: "North America", latitude: 40.7982, longitude: -77.8599, labelSide: "left", labelOffset: { x: -3, y: 24 }, color: "#123c88", colorAlt: "#eef4ff", logo: "/images/campus/schools/psu.png" },
-  { id: "snu", name: "SNU", short: "SNU", count: "1.9K", students: 1900, region: "Asia-Pacific", latitude: 37.4599, longitude: 126.9519, labelSide: "right", labelOffset: { x: 2, y: 19 }, color: "#4564a8", colorAlt: "#f4f6ff" },
-  { id: "ucla", name: "UCLA", short: "UCLA", count: "1.8K", students: 1800, region: "North America", latitude: 34.0689, longitude: -118.4452, labelSide: "left", color: "#1f78bc", colorAlt: "#f5c449", logo: "/images/campus/schools/ucla.svg" },
-  { id: "pku", name: "PKU", short: "PKU", count: "1.5K", students: 1500, region: "Asia-Pacific", latitude: 39.9927, longitude: 116.3054, labelSide: "left", labelOffset: { y: -9 }, color: "#8d1838", colorAlt: "#fff4f6" },
-  { id: "nyu", name: "NYU", short: "NYU", count: "1.4K", students: 1400, region: "North America", latitude: 40.7295, longitude: -73.9965, labelSide: "right", labelOffset: { x: 3, y: 21 }, color: "#5d2ca8", colorAlt: "#f6f0ff", logo: "/images/campus/schools/nyu.svg" },
-  { id: "tokyo", name: "University of Tokyo", short: "UT", count: "1.3K", students: 1300, region: "Asia-Pacific", latitude: 35.7126, longitude: 139.761, labelSide: "left", labelOffset: { x: -2, y: 28 }, color: "#dfa800", colorAlt: "#1d62a5" },
-  { id: "tsinghua", name: "Tsinghua", short: "TH", count: "1.2K", students: 1200, region: "Asia-Pacific", latitude: 40.0004, longitude: 116.326, labelSide: "right", labelOffset: { y: -13 }, color: "#c86ebc", colorAlt: "#fff4ff" },
-  { id: "berkeley", name: "UC Berkeley", short: "CAL", count: "1.1K", students: 1100, region: "North America", latitude: 37.8719, longitude: -122.2585, labelSide: "left", color: "#9b6c10", colorAlt: "#f2c84b", logo: "/images/campus/schools/berkeley.svg" },
-  { id: "toronto", name: "University of Toronto", short: "U of T", count: "1.1K", students: 1080, region: "North America", latitude: 43.6629, longitude: -79.3957, labelSide: "above", labelOffset: { x: -42, y: -22 }, color: "#1555a4", colorAlt: "#dcecff" },
-  { id: "melbourne", name: "University of Melbourne", short: "UM", count: "1.0K", students: 1000, region: "Asia-Pacific", latitude: -37.7983, longitude: 144.961, labelSide: "left", color: "#174784", colorAlt: "#eaf2ff" },
-  { id: "oxford", name: "University of Oxford", short: "OX", count: "930", students: 930, region: "Europe", latitude: 51.7548, longitude: -1.2544, labelSide: "left", color: "#1c477a", colorAlt: "#e2edf8" },
-  { id: "nus", name: "National University of Singapore", short: "NUS", count: "920", students: 920, region: "Asia-Pacific", latitude: 1.2966, longitude: 103.7764, labelSide: "left", color: "#ef7c18", colorAlt: "#163b80" },
-  { id: "sydney", name: "University of Sydney", short: "USYD", count: "870", students: 870, region: "Asia-Pacific", latitude: -33.8886, longitude: 151.1873, labelSide: "right", labelOffset: { x: 2, y: 17 }, color: "#a4142e", colorAlt: "#fff0f2" },
-  { id: "mit", name: "MIT", short: "MIT", count: "820", students: 820, region: "North America", latitude: 42.3601, longitude: -71.0942, labelSide: "right", labelOffset: { x: 8, y: -27 }, color: "#8d2837", colorAlt: "#f4e7e9" },
-  { id: "mcgill", name: "McGill University", short: "MCG", count: "620", students: 620, region: "North America", latitude: 45.5048, longitude: -73.5772, labelSide: "left", labelOffset: { x: -4, y: -4 }, color: "#ba2636", colorAlt: "#ffffff" },
+  { id: "penn-state", name: "Penn State", short: "PS", count: "2.3K", students: 2300, region: "North America", countryCode: "US", latitude: 40.7982, longitude: -77.8599, labelSide: "left", labelOffset: { x: -3, y: 24 }, color: "#123c88", colorAlt: "#eef4ff", logo: "/images/campus/schools/psu.png" },
+  { id: "snu", name: "SNU", short: "SNU", count: "1.9K", students: 1900, region: "Asia-Pacific", countryCode: "KR", latitude: 37.4599, longitude: 126.9519, labelSide: "right", labelOffset: { x: 2, y: 19 }, color: "#4564a8", colorAlt: "#f4f6ff" },
+  { id: "ucla", name: "UCLA", short: "UCLA", count: "1.8K", students: 1800, region: "North America", countryCode: "US", latitude: 34.0689, longitude: -118.4452, labelSide: "left", color: "#1f78bc", colorAlt: "#f5c449", logo: "/images/campus/schools/ucla.svg" },
+  { id: "pku", name: "PKU", short: "PKU", count: "1.5K", students: 1500, region: "Asia-Pacific", countryCode: "CN", latitude: 39.9927, longitude: 116.3054, labelSide: "left", labelOffset: { y: -9 }, color: "#8d1838", colorAlt: "#fff4f6" },
+  { id: "nyu", name: "NYU", short: "NYU", count: "1.4K", students: 1400, region: "North America", countryCode: "US", latitude: 40.7295, longitude: -73.9965, labelSide: "right", labelOffset: { x: 3, y: 21 }, color: "#5d2ca8", colorAlt: "#f6f0ff", logo: "/images/campus/schools/nyu.svg" },
+  { id: "tokyo", name: "University of Tokyo", short: "UT", count: "1.3K", students: 1300, region: "Asia-Pacific", countryCode: "JP", latitude: 35.7126, longitude: 139.761, labelSide: "left", labelOffset: { x: -2, y: 28 }, color: "#dfa800", colorAlt: "#1d62a5" },
+  { id: "tsinghua", name: "Tsinghua", short: "TH", count: "1.2K", students: 1200, region: "Asia-Pacific", countryCode: "CN", latitude: 40.0004, longitude: 116.326, labelSide: "right", labelOffset: { y: -13 }, color: "#c86ebc", colorAlt: "#fff4ff" },
+  { id: "berkeley", name: "UC Berkeley", short: "CAL", count: "1.1K", students: 1100, region: "North America", countryCode: "US", latitude: 37.8719, longitude: -122.2585, labelSide: "left", color: "#9b6c10", colorAlt: "#f2c84b", logo: "/images/campus/schools/berkeley.svg" },
+  { id: "toronto", name: "University of Toronto", short: "U of T", count: "1.1K", students: 1080, region: "North America", countryCode: "CA", latitude: 43.6629, longitude: -79.3957, labelSide: "above", labelOffset: { x: -42, y: -22 }, color: "#1555a4", colorAlt: "#dcecff" },
+  { id: "melbourne", name: "University of Melbourne", short: "UM", count: "1.0K", students: 1000, region: "Asia-Pacific", countryCode: "AU", latitude: -37.7983, longitude: 144.961, labelSide: "left", color: "#174784", colorAlt: "#eaf2ff" },
+  { id: "oxford", name: "University of Oxford", short: "OX", count: "930", students: 930, region: "Europe", countryCode: "GB", latitude: 51.7548, longitude: -1.2544, labelSide: "left", color: "#1c477a", colorAlt: "#e2edf8" },
+  { id: "nus", name: "National University of Singapore", short: "NUS", count: "920", students: 920, region: "Asia-Pacific", countryCode: "SG", latitude: 1.2966, longitude: 103.7764, labelSide: "left", color: "#ef7c18", colorAlt: "#163b80" },
+  { id: "sydney", name: "University of Sydney", short: "USYD", count: "870", students: 870, region: "Asia-Pacific", countryCode: "AU", latitude: -33.8886, longitude: 151.1873, labelSide: "right", labelOffset: { x: 2, y: 17 }, color: "#a4142e", colorAlt: "#fff0f2" },
+  { id: "mit", name: "MIT", short: "MIT", count: "820", students: 820, region: "North America", countryCode: "US", latitude: 42.3601, longitude: -71.0942, labelSide: "right", labelOffset: { x: 8, y: -27 }, color: "#8d2837", colorAlt: "#f4e7e9" },
+  { id: "mcgill", name: "McGill University", short: "MCG", count: "620", students: 620, region: "North America", countryCode: "CA", latitude: 45.5048, longitude: -73.5772, labelSide: "left", labelOffset: { x: -4, y: -4 }, color: "#ba2636", colorAlt: "#ffffff" },
 ];
 
 function Chevron({ direction = "right" }: { direction?: "right" | "down" }) {
@@ -169,7 +172,11 @@ export default function NorthreachMapPage() {
   }, [registeredSchools]);
 
   const filteredSchools = useMemo(
-    () => allSchools.filter((school) => region === "All Regions" || school.region === region),
+    () => allSchools.filter((school) => {
+      if (region === "All Regions") return true;
+      if (region === "United States") return school.countryCode === "US";
+      return school.region === region;
+    }),
     [allSchools, region]
   );
   const mapSchools = filteredSchools.filter((school) => school.latitude !== undefined && school.longitude !== undefined);
@@ -381,8 +388,7 @@ export default function NorthreachMapPage() {
           <div className="ranking-head"><h2>Schools on OONA</h2></div>
 
           <ol className="ranking-list">
-            {rankedSchools.map((school) => {
-              const originalRank = allSchools.findIndex((item) => item.id === school.id) + 1;
+            {rankedSchools.map((school, index) => {
               return (
                 <li key={school.id}>
                   <button
@@ -391,7 +397,7 @@ export default function NorthreachMapPage() {
                     onClick={() => chooseSchool(school.id)}
                     aria-pressed={selectedId === school.id}
                   >
-                    <span className="rank-number">{originalRank}</span>
+                    <span className="rank-number">{index + 1}</span>
                     <SchoolCrest school={school} />
                     <span className="rank-school-info">
                       <span className="rank-name">{school.name}</span>
