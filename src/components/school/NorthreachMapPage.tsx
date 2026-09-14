@@ -26,6 +26,8 @@ type MapSchool = {
   region: Exclude<Region, "All Regions">;
   latitude?: number;
   longitude?: number;
+  /** Verified pixel-space anchor on the intentionally distorted illustrated map. */
+  mapAnchor?: { x: number; y: number };
   /** Screen-space decluttering only; the hotspot anchor stays on the projected coordinate. */
   markerOffset?: { x?: number; y?: number };
   labelOffset?: { x?: number; y?: number };
@@ -71,6 +73,47 @@ const LATITUDE_GRID: ReadonlyArray<readonly [number, number]> = [
   [90, 18],
 ];
 
+/** Regional grids compensate for the illustration stretching Asia and Australia independently. */
+const EAST_ASIA_LONGITUDE_GRID: ReadonlyArray<readonly [number, number]> = [
+  [90, 49.5],
+  [104, 52.6],
+  [116, 55.9],
+  [127, 57.8],
+  [140, 62],
+  [155, 65],
+];
+
+const EAST_ASIA_LATITUDE_GRID: ReadonlyArray<readonly [number, number]> = [
+  [-10, 56.5],
+  [1.3, 52.1],
+  [20, 47.5],
+  [35.7, 43.1],
+  [37.5, 40.5],
+  [40, 40.2],
+  [52, 35.8],
+  [75, 26],
+  [90, 21],
+];
+
+const AUSTRALIA_LONGITUDE_GRID: ReadonlyArray<readonly [number, number]> = [
+  [105, 53],
+  [115, 55.5],
+  [130, 57.4],
+  [145, 61.7],
+  [151, 63],
+  [155, 64],
+  [180, 68],
+];
+
+const AUSTRALIA_LATITUDE_GRID: ReadonlyArray<readonly [number, number]> = [
+  [-60, 75],
+  [-45, 71],
+  [-38, 68.7],
+  [-34, 66.4],
+  [-10, 56.5],
+  [0, 53.5],
+];
+
 const LONGITUDE_GUIDES = [-120, -60, 0, 60, 120];
 const LATITUDE_GUIDES = [60, 30, 0, -30, -60];
 
@@ -97,6 +140,23 @@ function interpolateGrid(value: number, grid: ReadonlyArray<readonly [number, nu
 function projectSchoolLocation(school: MapSchool): { x: number; y: number } {
   const longitude = school.longitude ?? 0;
   const latitude = school.latitude ?? 0;
+
+  if (school.mapAnchor) return school.mapAnchor;
+
+  if (longitude >= 105 && latitude < -10) {
+    return {
+      x: interpolateGrid(longitude, AUSTRALIA_LONGITUDE_GRID),
+      y: interpolateGrid(latitude, AUSTRALIA_LATITUDE_GRID),
+    };
+  }
+
+  if (longitude >= 90 && latitude >= -10) {
+    return {
+      x: interpolateGrid(longitude, EAST_ASIA_LONGITUDE_GRID),
+      y: interpolateGrid(latitude, EAST_ASIA_LATITUDE_GRID),
+    };
+  }
+
   return {
     x: interpolateGrid(longitude, LONGITUDE_GRID),
     y: interpolateGrid(latitude, LATITUDE_GRID),
@@ -167,21 +227,21 @@ function registeredMapSchool(school: SchoolListItem): MapSchool | null {
 }
 
 const SCHOOLS: MapSchool[] = [
-  { id: "penn-state", name: "Penn State", short: "PS", count: "2.3K", students: 2300, region: "North America", latitude: 40.7982, longitude: -77.8599, labelSide: "left", labelOffset: { x: -3, y: 24 }, color: "#123c88", colorAlt: "#eef4ff", logo: "/images/campus/schools/psu.png" },
-  { id: "snu", name: "SNU", short: "SNU", count: "1.9K", students: 1900, region: "Asia-Pacific", latitude: 37.4599, longitude: 126.9519, labelSide: "right", labelOffset: { x: 2, y: 19 }, color: "#4564a8", colorAlt: "#f4f6ff" },
-  { id: "ucla", name: "UCLA", short: "UCLA", count: "1.8K", students: 1800, region: "North America", latitude: 34.0689, longitude: -118.4452, labelSide: "left", color: "#1f78bc", colorAlt: "#f5c449", logo: "/images/campus/schools/ucla.svg" },
-  { id: "pku", name: "PKU", short: "PKU", count: "1.5K", students: 1500, region: "Asia-Pacific", latitude: 39.9927, longitude: 116.3054, markerOffset: { x: -5, y: 3 }, labelSide: "left", labelOffset: { y: -9 }, color: "#8d1838", colorAlt: "#fff4f6" },
-  { id: "nyu", name: "NYU", short: "NYU", count: "1.4K", students: 1400, region: "North America", latitude: 40.7295, longitude: -73.9965, labelSide: "right", labelOffset: { x: 3, y: 21 }, color: "#5d2ca8", colorAlt: "#f6f0ff", logo: "/images/campus/schools/nyu.svg" },
-  { id: "tokyo", name: "University of Tokyo", short: "UT", count: "1.3K", students: 1300, region: "Asia-Pacific", latitude: 35.7126, longitude: 139.761, labelSide: "left", labelOffset: { x: -2, y: 28 }, color: "#dfa800", colorAlt: "#1d62a5" },
-  { id: "tsinghua", name: "Tsinghua", short: "TH", count: "1.2K", students: 1200, region: "Asia-Pacific", latitude: 40.0004, longitude: 116.326, markerOffset: { x: 5, y: -3 }, labelSide: "right", labelOffset: { y: -13 }, color: "#c86ebc", colorAlt: "#fff4ff" },
-  { id: "berkeley", name: "UC Berkeley", short: "CAL", count: "1.1K", students: 1100, region: "North America", latitude: 37.8719, longitude: -122.2585, labelSide: "left", color: "#9b6c10", colorAlt: "#f2c84b", logo: "/images/campus/schools/berkeley.svg" },
-  { id: "toronto", name: "University of Toronto", short: "U of T", count: "1.1K", students: 1080, region: "North America", latitude: 43.6629, longitude: -79.3957, labelSide: "above", labelOffset: { x: -42, y: -22 }, color: "#1555a4", colorAlt: "#dcecff" },
-  { id: "melbourne", name: "University of Melbourne", short: "UM", count: "1.0K", students: 1000, region: "Asia-Pacific", latitude: -37.7983, longitude: 144.961, labelSide: "left", color: "#174784", colorAlt: "#eaf2ff" },
-  { id: "oxford", name: "University of Oxford", short: "OX", count: "930", students: 930, region: "Europe", latitude: 51.7548, longitude: -1.2544, labelSide: "left", color: "#1c477a", colorAlt: "#e2edf8" },
-  { id: "nus", name: "National University of Singapore", short: "NUS", count: "920", students: 920, region: "Asia-Pacific", latitude: 1.2966, longitude: 103.7764, labelSide: "left", color: "#ef7c18", colorAlt: "#163b80" },
-  { id: "sydney", name: "University of Sydney", short: "USYD", count: "870", students: 870, region: "Asia-Pacific", latitude: -33.8886, longitude: 151.1873, labelSide: "right", labelOffset: { x: 2, y: 17 }, color: "#a4142e", colorAlt: "#fff0f2" },
-  { id: "mit", name: "MIT", short: "MIT", count: "820", students: 820, region: "North America", latitude: 42.3601, longitude: -71.0942, labelSide: "right", labelOffset: { x: 8, y: -27 }, color: "#8d2837", colorAlt: "#f4e7e9" },
-  { id: "mcgill", name: "McGill University", short: "MCG", count: "620", students: 620, region: "North America", latitude: 45.5048, longitude: -73.5772, labelSide: "left", labelOffset: { x: -4, y: -4 }, color: "#ba2636", colorAlt: "#ffffff" },
+  { id: "penn-state", name: "Penn State", short: "PS", count: "2.3K", students: 2300, region: "North America", latitude: 40.7982, longitude: -77.8599, mapAnchor: { x: 19.4, y: 38.1 }, labelSide: "left", labelOffset: { x: -3, y: 24 }, color: "#123c88", colorAlt: "#eef4ff", logo: "/images/campus/schools/psu.png" },
+  { id: "snu", name: "SNU", short: "SNU", count: "1.9K", students: 1900, region: "Asia-Pacific", latitude: 37.4599, longitude: 126.9519, mapAnchor: { x: 57.8, y: 40.5 }, labelSide: "right", labelOffset: { x: 2, y: 19 }, color: "#4564a8", colorAlt: "#f4f6ff" },
+  { id: "ucla", name: "UCLA", short: "UCLA", count: "1.8K", students: 1800, region: "North America", latitude: 34.0689, longitude: -118.4452, mapAnchor: { x: 11.9, y: 42 }, labelSide: "left", color: "#1f78bc", colorAlt: "#f5c449", logo: "/images/campus/schools/ucla.svg" },
+  { id: "pku", name: "PKU", short: "PKU", count: "1.5K", students: 1500, region: "Asia-Pacific", latitude: 39.9927, longitude: 116.3054, mapAnchor: { x: 55.9, y: 40.2 }, markerOffset: { x: -5, y: 3 }, labelSide: "left", labelOffset: { y: -9 }, color: "#8d1838", colorAlt: "#fff4f6" },
+  { id: "nyu", name: "NYU", short: "NYU", count: "1.4K", students: 1400, region: "North America", latitude: 40.7295, longitude: -73.9965, mapAnchor: { x: 20.4, y: 38.2 }, labelSide: "right", labelOffset: { x: 3, y: 21 }, color: "#5d2ca8", colorAlt: "#f6f0ff", logo: "/images/campus/schools/nyu.svg" },
+  { id: "tokyo", name: "University of Tokyo", short: "UT", count: "1.3K", students: 1300, region: "Asia-Pacific", latitude: 35.7126, longitude: 139.761, mapAnchor: { x: 62, y: 43.1 }, labelSide: "left", labelOffset: { x: -2, y: 28 }, color: "#dfa800", colorAlt: "#1d62a5" },
+  { id: "tsinghua", name: "Tsinghua", short: "TH", count: "1.2K", students: 1200, region: "Asia-Pacific", latitude: 40.0004, longitude: 116.326, mapAnchor: { x: 55.9, y: 40.2 }, markerOffset: { x: 5, y: -3 }, labelSide: "right", labelOffset: { y: -13 }, color: "#c86ebc", colorAlt: "#fff4ff" },
+  { id: "berkeley", name: "UC Berkeley", short: "CAL", count: "1.1K", students: 1100, region: "North America", latitude: 37.8719, longitude: -122.2585, mapAnchor: { x: 11.3, y: 39.2 }, labelSide: "left", color: "#9b6c10", colorAlt: "#f2c84b", logo: "/images/campus/schools/berkeley.svg" },
+  { id: "toronto", name: "University of Toronto", short: "U of T", count: "1.1K", students: 1080, region: "North America", latitude: 43.6629, longitude: -79.3957, mapAnchor: { x: 18.8, y: 36.9 }, labelSide: "above", labelOffset: { x: -42, y: -22 }, color: "#1555a4", colorAlt: "#dcecff" },
+  { id: "melbourne", name: "University of Melbourne", short: "UM", count: "1.0K", students: 1000, region: "Asia-Pacific", latitude: -37.7983, longitude: 144.961, mapAnchor: { x: 61.7, y: 68.7 }, labelSide: "left", color: "#174784", colorAlt: "#eaf2ff" },
+  { id: "oxford", name: "University of Oxford", short: "OX", count: "930", students: 930, region: "Europe", latitude: 51.7548, longitude: -1.2544, mapAnchor: { x: 33, y: 36.2 }, labelSide: "left", color: "#1c477a", colorAlt: "#e2edf8" },
+  { id: "nus", name: "National University of Singapore", short: "NUS", count: "920", students: 920, region: "Asia-Pacific", latitude: 1.2966, longitude: 103.7764, mapAnchor: { x: 52.6, y: 52.1 }, labelSide: "left", color: "#ef7c18", colorAlt: "#163b80" },
+  { id: "sydney", name: "University of Sydney", short: "USYD", count: "870", students: 870, region: "Asia-Pacific", latitude: -33.8886, longitude: 151.1873, mapAnchor: { x: 63, y: 66.4 }, labelSide: "right", labelOffset: { x: 2, y: 17 }, color: "#a4142e", colorAlt: "#fff0f2" },
+  { id: "mit", name: "MIT", short: "MIT", count: "820", students: 820, region: "North America", latitude: 42.3601, longitude: -71.0942, mapAnchor: { x: 20.7, y: 37.2 }, labelSide: "right", labelOffset: { x: 8, y: -27 }, color: "#8d2837", colorAlt: "#f4e7e9" },
+  { id: "mcgill", name: "McGill University", short: "MCG", count: "620", students: 620, region: "North America", latitude: 45.5048, longitude: -73.5772, mapAnchor: { x: 19.7, y: 35.5 }, labelSide: "left", labelOffset: { x: -4, y: -4 }, color: "#ba2636", colorAlt: "#ffffff" },
 ];
 
 function Chevron({ direction = "right" }: { direction?: "right" | "down" }) {
@@ -359,7 +419,7 @@ export default function NorthreachMapPage() {
                   height: `${MAP_BOUNDS.bottom - MAP_BOUNDS.top}%`,
                 }}
               >
-                <span>Calibrated map area</span>
+                <span>Illustrated map · regional calibration</span>
               </div>
 
               {LONGITUDE_GUIDES.map((longitude) => (
@@ -405,7 +465,7 @@ export default function NorthreachMapPage() {
                   </output>
                 </>
               ) : (
-                <div className="coordinate-hint">Move across the framed map to inspect coordinates</div>
+                <div className="coordinate-hint">Reference grid is approximate on this illustrated map</div>
               )}
             </div>
           ) : null}
