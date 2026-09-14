@@ -9,6 +9,10 @@ import {
   type CSSProperties,
   type PointerEvent as ReactPointerEvent,
 } from "react";
+import GeoWorldMap, {
+  projectGeoCoordinate,
+  unprojectGeoCoordinate,
+} from "@/components/school/GeoWorldMap";
 import { useSchoolsFeed } from "@/hooks/useSchoolsFeed";
 import type { SchoolListItem } from "@/types/school";
 import "@/components/school/northreach-map.css";
@@ -26,10 +30,6 @@ type MapSchool = {
   region: Exclude<Region, "All Regions">;
   latitude?: number;
   longitude?: number;
-  /** Verified pixel-space anchor on the intentionally distorted illustrated map. */
-  mapAnchor?: { x: number; y: number };
-  /** Screen-space decluttering only; the hotspot anchor stays on the projected coordinate. */
-  markerOffset?: { x?: number; y?: number };
   labelOffset?: { x?: number; y?: number };
   labelSide?: LabelSide;
   color: string;
@@ -39,145 +39,11 @@ type MapSchool = {
 
 const REGIONS: Region[] = ["All Regions", "North America", "Europe", "Asia-Pacific"];
 
-/**
- * Geographic calibration for the supplied illustrated map.
- *
- * Each pair is [real longitude/latitude, image percentage]. Interpolating
- * between geographic control lines gives every school the same projection;
- * individual pins are never nudged away from their real campus coordinates.
- */
-const LONGITUDE_GRID: ReadonlyArray<readonly [number, number]> = [
-  [-180, 2],
-  [-122, 11.5],
-  [-79, 18.8],
-  [-74, 19.8],
-  [0, 33],
-  [104, 53],
-  [116, 56.5],
-  [127, 59.5],
-  [140, 62.2],
-  [151, 62.5],
-  [180, 68],
-];
-
-const LATITUDE_GRID: ReadonlyArray<readonly [number, number]> = [
-  [-60, 76],
-  [-38, 70.5],
-  [-34, 69],
-  [0, 53.5],
-  [35, 40.5],
-  [40, 38.5],
-  [44, 36.8],
-  [52, 34],
-  [75, 23],
-  [90, 18],
-];
-
-/** Regional grids compensate for the illustration stretching Asia and Australia independently. */
-const EAST_ASIA_LONGITUDE_GRID: ReadonlyArray<readonly [number, number]> = [
-  [90, 49.5],
-  [104, 52.6],
-  [116, 55.9],
-  [127, 57.8],
-  [140, 62],
-  [155, 65],
-];
-
-const EAST_ASIA_LATITUDE_GRID: ReadonlyArray<readonly [number, number]> = [
-  [-10, 56.5],
-  [1.3, 52.1],
-  [20, 47.5],
-  [35.7, 43.1],
-  [37.5, 40.5],
-  [40, 40.2],
-  [52, 35.8],
-  [75, 26],
-  [90, 21],
-];
-
-const AUSTRALIA_LONGITUDE_GRID: ReadonlyArray<readonly [number, number]> = [
-  [105, 53],
-  [115, 55.5],
-  [130, 57.4],
-  [145, 61.7],
-  [151, 63],
-  [155, 64],
-  [180, 68],
-];
-
-const AUSTRALIA_LATITUDE_GRID: ReadonlyArray<readonly [number, number]> = [
-  [-60, 75],
-  [-45, 71],
-  [-38, 68.7],
-  [-34, 66.4],
-  [-10, 56.5],
-  [0, 53.5],
-];
-
 const LONGITUDE_GUIDES = [-120, -60, 0, 60, 120];
 const LATITUDE_GUIDES = [60, 30, 0, -30, -60];
 
-const MAP_BOUNDS = {
-  left: LONGITUDE_GRID[0]![1],
-  right: LONGITUDE_GRID[LONGITUDE_GRID.length - 1]![1],
-  top: LATITUDE_GRID[LATITUDE_GRID.length - 1]![1],
-  bottom: LATITUDE_GRID[0]![1],
-};
-
-function interpolateGrid(value: number, grid: ReadonlyArray<readonly [number, number]>): number {
-  const bounded = Math.max(grid[0]![0], Math.min(grid[grid.length - 1]![0], value));
-  for (let index = 1; index < grid.length; index += 1) {
-    const [rightValue, rightPosition] = grid[index]!;
-    const [leftValue, leftPosition] = grid[index - 1]!;
-    if (bounded <= rightValue) {
-      const progress = (bounded - leftValue) / (rightValue - leftValue);
-      return leftPosition + (rightPosition - leftPosition) * progress;
-    }
-  }
-  return grid[grid.length - 1]![1];
-}
-
 function projectSchoolLocation(school: MapSchool): { x: number; y: number } {
-  const longitude = school.longitude ?? 0;
-  const latitude = school.latitude ?? 0;
-
-  if (school.mapAnchor) return school.mapAnchor;
-
-  if (longitude >= 105 && latitude < -10) {
-    return {
-      x: interpolateGrid(longitude, AUSTRALIA_LONGITUDE_GRID),
-      y: interpolateGrid(latitude, AUSTRALIA_LATITUDE_GRID),
-    };
-  }
-
-  if (longitude >= 90 && latitude >= -10) {
-    return {
-      x: interpolateGrid(longitude, EAST_ASIA_LONGITUDE_GRID),
-      y: interpolateGrid(latitude, EAST_ASIA_LATITUDE_GRID),
-    };
-  }
-
-  return {
-    x: interpolateGrid(longitude, LONGITUDE_GRID),
-    y: interpolateGrid(latitude, LATITUDE_GRID),
-  };
-}
-
-function invertGrid(position: number, grid: ReadonlyArray<readonly [number, number]>): number {
-  for (let index = 1; index < grid.length; index += 1) {
-    const [leftValue, leftPosition] = grid[index - 1]!;
-    const [rightValue, rightPosition] = grid[index]!;
-    const segmentStart = Math.min(leftPosition, rightPosition);
-    const segmentEnd = Math.max(leftPosition, rightPosition);
-    if (position >= segmentStart && position <= segmentEnd) {
-      const progress = (position - leftPosition) / (rightPosition - leftPosition);
-      return leftValue + (rightValue - leftValue) * progress;
-    }
-  }
-
-  const first = grid[0]!;
-  const last = grid[grid.length - 1]!;
-  return Math.abs(position - first[1]) <= Math.abs(position - last[1]) ? first[0] : last[0];
+  return projectGeoCoordinate(school.latitude ?? 0, school.longitude ?? 0);
 }
 
 function formatLatitude(latitude: number): string {
@@ -227,21 +93,21 @@ function registeredMapSchool(school: SchoolListItem): MapSchool | null {
 }
 
 const SCHOOLS: MapSchool[] = [
-  { id: "penn-state", name: "Penn State", short: "PS", count: "2.3K", students: 2300, region: "North America", latitude: 40.7982, longitude: -77.8599, mapAnchor: { x: 19.4, y: 38.1 }, labelSide: "left", labelOffset: { x: -3, y: 24 }, color: "#123c88", colorAlt: "#eef4ff", logo: "/images/campus/schools/psu.png" },
-  { id: "snu", name: "SNU", short: "SNU", count: "1.9K", students: 1900, region: "Asia-Pacific", latitude: 37.4599, longitude: 126.9519, mapAnchor: { x: 57.8, y: 40.5 }, labelSide: "right", labelOffset: { x: 2, y: 19 }, color: "#4564a8", colorAlt: "#f4f6ff" },
-  { id: "ucla", name: "UCLA", short: "UCLA", count: "1.8K", students: 1800, region: "North America", latitude: 34.0689, longitude: -118.4452, mapAnchor: { x: 11.9, y: 42 }, labelSide: "left", color: "#1f78bc", colorAlt: "#f5c449", logo: "/images/campus/schools/ucla.svg" },
-  { id: "pku", name: "PKU", short: "PKU", count: "1.5K", students: 1500, region: "Asia-Pacific", latitude: 39.9927, longitude: 116.3054, mapAnchor: { x: 55.9, y: 40.2 }, markerOffset: { x: -5, y: 3 }, labelSide: "left", labelOffset: { y: -9 }, color: "#8d1838", colorAlt: "#fff4f6" },
-  { id: "nyu", name: "NYU", short: "NYU", count: "1.4K", students: 1400, region: "North America", latitude: 40.7295, longitude: -73.9965, mapAnchor: { x: 20.4, y: 38.2 }, labelSide: "right", labelOffset: { x: 3, y: 21 }, color: "#5d2ca8", colorAlt: "#f6f0ff", logo: "/images/campus/schools/nyu.svg" },
-  { id: "tokyo", name: "University of Tokyo", short: "UT", count: "1.3K", students: 1300, region: "Asia-Pacific", latitude: 35.7126, longitude: 139.761, mapAnchor: { x: 62, y: 43.1 }, labelSide: "left", labelOffset: { x: -2, y: 28 }, color: "#dfa800", colorAlt: "#1d62a5" },
-  { id: "tsinghua", name: "Tsinghua", short: "TH", count: "1.2K", students: 1200, region: "Asia-Pacific", latitude: 40.0004, longitude: 116.326, mapAnchor: { x: 55.9, y: 40.2 }, markerOffset: { x: 5, y: -3 }, labelSide: "right", labelOffset: { y: -13 }, color: "#c86ebc", colorAlt: "#fff4ff" },
-  { id: "berkeley", name: "UC Berkeley", short: "CAL", count: "1.1K", students: 1100, region: "North America", latitude: 37.8719, longitude: -122.2585, mapAnchor: { x: 11.3, y: 39.2 }, labelSide: "left", color: "#9b6c10", colorAlt: "#f2c84b", logo: "/images/campus/schools/berkeley.svg" },
-  { id: "toronto", name: "University of Toronto", short: "U of T", count: "1.1K", students: 1080, region: "North America", latitude: 43.6629, longitude: -79.3957, mapAnchor: { x: 18.8, y: 36.9 }, labelSide: "above", labelOffset: { x: -42, y: -22 }, color: "#1555a4", colorAlt: "#dcecff" },
-  { id: "melbourne", name: "University of Melbourne", short: "UM", count: "1.0K", students: 1000, region: "Asia-Pacific", latitude: -37.7983, longitude: 144.961, mapAnchor: { x: 61.7, y: 68.7 }, labelSide: "left", color: "#174784", colorAlt: "#eaf2ff" },
-  { id: "oxford", name: "University of Oxford", short: "OX", count: "930", students: 930, region: "Europe", latitude: 51.7548, longitude: -1.2544, mapAnchor: { x: 33, y: 36.2 }, labelSide: "left", color: "#1c477a", colorAlt: "#e2edf8" },
-  { id: "nus", name: "National University of Singapore", short: "NUS", count: "920", students: 920, region: "Asia-Pacific", latitude: 1.2966, longitude: 103.7764, mapAnchor: { x: 52.6, y: 52.1 }, labelSide: "left", color: "#ef7c18", colorAlt: "#163b80" },
-  { id: "sydney", name: "University of Sydney", short: "USYD", count: "870", students: 870, region: "Asia-Pacific", latitude: -33.8886, longitude: 151.1873, mapAnchor: { x: 63, y: 66.4 }, labelSide: "right", labelOffset: { x: 2, y: 17 }, color: "#a4142e", colorAlt: "#fff0f2" },
-  { id: "mit", name: "MIT", short: "MIT", count: "820", students: 820, region: "North America", latitude: 42.3601, longitude: -71.0942, mapAnchor: { x: 20.7, y: 37.2 }, labelSide: "right", labelOffset: { x: 8, y: -27 }, color: "#8d2837", colorAlt: "#f4e7e9" },
-  { id: "mcgill", name: "McGill University", short: "MCG", count: "620", students: 620, region: "North America", latitude: 45.5048, longitude: -73.5772, mapAnchor: { x: 19.7, y: 35.5 }, labelSide: "left", labelOffset: { x: -4, y: -4 }, color: "#ba2636", colorAlt: "#ffffff" },
+  { id: "penn-state", name: "Penn State", short: "PS", count: "2.3K", students: 2300, region: "North America", latitude: 40.7982, longitude: -77.8599, labelSide: "left", labelOffset: { x: -3, y: 24 }, color: "#123c88", colorAlt: "#eef4ff", logo: "/images/campus/schools/psu.png" },
+  { id: "snu", name: "SNU", short: "SNU", count: "1.9K", students: 1900, region: "Asia-Pacific", latitude: 37.4599, longitude: 126.9519, labelSide: "right", labelOffset: { x: 2, y: 19 }, color: "#4564a8", colorAlt: "#f4f6ff" },
+  { id: "ucla", name: "UCLA", short: "UCLA", count: "1.8K", students: 1800, region: "North America", latitude: 34.0689, longitude: -118.4452, labelSide: "left", color: "#1f78bc", colorAlt: "#f5c449", logo: "/images/campus/schools/ucla.svg" },
+  { id: "pku", name: "PKU", short: "PKU", count: "1.5K", students: 1500, region: "Asia-Pacific", latitude: 39.9927, longitude: 116.3054, labelSide: "left", labelOffset: { y: -9 }, color: "#8d1838", colorAlt: "#fff4f6" },
+  { id: "nyu", name: "NYU", short: "NYU", count: "1.4K", students: 1400, region: "North America", latitude: 40.7295, longitude: -73.9965, labelSide: "right", labelOffset: { x: 3, y: 21 }, color: "#5d2ca8", colorAlt: "#f6f0ff", logo: "/images/campus/schools/nyu.svg" },
+  { id: "tokyo", name: "University of Tokyo", short: "UT", count: "1.3K", students: 1300, region: "Asia-Pacific", latitude: 35.7126, longitude: 139.761, labelSide: "left", labelOffset: { x: -2, y: 28 }, color: "#dfa800", colorAlt: "#1d62a5" },
+  { id: "tsinghua", name: "Tsinghua", short: "TH", count: "1.2K", students: 1200, region: "Asia-Pacific", latitude: 40.0004, longitude: 116.326, labelSide: "right", labelOffset: { y: -13 }, color: "#c86ebc", colorAlt: "#fff4ff" },
+  { id: "berkeley", name: "UC Berkeley", short: "CAL", count: "1.1K", students: 1100, region: "North America", latitude: 37.8719, longitude: -122.2585, labelSide: "left", color: "#9b6c10", colorAlt: "#f2c84b", logo: "/images/campus/schools/berkeley.svg" },
+  { id: "toronto", name: "University of Toronto", short: "U of T", count: "1.1K", students: 1080, region: "North America", latitude: 43.6629, longitude: -79.3957, labelSide: "above", labelOffset: { x: -42, y: -22 }, color: "#1555a4", colorAlt: "#dcecff" },
+  { id: "melbourne", name: "University of Melbourne", short: "UM", count: "1.0K", students: 1000, region: "Asia-Pacific", latitude: -37.7983, longitude: 144.961, labelSide: "left", color: "#174784", colorAlt: "#eaf2ff" },
+  { id: "oxford", name: "University of Oxford", short: "OX", count: "930", students: 930, region: "Europe", latitude: 51.7548, longitude: -1.2544, labelSide: "left", color: "#1c477a", colorAlt: "#e2edf8" },
+  { id: "nus", name: "National University of Singapore", short: "NUS", count: "920", students: 920, region: "Asia-Pacific", latitude: 1.2966, longitude: 103.7764, labelSide: "left", color: "#ef7c18", colorAlt: "#163b80" },
+  { id: "sydney", name: "University of Sydney", short: "USYD", count: "870", students: 870, region: "Asia-Pacific", latitude: -33.8886, longitude: 151.1873, labelSide: "right", labelOffset: { x: 2, y: 17 }, color: "#a4142e", colorAlt: "#fff0f2" },
+  { id: "mit", name: "MIT", short: "MIT", count: "820", students: 820, region: "North America", latitude: 42.3601, longitude: -71.0942, labelSide: "right", labelOffset: { x: 8, y: -27 }, color: "#8d2837", colorAlt: "#f4e7e9" },
+  { id: "mcgill", name: "McGill University", short: "MCG", count: "620", students: 620, region: "North America", latitude: 45.5048, longitude: -73.5772, labelSide: "left", labelOffset: { x: -4, y: -4 }, color: "#ba2636", colorAlt: "#ffffff" },
 ];
 
 function Chevron({ direction = "right" }: { direction?: "right" | "down" }) {
@@ -334,28 +200,23 @@ export default function NorthreachMapPage() {
     const bounds = event.currentTarget.getBoundingClientRect();
     const x = ((event.clientX - bounds.left) / bounds.width) * 100;
     const y = ((event.clientY - bounds.top) / bounds.height) * 100;
-    if (x < MAP_BOUNDS.left || x > MAP_BOUNDS.right || y < MAP_BOUNDS.top || y > MAP_BOUNDS.bottom) {
+    if (x < 0 || x > 100 || y < 0 || y > 100) {
       setCursorCoordinate(null);
       return;
     }
+    const coordinate = unprojectGeoCoordinate(x, y);
     setCursorCoordinate({
       x,
       y,
-      latitude: invertGrid(y, LATITUDE_GRID),
-      longitude: invertGrid(x, LONGITUDE_GRID),
+      latitude: coordinate.latitude,
+      longitude: coordinate.longitude,
     });
   }
 
   return (
     <div className="nr">
       <main className="atlas-shell">
-        <section
-          className="map-panel"
-          aria-label="Interactive global school map"
-          onPointerMove={inspectCoordinate}
-          onPointerDown={inspectCoordinate}
-          onPointerLeave={() => setCursorCoordinate(null)}
-        >
+        <section className="map-panel" aria-label="Interactive global school map">
           <div className="map-shade" aria-hidden="true" />
 
           <div className="schools-intro">
@@ -408,18 +269,20 @@ export default function NorthreachMapPage() {
             </div>
           </div>
 
-          {coordinateGuide ? (
-            <div className="coordinate-guide" aria-hidden="true">
+          <div
+            className="geo-map-stage"
+            onPointerMove={inspectCoordinate}
+            onPointerDown={inspectCoordinate}
+            onPointerLeave={() => setCursorCoordinate(null)}
+          >
+            <GeoWorldMap />
+
+            {coordinateGuide ? (
+              <div className="coordinate-guide" aria-hidden="true">
               <div
                 className="coordinate-frame"
-                style={{
-                  left: `${MAP_BOUNDS.left}%`,
-                  top: `${MAP_BOUNDS.top}%`,
-                  width: `${MAP_BOUNDS.right - MAP_BOUNDS.left}%`,
-                  height: `${MAP_BOUNDS.bottom - MAP_BOUNDS.top}%`,
-                }}
               >
-                <span>Illustrated map · regional calibration</span>
+                <span>Geographic map · exact coordinates</span>
               </div>
 
               {LONGITUDE_GUIDES.map((longitude) => (
@@ -428,9 +291,9 @@ export default function NorthreachMapPage() {
                   className="coordinate-line longitude-line"
                   style={
                     {
-                      "--guide-position": `${interpolateGrid(longitude, LONGITUDE_GRID)}%`,
-                      "--guide-start": `${MAP_BOUNDS.top}%`,
-                      "--guide-size": `${MAP_BOUNDS.bottom - MAP_BOUNDS.top}%`,
+                      "--guide-position": `${projectGeoCoordinate(0, longitude).x}%`,
+                      "--guide-start": "0%",
+                      "--guide-size": "100%",
                     } as CSSProperties
                   }
                 >
@@ -444,9 +307,9 @@ export default function NorthreachMapPage() {
                   className="coordinate-line latitude-line"
                   style={
                     {
-                      "--guide-position": `${interpolateGrid(latitude, LATITUDE_GRID)}%`,
-                      "--guide-start": `${MAP_BOUNDS.left}%`,
-                      "--guide-size": `${MAP_BOUNDS.right - MAP_BOUNDS.left}%`,
+                      "--guide-position": `${projectGeoCoordinate(latitude, 0).y}%`,
+                      "--guide-start": "0%",
+                      "--guide-size": "100%",
                     } as CSSProperties
                   }
                 >
@@ -461,47 +324,46 @@ export default function NorthreachMapPage() {
                   <output className="coordinate-readout">
                     <span>{formatLatitude(cursorCoordinate.latitude)}</span>
                     <span>{formatLongitude(cursorCoordinate.longitude)}</span>
-                    <small>image {cursorCoordinate.x.toFixed(2)}%, {cursorCoordinate.y.toFixed(2)}%</small>
+                    <small>map {cursorCoordinate.x.toFixed(2)}%, {cursorCoordinate.y.toFixed(2)}%</small>
                   </output>
                 </>
               ) : (
-                <div className="coordinate-hint">Reference grid is approximate on this illustrated map</div>
+                <div className="coordinate-hint">Pins and land use the same geographic projection</div>
               )}
-            </div>
-          ) : null}
+              </div>
+            ) : null}
 
-          <div className="hotspot-layer">
-            {mapSchools.map((school) => {
-              const point = projectSchoolLocation(school);
-              const style = {
-                "--x": `${point.x}%`,
-                "--y": `${point.y}%`,
-                "--marker-x": `${school.markerOffset?.x ?? 0}px`,
-                "--marker-y": `${school.markerOffset?.y ?? 0}px`,
-                "--label-x": `${school.labelOffset?.x ?? 0}px`,
-                "--label-y": `${school.labelOffset?.y ?? 0}px`,
-              } as CSSProperties;
-              return (
-                <button
-                  key={school.id}
-                  type="button"
-                  className={`hotspot label-${school.labelSide ?? "right"}${selectedId === school.id ? " active" : ""}`}
-                  style={style}
-                  data-latitude={school.latitude}
-                  data-longitude={school.longitude}
-                  aria-label={`${school.name}, ${school.countDetail ?? `${school.count} student creators`}`}
-                  aria-pressed={selectedId === school.id}
-                  onClick={() => chooseSchool(school.id)}
-                >
-                  <span className="pin-halo" aria-hidden="true" />
-                  <span className="pin-core" aria-hidden="true" />
-                  <span className="hotspot-label">
-                    <strong>{school.name}</strong>
-                    <small>{school.count}</small>
-                  </span>
-                </button>
-              );
-            })}
+            <div className="hotspot-layer">
+              {mapSchools.map((school) => {
+                const point = projectSchoolLocation(school);
+                const style = {
+                  "--x": `${point.x}%`,
+                  "--y": `${point.y}%`,
+                  "--label-x": `${school.labelOffset?.x ?? 0}px`,
+                  "--label-y": `${school.labelOffset?.y ?? 0}px`,
+                } as CSSProperties;
+                return (
+                  <button
+                    key={school.id}
+                    type="button"
+                    className={`hotspot label-${school.labelSide ?? "right"}${selectedId === school.id ? " active" : ""}`}
+                    style={style}
+                    data-latitude={school.latitude}
+                    data-longitude={school.longitude}
+                    aria-label={`${school.name}, ${school.countDetail ?? `${school.count} student creators`}`}
+                    aria-pressed={selectedId === school.id}
+                    onClick={() => chooseSchool(school.id)}
+                  >
+                    <span className="pin-halo" aria-hidden="true" />
+                    <span className="pin-core" aria-hidden="true" />
+                    <span className="hotspot-label">
+                      <strong>{school.name}</strong>
+                      <small>{school.count}</small>
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           <aside className="legend" aria-label="Student creator legend">
