@@ -15,6 +15,11 @@ import { MOCKUP_CAMPUS } from "@/lib/mockupCampusSpec";
 import { MOCKUP_HOME } from "@/lib/mockupHomeSpec";
 import { schoolPosterGradient, schoolSeasonDelta, schoolStudentCount } from "@/lib/school-brand";
 import type { SchoolListItem } from "@/types/school";
+import EmptyState from "@/components/ui/EmptyState";
+import { useAuth } from "@/context/AuthContext";
+import { UPLOAD_HREF } from "@/lib/appNav";
+import { DEMO_MODE } from "@/lib/demoMode";
+import { plural } from "@/lib/i18nPlural";
 
 const MEDAL_COLORS = ["#E9C16A", "#D7D7DE", "#D79A63"] as const;
 const PODIUM_ORDER = [1, 0, 2] as const;
@@ -66,8 +71,8 @@ function SchoolPodium({ schools, t }: { schools: SchoolListItem[]; t: (k: string
                 <p className="text-[13px] font-semibold text-white truncate max-w-[140px] group-hover:text-white">
                   {school.name}
                 </p>
-                <p className="text-[11px] text-white/45 mt-0.5">
-                  {t("schools.workCount", { count: school.workCount ?? 0 })}
+                <p className="text-small text-ink-3 mt-0.5">
+                  {plural(t, "ui.schools.workCount", school.workCount ?? 0)}
                 </p>
               </div>
               <div
@@ -97,18 +102,19 @@ function SectionLabelInline({ children }: { children: React.ReactNode }) {
 
 function SchoolRankedTable({ schools, t }: { schools: SchoolListItem[]; t: (k: string, v?: Record<string, string | number>) => string }) {
   if (schools.length === 0) return null;
+  const gridCols = DEMO_MODE ? "grid-cols-[40px_1fr_70px_70px_56px]" : "grid-cols-[40px_1fr_80px]";
   return (
     <section>
       <div className={MOCKUP_CAMPUS.sectionHeaderRow}>
         <SectionLabelInline>{t("schools.contendersTitle")}</SectionLabelInline>
       </div>
       <div className="rounded-2xl border border-white/[0.08] overflow-hidden">
-        <div className="grid grid-cols-[40px_1fr_70px_70px_56px] items-center gap-3 px-4 py-2.5 border-b border-white/[0.06] text-[11px] uppercase tracking-wide text-white/35">
+        <div className={`grid ${gridCols} items-center gap-3 px-4 py-2.5 border-b border-line text-micro uppercase text-ink-4`}>
           <span>{t("schools.rankColumn")}</span>
           <span>{t("schools.schoolColumn")}</span>
           <span className="text-right">{t("schools.worksColumn")}</span>
-          <span className="text-right">{t("schools.studentsColumn")}</span>
-          <span className="text-right">{t("schools.changeColumn")}</span>
+          {DEMO_MODE ? <span className="text-right">{t("schools.studentsColumn")}</span> : null}
+          {DEMO_MODE ? <span className="text-right">{t("schools.changeColumn")}</span> : null}
         </div>
         {schools.map((school, i) => {
           const delta = schoolSeasonDelta(school.id);
@@ -116,20 +122,24 @@ function SchoolRankedTable({ schools, t }: { schools: SchoolListItem[]; t: (k: s
             <Link
               key={school.id}
               href={`/school/${school.id}`}
-              className="grid grid-cols-[40px_1fr_70px_70px_56px] items-center gap-3 px-4 py-3 border-b border-white/[0.06] last:border-b-0 hover:bg-white/[0.02] transition"
+              className={`grid ${gridCols} items-center gap-3 px-4 py-3 border-b border-line last:border-b-0 hover:bg-white/[0.02] transition`}
             >
               <span className="font-serif text-lg text-white/40">{i + 1}</span>
               <span className="flex items-center gap-3 min-w-0">
                 <SchoolMark school={school} sizeClass="w-8 h-8" />
-                <span className="text-[13.5px] font-medium text-white truncate">{school.name}</span>
+                <span className="text-small font-medium text-ink truncate">{school.name}</span>
               </span>
-              <span className="text-right text-[13px] text-white/70 tabular-nums">{school.workCount ?? 0}</span>
-              <span className="text-right text-[13px] text-white/70 tabular-nums">
-                {schoolStudentCount(school.id, school.workCount ?? 0)}
-              </span>
-              <span className={`text-right text-[12.5px] tabular-nums ${delta.up ? "text-xiio-success" : "text-white/40"}`}>
-                {delta.label}
-              </span>
+              <span className="text-right text-small text-ink-2 tabular-nums">{school.workCount ?? 0}</span>
+              {DEMO_MODE ? (
+                <span className="text-right text-small text-ink-2 tabular-nums">
+                  {schoolStudentCount(school.id, school.workCount ?? 0)}
+                </span>
+              ) : null}
+              {DEMO_MODE ? (
+                <span className={`text-right text-small tabular-nums ${delta.up ? "text-xiio-success" : "text-ink-4"}`}>
+                  {delta.label}
+                </span>
+              ) : null}
             </Link>
           );
         })}
@@ -140,6 +150,7 @@ function SchoolRankedTable({ schools, t }: { schools: SchoolListItem[]; t: (k: s
 
 export default function SchoolsDirectoryPage({ schools: initialSchools }: { schools?: SchoolListItem[] }) {
   const { t } = useTranslations();
+  const { user } = useAuth();
   const { items: schools, loading } = useSchoolsFeed(50, initialSchools);
   const { rgbTuple, overlayEnabled, heroStyle, themeReady } = useHomeHeroTheme();
   const {
@@ -204,7 +215,15 @@ export default function SchoolsDirectoryPage({ schools: initialSchools }: { scho
           <p className="text-white/45">{t("schools.empty")}</p>
         ) : (
           <>
-            <SchoolPodium schools={schools} t={t} />
+            {schools.length >= 3 ? (
+              <SchoolPodium schools={schools} t={t} />
+            ) : (
+              <EmptyState
+                title={t("ui.schools.podiumPendingTitle")}
+                body={t("ui.schools.podiumPendingBody")}
+                action={{ href: user ? UPLOAD_HREF : "/login", label: t("ui.schools.uploadCta") }}
+              />
+            )}
             <SchoolRankedTable schools={schools} t={t} />
           </>
         )}

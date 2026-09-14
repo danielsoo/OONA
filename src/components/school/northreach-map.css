@@ -1,0 +1,521 @@
+.nr {
+  color-scheme: dark;
+  --ink: #f2f5fb;
+  --muted: rgba(205, 217, 235, 0.67);
+  --line: rgba(133, 186, 225, 0.19);
+  min-height: 100svh;
+  overflow: hidden;
+  background: #020a12;
+  color: var(--ink);
+  font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.nr *, .nr *::before, .nr *::after { box-sizing: border-box; }
+.nr button { font: inherit; }
+
+.nr .atlas-shell {
+  position: relative;
+  min-height: max(100svh, 760px);
+  overflow: hidden;
+  background-color: #020a12;
+  background-image: url("/images/schools/oona-world-map-v1.png");
+  background-repeat: no-repeat;
+  background-position: center top;
+  /* Keep percentage-based school coordinates locked to the illustrated land. */
+  background-size: 100% 100%;
+  isolation: isolate;
+}
+
+.nr .atlas-shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(0, 8, 15, 0.2) 0%, transparent 19%, transparent 76%, rgba(1, 7, 12, 0.18) 100%),
+    radial-gradient(ellipse at 75% 52%, transparent 24%, rgba(1, 7, 13, 0.12) 72%, rgba(1, 6, 11, 0.32) 100%);
+}
+
+.nr .map-panel {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  container-type: inline-size;
+}
+
+.nr .map-shade {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(1, 8, 14, 0.05) 0%, transparent 55%, rgba(2, 9, 16, 0.18) 76%, rgba(2, 8, 14, 0.36) 100%),
+    linear-gradient(180deg, rgba(1, 8, 14, 0.2) 0%, transparent 17%);
+}
+
+.nr .schools-intro {
+  position: absolute;
+  z-index: 10;
+  top: clamp(118px, 13.4vh, 142px);
+  left: clamp(36px, 4.8vw, 82px);
+  max-width: min(560px, 40vw);
+  pointer-events: none;
+}
+
+.nr .schools-intro h1 {
+  margin: 0;
+  color: #f1f0f5;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(43px, 3.7vw, 62px);
+  font-weight: 400;
+  letter-spacing: -0.035em;
+  line-height: 0.98;
+  text-shadow: 0 6px 34px rgba(0, 0, 0, 0.45);
+}
+
+.nr .schools-intro > p {
+  margin: 13px 0 19px;
+  color: rgba(221, 226, 240, 0.78);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(18px, 1.48vw, 25px);
+  letter-spacing: -0.015em;
+  text-shadow: 0 4px 24px rgba(0, 0, 0, 0.7);
+}
+
+.nr .map-controls { display: flex; align-items: center; gap: 9px; pointer-events: auto; }
+.nr .region-filter { position: relative; width: 168px; }
+.nr .region-button {
+  width: 168px;
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 18px;
+  border: 1px solid rgba(104, 177, 229, 0.47);
+  border-radius: 999px;
+  outline: none;
+  background: rgba(2, 11, 19, 0.52);
+  color: #f1f4fa;
+  font-size: 13px;
+  cursor: pointer;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.015), 0 12px 30px rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(12px);
+  transition: border-color 180ms ease, background 180ms ease;
+}
+.nr .region-button:hover, .nr .region-button:focus-visible { border-color: rgba(146, 213, 255, 0.8); background: rgba(6, 23, 37, 0.7); }
+.nr .nr-chevron { width: 8px; height: 8px; border-top: 1.2px solid currentColor; border-right: 1.2px solid currentColor; transform: rotate(45deg); }
+.nr .nr-chevron.down { margin-top: -4px; transform: rotate(135deg); }
+
+.nr .region-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  width: 206px;
+  overflow: hidden;
+  padding: 6px;
+  border: 1px solid rgba(125, 186, 226, 0.22);
+  border-radius: 12px;
+  background: rgba(2, 13, 22, 0.95);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.42);
+  backdrop-filter: blur(20px);
+}
+.nr .region-menu button {
+  width: 100%;
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 11px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: rgba(228, 237, 248, 0.73);
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+}
+.nr .region-menu button:hover, .nr .region-menu button.selected { background: rgba(93, 169, 229, 0.1); color: white; }
+.nr .region-menu button span { color: #8fd7ff; }
+
+.nr .coordinate-toggle {
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 15px;
+  border: 1px solid rgba(104, 177, 229, 0.26);
+  border-radius: 999px;
+  background: rgba(2, 11, 19, 0.46);
+  color: rgba(222, 232, 244, 0.68);
+  font-size: 12px;
+  white-space: nowrap;
+  cursor: pointer;
+  backdrop-filter: blur(12px);
+  transition: border-color 180ms ease, background 180ms ease, color 180ms ease;
+}
+.nr .coordinate-toggle:hover, .nr .coordinate-toggle:focus-visible { outline: none; border-color: rgba(146, 213, 255, 0.68); color: #f3f8ff; }
+.nr .coordinate-toggle.active { border-color: rgba(111, 200, 255, 0.62); background: rgba(7, 38, 61, 0.7); color: #f3f8ff; }
+.nr .coordinate-toggle-dot { width: 7px; height: 7px; border-radius: 50%; background: #7b8da0; box-shadow: 0 0 0 transparent; }
+.nr .coordinate-toggle.active .coordinate-toggle-dot { background: #82d8ff; box-shadow: 0 0 10px rgba(71, 180, 255, 0.95); }
+
+.nr .coordinate-guide { position: absolute; inset: 0; z-index: 3; overflow: hidden; pointer-events: none; }
+.nr .coordinate-frame {
+  position: absolute;
+  border: 1px dashed rgba(114, 202, 255, 0.56);
+  background: rgba(42, 135, 207, 0.018);
+  box-shadow: inset 0 0 44px rgba(47, 146, 219, 0.035);
+}
+.nr .coordinate-frame > span {
+  position: absolute;
+  left: 8px;
+  top: 7px;
+  padding: 4px 7px;
+  border: 1px solid rgba(112, 195, 244, 0.2);
+  border-radius: 5px;
+  background: rgba(2, 13, 22, 0.7);
+  color: rgba(172, 218, 247, 0.72);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.nr .coordinate-line { position: absolute; color: rgba(154, 211, 246, 0.5); }
+.nr .coordinate-line::before { content: ""; position: absolute; border-color: rgba(102, 184, 235, 0.22); border-style: dotted; }
+.nr .coordinate-line > span { position: absolute; padding: 2px 4px; border-radius: 3px; background: rgba(1, 12, 20, 0.66); font-size: 9px; line-height: 1; white-space: nowrap; }
+.nr .longitude-line { left: var(--guide-position); top: var(--guide-start); height: var(--guide-size); }
+.nr .longitude-line::before { inset: 0 auto 0 0; border-width: 0 0 0 1px; }
+.nr .longitude-line > span { left: 5px; top: 3px; }
+.nr .latitude-line { top: var(--guide-position); left: var(--guide-start); width: var(--guide-size); }
+.nr .latitude-line::before { inset: 0 0 auto; border-width: 1px 0 0; }
+.nr .latitude-line > span { right: 5px; top: 5px; }
+.nr .coordinate-crosshair { position: absolute; z-index: 2; background: rgba(190, 231, 255, 0.55); box-shadow: 0 0 8px rgba(65, 174, 255, 0.45); }
+.nr .coordinate-crosshair.vertical { top: 18%; bottom: 24%; width: 1px; }
+.nr .coordinate-crosshair.horizontal { left: 2%; right: 32%; height: 1px; }
+.nr .coordinate-readout, .nr .coordinate-hint {
+  position: absolute;
+  z-index: 3;
+  left: 50%;
+  bottom: 27px;
+  transform: translateX(-50%);
+  border: 1px solid rgba(114, 195, 243, 0.3);
+  border-radius: 999px;
+  background: rgba(2, 13, 22, 0.84);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.32);
+  color: rgba(234, 245, 255, 0.92);
+  backdrop-filter: blur(14px);
+}
+.nr .coordinate-readout { display: flex; align-items: center; gap: 9px; padding: 8px 14px; font-size: 11px; }
+.nr .coordinate-readout span + span { padding-left: 9px; border-left: 1px solid rgba(119, 187, 230, 0.2); }
+.nr .coordinate-readout small { color: rgba(174, 199, 222, 0.55); font-size: 9px; }
+.nr .coordinate-hint { padding: 7px 12px; color: rgba(185, 207, 226, 0.6); font-size: 10px; }
+
+.nr .hotspot-layer { position: absolute; inset: 0; z-index: 4; pointer-events: none; }
+.nr .hotspot {
+  --dot: clamp(9px, 0.9cqw, 15px);
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: var(--dot);
+  height: var(--dot);
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  outline: none;
+  background: transparent;
+  color: #edf7ff;
+  cursor: pointer;
+  pointer-events: auto;
+  transform: translate(calc(-50% + var(--marker-x, 0px)), calc(-50% + var(--marker-y, 0px)));
+  filter: drop-shadow(0 0 11px rgba(68, 162, 255, 0.95));
+}
+
+.nr .pin-core {
+  position: absolute;
+  inset: 0;
+  border: 1px solid rgba(223, 249, 255, 0.95);
+  border-radius: 50%;
+  background: radial-gradient(circle at 42% 36%, #f3fdff 0 19%, #67caff 29%, #2383e5 58%, rgba(22, 94, 195, 0.35) 73%, transparent 77%);
+  box-shadow: 0 0 7px #72d4ff, 0 0 21px rgba(41, 137, 255, 0.95), 0 0 42px rgba(38, 119, 255, 0.58);
+  transition: transform 180ms ease, filter 180ms ease;
+}
+
+.nr .pin-halo {
+  position: absolute;
+  inset: calc(var(--dot) * -0.72);
+  border: 1px solid rgba(75, 167, 255, 0.22);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(55, 155, 255, 0.17), transparent 67%);
+  animation: markerPulse 2.8s ease-out infinite;
+}
+
+.nr .hotspot:hover .pin-core, .nr .hotspot:focus-visible .pin-core, .nr .hotspot.active .pin-core { transform: scale(1.35); filter: brightness(1.35); }
+.nr .hotspot.active .pin-halo { border-color: rgba(163, 226, 255, 0.72); animation-duration: 1.55s; }
+
+.nr .hotspot-label {
+  position: absolute;
+  width: max-content;
+  max-width: 165px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  color: rgba(246, 250, 255, 0.94);
+  font-size: clamp(11px, 0.86vw, 14px);
+  line-height: 1.14;
+  text-align: left;
+  text-shadow: 0 2px 8px #000, 0 4px 16px #000;
+  transition: color 180ms ease, transform 180ms ease;
+}
+.nr .hotspot-label strong { font-weight: 500; }
+.nr .hotspot-label small { color: rgba(221, 232, 245, 0.74); font-size: 0.95em; }
+.nr .label-right .hotspot-label { left: calc(100% + 13px); top: 50%; transform: translate(var(--label-x, 0px), calc(-48% + var(--label-y, 0px))); }
+.nr .label-left .hotspot-label { right: calc(100% + 13px); top: 50%; transform: translate(var(--label-x, 0px), calc(-48% + var(--label-y, 0px))); text-align: right; }
+.nr .label-above .hotspot-label { left: 50%; bottom: calc(100% + 10px); transform: translate(calc(-50% + var(--label-x, 0px)), var(--label-y, 0px)); text-align: center; }
+.nr .label-below .hotspot-label { left: 50%; top: calc(100% + 10px); transform: translate(calc(-50% + var(--label-x, 0px)), var(--label-y, 0px)); text-align: center; }
+.nr .hotspot:hover .hotspot-label, .nr .hotspot.active .hotspot-label { color: white; }
+
+@keyframes markerPulse {
+  0% { opacity: 0.8; transform: scale(0.72); }
+  70%, 100% { opacity: 0; transform: scale(1.42); }
+}
+
+.nr .legend {
+  position: absolute;
+  z-index: 8;
+  left: clamp(28px, 2.6vw, 44px);
+  bottom: clamp(28px, 5.8vh, 58px);
+  width: 212px;
+  padding: 14px 17px 13px;
+  border: 1px solid rgba(129, 182, 220, 0.28);
+  border-radius: 10px;
+  background: rgba(2, 11, 19, 0.54);
+  box-shadow: 0 20px 55px rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(10px);
+}
+.nr .legend p { margin: 0 0 9px; color: rgba(194, 207, 224, 0.58); font-size: 11px; }
+.nr .legend-line { height: 33px; display: flex; align-items: center; gap: 13px; color: rgba(208, 217, 231, 0.65); font-size: 11px; }
+.nr .legend-orb { display: block; flex: 0 0 auto; border: 1px solid rgba(88, 166, 243, 0.78); border-radius: 50%; background: linear-gradient(145deg, rgba(29, 111, 199, 0.15), rgba(39, 101, 186, 0.32)); box-shadow: inset 0 0 20px rgba(62, 146, 242, 0.09); }
+.nr .orb-xl { width: 54px; height: 54px; }
+.nr .orb-lg { width: 43px; height: 43px; margin-left: 5px; }
+.nr .orb-md { width: 32px; height: 32px; margin-left: 11px; }
+.nr .orb-sm { width: 23px; height: 23px; margin-left: 15px; }
+
+.nr .ranking-rail {
+  position: absolute;
+  z-index: 12;
+  top: clamp(112px, 12.4vh, 132px);
+  right: clamp(27px, 2.45vw, 42px);
+  width: clamp(340px, 23.3vw, 390px);
+  max-height: calc(100svh - clamp(150px, 17vh, 178px));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid rgba(133, 191, 232, 0.34);
+  border-radius: 14px;
+  background: linear-gradient(155deg, rgba(5, 18, 29, 0.78), rgba(2, 11, 19, 0.86));
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.025);
+  backdrop-filter: blur(17px) saturate(1.15);
+}
+
+.nr .ranking-head { flex: 0 0 auto; padding: 26px 23px 18px; }
+.nr .ranking-head h2 {
+  margin: 0;
+  color: #edf1f8;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(29px, 2.1vw, 36px);
+  font-weight: 400;
+  letter-spacing: -0.035em;
+  line-height: 1;
+}
+
+.nr .ranking-list { min-height: 0; overflow-y: auto; margin: 0 20px; padding: 0; list-style: none; border-top: 1px solid rgba(139, 180, 212, 0.17); scrollbar-width: thin; scrollbar-color: rgba(106, 155, 193, 0.3) transparent; }
+.nr .ranking-list li { border-bottom: 1px solid rgba(139, 180, 212, 0.16); }
+.nr .rank-row {
+  width: 100%;
+  min-height: clamp(42px, 5.7vh, 53px);
+  display: grid;
+  grid-template-columns: 27px 43px minmax(0, 1fr) 46px 11px;
+  align-items: center;
+  gap: 7px;
+  padding: 0 2px;
+  border: 0;
+  background: transparent;
+  color: #e9edf4;
+  cursor: pointer;
+  text-align: left;
+  transition: background 160ms ease, padding 160ms ease;
+}
+.nr .rank-row:hover, .nr .rank-row:focus-visible, .nr .rank-row.active { outline: none; background: linear-gradient(90deg, transparent, rgba(77, 151, 220, 0.1), transparent); }
+.nr .rank-row.active { padding-left: 5px; }
+.nr .rank-number { color: rgba(237, 241, 248, 0.92); font-size: 13px; text-align: left; }
+.nr .school-crest {
+  --crest-primary: #245b9b;
+  --crest-secondary: #edf5ff;
+  position: relative;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(235, 245, 255, 0.63);
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 29%, color-mix(in srgb, var(--crest-primary), white 18%), var(--crest-primary) 70%);
+  box-shadow: 0 0 15px color-mix(in srgb, var(--crest-primary), transparent 40%);
+}
+.nr .crest-image { object-fit: contain; padding: 3px; }
+.nr .crest-ring { position: absolute; inset: 4px; border: 1px solid color-mix(in srgb, var(--crest-secondary), transparent 38%); border-radius: 50%; }
+.nr .crest-ring::before, .nr .crest-ring::after { content: ""; position: absolute; left: 50%; top: 50%; width: 1px; height: 20px; background: color-mix(in srgb, var(--crest-secondary), transparent 55%); transform-origin: center; }
+.nr .crest-ring::before { transform: translate(-50%, -50%) rotate(45deg); }
+.nr .crest-ring::after { transform: translate(-50%, -50%) rotate(-45deg); }
+.nr .crest-mark { position: relative; z-index: 1; max-width: 27px; overflow: hidden; color: var(--crest-secondary); font-family: Georgia, serif; font-size: 8px; font-weight: 700; letter-spacing: -0.05em; text-align: center; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.55); }
+.nr .rank-school-info { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.nr .rank-name { overflow: hidden; color: rgba(245, 247, 251, 0.91); font-size: 13px; white-space: nowrap; text-overflow: ellipsis; }
+.nr .rank-coordinate { overflow: hidden; color: rgba(137, 190, 226, 0.57); font-size: 9px; font-variant-numeric: tabular-nums; white-space: nowrap; text-overflow: ellipsis; }
+.nr .rank-count { color: rgba(206, 216, 231, 0.67); font-size: 12px; text-align: right; }
+.nr .rank-row .nr-chevron { justify-self: end; color: rgba(214, 224, 237, 0.66); }
+
+.nr .view-all {
+  flex: 0 0 auto;
+  min-height: 46px;
+  margin: 15px 22px 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  border: 1px solid rgba(112, 184, 230, 0.42);
+  border-radius: 10px;
+  background: rgba(4, 18, 29, 0.42);
+  color: #f4f7fb;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 180ms ease, border-color 180ms ease, transform 180ms ease;
+}
+.nr .view-all:hover { transform: translateY(-1px); border-color: rgba(143, 215, 255, 0.7); background: rgba(12, 34, 51, 0.64); }
+.nr .view-arrow { display: inline-block; font-size: 18px; font-weight: 200; transition: transform 180ms ease; }
+.nr .view-arrow.up { transform: rotate(-90deg); }
+
+.nr .selection-toast {
+  position: fixed;
+  z-index: 80;
+  left: 50%;
+  bottom: 24px;
+  min-height: 54px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 8px 17px 8px 9px;
+  border: 1px solid rgba(135, 201, 242, 0.3);
+  border-radius: 999px;
+  background: rgba(3, 15, 25, 0.92);
+  box-shadow: 0 18px 55px rgba(0, 0, 0, 0.46);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 18px);
+  backdrop-filter: blur(18px);
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+.nr .selection-toast.show { opacity: 1; transform: translate(-50%, 0); }
+.nr .selection-toast .school-crest { width: 36px; height: 36px; }
+.nr .selection-toast > span:last-child { display: flex; flex-direction: column; gap: 2px; }
+.nr .selection-toast strong { font-size: 12px; font-weight: 600; }
+.nr .selection-toast small { color: rgba(207, 218, 233, 0.64); font-size: 10px; }
+
+@media (max-width: 1280px) {
+  .nr .ranking-rail { width: 330px; right: 22px; }
+  .nr .schools-intro { left: 38px; }
+  .nr .hotspot-label { max-width: 126px; font-size: 11px; }
+  .nr .ranking-list { margin-inline: 15px; }
+  .nr .ranking-head { padding-inline: 18px; }
+  .nr .view-all { margin-inline: 17px; }
+}
+
+@media (max-width: 1040px) {
+  .nr .atlas-shell { min-height: max(100svh, 700px); }
+  .nr .schools-intro { top: 105px; left: 28px; }
+  .nr .schools-intro h1 { font-size: 42px; }
+  .nr .schools-intro > p { margin-top: 9px; font-size: 18px; }
+  .nr .ranking-rail { top: 98px; right: 16px; width: 306px; max-height: calc(100svh - 125px); }
+  .nr .ranking-head { padding-block: 21px 15px; }
+  .nr .ranking-head h2 { font-size: 28px; }
+  .nr .rank-row { min-height: 49px; grid-template-columns: 23px 38px minmax(0, 1fr) 41px 9px; gap: 5px; }
+  .nr .school-crest { width: 31px; height: 31px; }
+  .nr .rank-name { font-size: 12px; }
+  .nr .legend { left: 22px; bottom: 25px; transform: scale(0.88); transform-origin: bottom left; }
+}
+
+@media (max-width: 820px) {
+  .nr { overflow: visible; }
+  .nr .atlas-shell { min-height: 0; overflow: visible; background: #020a12; }
+  .nr .atlas-shell::before { display: none; }
+  .nr .map-panel {
+    position: relative;
+    min-height: 0;
+    aspect-ratio: 16 / 10.5;
+    overflow: hidden;
+    background-color: #020a12;
+    background-image: url("/images/schools/oona-world-map-v1.png");
+    background-repeat: no-repeat;
+    background-position: center top;
+    background-size: 100% 100%;
+  }
+  .nr .map-shade { background: linear-gradient(180deg, rgba(1, 8, 14, 0.26), transparent 27%, rgba(1, 8, 14, 0.03)); }
+  .nr .schools-intro { top: 88px; left: 22px; max-width: calc(100% - 44px); }
+  .nr .schools-intro h1 { font-size: clamp(33px, 8.8vw, 46px); }
+  .nr .schools-intro > p { margin: 7px 0 12px; font-size: clamp(14px, 3.9vw, 19px); }
+  .nr .region-filter, .nr .region-button { width: 148px; }
+  .nr .region-button { min-height: 37px; padding-inline: 15px; font-size: 11px; }
+  .nr .coordinate-toggle { min-height: 37px; padding-inline: 12px; font-size: 10px; }
+  .nr .coordinate-frame > span, .nr .coordinate-line > span { display: none; }
+  .nr .coordinate-hint { display: none; }
+  .nr .coordinate-readout { bottom: 10px; max-width: calc(100% - 24px); padding: 6px 10px; font-size: 9px; }
+  .nr .coordinate-readout small { display: none; }
+  .nr .hotspot { --dot: clamp(6px, 1.75cqw, 11px); }
+  .nr .pin-halo { inset: calc(var(--dot) * -0.55); }
+  .nr .hotspot-label { display: none; }
+  .nr .hotspot.active .hotspot-label {
+    display: flex;
+    left: 50%;
+    right: auto;
+    top: auto;
+    bottom: calc(100% + 9px);
+    transform: translateX(-50%);
+    padding: 5px 8px;
+    border: 1px solid rgba(135, 199, 240, 0.22);
+    border-radius: 7px;
+    background: rgba(2, 13, 22, 0.88);
+    font-size: 9px;
+    text-align: center;
+    backdrop-filter: blur(8px);
+  }
+  .nr .legend { display: none; }
+  .nr .ranking-rail {
+    position: relative;
+    top: auto;
+    right: auto;
+    width: auto;
+    max-height: none;
+    margin: 0 16px 34px;
+    border-color: rgba(126, 180, 220, 0.27);
+    background: linear-gradient(155deg, rgba(6, 20, 32, 0.96), rgba(2, 11, 19, 0.98));
+  }
+  .nr .ranking-list { max-height: none; }
+  .nr .selection-toast { bottom: 16px; }
+}
+
+@media (max-width: 520px) {
+  .nr .map-panel { aspect-ratio: 10 / 8.3; }
+  .nr .schools-intro { top: 82px; left: 18px; }
+  .nr .schools-intro h1 { font-size: 32px; }
+  .nr .schools-intro > p { font-size: 14px; }
+  .nr .map-controls { align-items: flex-start; flex-direction: column; gap: 6px; }
+  .nr .coordinate-toggle { min-height: 32px; }
+  .nr .ranking-rail { margin-inline: 10px; }
+  .nr .ranking-head { padding: 21px 16px 15px; }
+  .nr .ranking-head h2 { font-size: 27px; }
+  .nr .ranking-list { margin-inline: 12px; }
+  .nr .rank-row { grid-template-columns: 22px 38px minmax(0, 1fr) 40px 9px; }
+  .nr .view-all { margin: 14px 13px 15px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nr *, .nr *::before, .nr *::after { scroll-behavior: auto !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+}

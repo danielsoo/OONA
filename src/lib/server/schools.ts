@@ -1,5 +1,5 @@
 import { FieldValue, type Firestore } from "firebase-admin/firestore";
-import type { SchoolDoc, SchoolListItem, SchoolSuggestion } from "@/types/school";
+import type { SchoolDoc, SchoolGeoLocation, SchoolListItem, SchoolSuggestion } from "@/types/school";
 
 const SUGGEST_LIMIT = 8;
 const SCAN_LIMIT = 500;
@@ -52,6 +52,27 @@ function shortNameFromName(name: string): string {
   return name.trim().replace(/^the\s+/i, "").trim() || name.trim();
 }
 
+function parseSchoolLocation(value: unknown): SchoolGeoLocation | null {
+  if (!value || typeof value !== "object") return null;
+  const location = value as Record<string, unknown>;
+  if (typeof location.latitude !== "number" || typeof location.longitude !== "number") return null;
+  const latitude = location.latitude;
+  const longitude = location.longitude;
+  if (!Number.isFinite(latitude) || latitude < -90 || latitude > 90) return null;
+  if (!Number.isFinite(longitude) || longitude < -180 || longitude > 180) return null;
+  const source = location.source;
+  return {
+    latitude,
+    longitude,
+    ...(typeof location.city === "string" && location.city.trim() ? { city: location.city.trim() } : {}),
+    ...(typeof location.country === "string" && location.country.trim() ? { country: location.country.trim() } : {}),
+    ...(typeof location.countryCode === "string" && location.countryCode.trim()
+      ? { countryCode: location.countryCode.trim().toUpperCase().slice(0, 2) }
+      : {}),
+    source: source === "verified" || source === "geocoded" ? source : "submitted",
+  };
+}
+
 export function parseSchoolDoc(id: string, data: Record<string, unknown>): SchoolListItem {
   const name = data.name ? String(data.name) : id;
   return {
@@ -65,6 +86,7 @@ export function parseSchoolDoc(id: string, data: Record<string, unknown>): Schoo
     colorPrimary: typeof data.colorPrimary === "string" ? data.colorPrimary : "#0ea5e9",
     colorSecondary: typeof data.colorSecondary === "string" ? data.colorSecondary : "#ffffff",
     logoUrl: typeof data.logoUrl === "string" ? data.logoUrl : null,
+    location: parseSchoolLocation(data.location),
     status: data.status === "active" || data.status === "merged" ? data.status : "pending",
     mergedIntoSlug: data.mergedIntoSlug ? String(data.mergedIntoSlug) : undefined,
     proposedBy: data.proposedBy ? String(data.proposedBy) : undefined,
@@ -78,7 +100,8 @@ export function parseSchoolDoc(id: string, data: Record<string, unknown>): Schoo
 export async function getOrCreateSchool(
   db: Firestore,
   name: string,
-  proposedBy: string
+  proposedBy: string,
+  location?: SchoolGeoLocation | null
 ): Promise<SchoolListItem> {
   const trimmed = name.trim().slice(0, 120);
   const slug = slugifySchoolName(trimmed);
@@ -98,6 +121,7 @@ export async function getOrCreateSchool(
     colorPrimary: "#0ea5e9",
     colorSecondary: "#ffffff",
     logoUrl: null,
+    location: location ?? null,
     status: "pending",
     proposedBy,
     workCount: 0,
@@ -149,6 +173,7 @@ export function filterSchoolSuggestions(
     logoUrl: s.logoUrl,
     colorPrimary: s.colorPrimary,
     colorSecondary: s.colorSecondary,
+    location: s.location,
   }));
 }
 

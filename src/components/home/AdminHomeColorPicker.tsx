@@ -191,7 +191,7 @@ export default function AdminHomeColorPicker() {
 
   return (
     <div
-      className="fixed bottom-4 right-4 z-50 w-[min(100vw-2rem,320px)] rounded-xl border border-white/15 bg-[#1a1a1a] shadow-2xl text-white"
+      className="fixed bottom-[calc(80px+env(safe-area-inset-bottom))] right-4 z-50 w-[min(100vw-2rem,320px)] lg:bottom-4 rounded-xl border border-white/15 bg-[#1a1a1a] shadow-2xl text-white"
       role="region"
       aria-label={panelTitle}
     >

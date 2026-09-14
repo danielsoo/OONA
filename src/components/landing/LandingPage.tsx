@@ -129,7 +129,7 @@ export default function LandingPage() {
 
       <footer className="border-t border-white/[0.08]">
         <div className="px-6 sm:px-14 py-8 flex items-center justify-between text-[13px] text-white/35">
-          <span>© {new Date().getFullYear()} XIIO</span>
+          <span>© {new Date().getFullYear()} OONA</span>
           <span>{t("landing.footerLegal")}</span>
         </div>
       </footer>

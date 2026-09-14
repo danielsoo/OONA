@@ -32,6 +32,7 @@ import {
 import { formatSocialAuthError } from "@/lib/socialAuthClient";
 import { useTranslations } from "@/context/LocaleContext";
 import { LOCALES, getStoredLocale, type Locale } from "@/i18n";
+import XiioWordmark from "@/components/layout/XiioWordmark";
 import {
   birthDateToIso,
   maxBirthDateInputValue,
@@ -520,13 +521,13 @@ export default function SignupPage() {
       <KakaoScript />
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <Link href="/" className="text-3xl font-black tracking-widest text-white">
-            X<span className="text-xiio-accent">II</span>O
+          <Link href="/" className="inline-flex" aria-label="OONA">
+            <XiioWordmark className="!h-[20px]" />
           </Link>
         </div>
 
         {verifyPhase === "pending" && (
-          <div className="bg-xiio-surface rounded-2xl p-8 border border-white/10">
+          <div className="bg-xiio-surface rounded-card p-8 border border-line">
             <h1 className="text-xl font-bold text-white text-center mb-2">{t("auth.signup.verifyPendingTitle")}</h1>
             <p className="text-sm text-xiio-muted text-center mb-6">
               {t("auth.signup.verifyPendingBody", { email: sentEmail })}
@@ -900,4 +901,3 @@ function PurposeOption({
     </button>
   );
 }
-

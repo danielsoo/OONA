@@ -228,12 +228,12 @@ export default function VideoUploadDropzone({
           }}
           onDragOver={(e) => e.preventDefault()}
           onDrop={onDrop}
-          className={`flex flex-1 flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed px-6 py-10 text-center cursor-pointer transition ${
+          className={`flex flex-1 flex-col items-center justify-center gap-3 rounded-control border border-dashed px-6 py-10 text-center cursor-pointer transition ${
             disabled
               ? "opacity-40 cursor-not-allowed border-white/10 bg-white/5"
               : dragOver
                 ? "border-xiio-accent bg-xiio-accent/10"
-                : "border-white/20 bg-white/5 hover:border-xiio-accent/50 hover:bg-white/[0.07]"
+                : "border-white/28 bg-transparent hover:border-[#76d8ff]/60 hover:bg-white/[0.025]"
           }`}
         >
           <svg

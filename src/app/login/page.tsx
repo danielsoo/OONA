@@ -3,22 +3,49 @@
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { sendPasswordResetEmail, type User } from "firebase/auth";
 import { EMAIL_NOT_VERIFIED, useAuth, isAuthAccountConflict } from "@/context/AuthContext";
 import { useTranslations } from "@/context/LocaleContext";
-import SocialAuthButtons from "@/components/auth/SocialAuthButtons";
 import KakaoScript from "@/components/auth/KakaoScript";
+import { GoogleIcon } from "@/components/auth/GoogleIcon";
+import { KakaoIcon } from "@/components/auth/KakaoIcon";
 import { PasswordInput } from "@/components/auth/PasswordInput";
+import XiioWordmark from "@/components/layout/XiioWordmark";
 import { auth } from "@/lib/firebase";
 import { routeAfterAuth } from "@/lib/postAuthRoute";
 import { loadRememberLogin, saveRememberLogin } from "@/lib/authPersistence";
 import { formatLoginErrorMessage } from "@/lib/authErrors";
 import type { SocialProviderKey } from "@/lib/authProviders";
 import { formatSocialAuthError } from "@/lib/socialAuthClient";
-import type { User } from "firebase/auth";
+import styles from "./login.module.css";
+
+function ArrowLeftIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.45" aria-hidden>
+      <path d="M20 12H5M11 6l-6 6 6 6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function ArrowRightIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.45" aria-hidden>
+      <path d="M4 12h15M13 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function MailIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.35" aria-hidden>
+      <rect x="3" y="5.25" width="18" height="13.5" rx="1.8" />
+      <path d="m4.5 7 7.5 5.6L19.5 7" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
 
 function LoginForm() {
-  const { loginWithEmail, loginWithGoogle, loginWithApple, loginWithKakao, loginWithNaver } =
-    useAuth();
+  const { loginWithEmail, loginWithGoogle, loginWithKakao } = useAuth();
   const { t } = useTranslations();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -27,6 +54,7 @@ function LoginForm() {
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -57,6 +85,7 @@ function LoginForm() {
     action: () => Promise<User> | void
   ) => {
     setError("");
+    setNotice("");
     setLoading(true);
     try {
       saveRememberLogin(rememberMe, email);
@@ -77,6 +106,7 @@ function LoginForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setNotice("");
     setLoading(true);
     try {
       saveRememberLogin(rememberMe, email);
@@ -95,107 +125,164 @@ function LoginForm() {
     }
   };
 
-  return (
-    <main className="min-h-screen flex items-center justify-center px-4 bg-xiio-bg">
-      <KakaoScript />
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <Link href="/" className="text-3xl font-black tracking-widest text-white">
-            X<span className="text-xiio-accent">II</span>O
-          </Link>
-        </div>
+  const handleForgotPassword = async () => {
+    setError("");
+    setNotice("");
 
-        <div className="bg-xiio-surface rounded-2xl p-8 border border-white/10">
-          <h1 className="text-2xl font-bold text-white mb-6">{t("auth.login.title")}</h1>
+    if (!email.trim()) {
+      setError("Enter your email address first.");
+      return;
+    }
+    if (!auth) {
+      setError("Password reset is not available right now.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await sendPasswordResetEmail(auth, email.trim());
+      setNotice("Check your email for a password reset link.");
+    } catch (err: unknown) {
+      setError(formatLoginErrorMessage(err, t));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <main className={styles.page}>
+      <KakaoScript />
+
+      <div className={styles.artwork} aria-hidden="true" />
+      <div className={styles.artworkShade} aria-hidden="true" />
+
+      <header className={styles.header}>
+        <Link href="/" className={styles.logo} aria-label="OONA home">
+          <XiioWordmark />
+        </Link>
+        <Link href="/" className={styles.backLink}>
+          <span>Back to home</span>
+          <ArrowLeftIcon />
+        </Link>
+      </header>
+
+      <section className={styles.formPane} aria-labelledby="login-title">
+        <div className={styles.formContent}>
+          <div className={styles.intro}>
+            <h1 id="login-title">Welcome back.</h1>
+            <p>Continue your story.</p>
+          </div>
 
           {error && (
-            <div className="mb-4 px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm whitespace-pre-wrap break-words">
+            <div className={styles.errorMessage} role="alert">
               {error}
             </div>
           )}
-
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <div>
-              <label className="block text-sm text-xiio-muted mb-1.5">{t("auth.login.emailLabel")}</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                autoComplete="email"
-                placeholder="example@email.com"
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder:text-white/30 focus:outline-none focus:border-xiio-accent transition"
-              />
+          {notice && (
+            <div className={styles.noticeMessage} role="status">
+              {notice}
             </div>
+          )}
 
-            <div>
-              <label className="block text-sm text-xiio-muted mb-1.5">{t("auth.login.passwordLabel")}</label>
+          <form onSubmit={handleSubmit} className={styles.form}>
+            <label className={styles.field} htmlFor="login-email">
+              <span>{t("auth.login.emailLabel")}</span>
+              <div className={styles.inputWrap}>
+                <input
+                  id="login-email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  autoComplete="email"
+                  aria-label={t("auth.login.emailLabel")}
+                />
+                <span className={styles.fieldIcon}>
+                  <MailIcon />
+                </span>
+              </div>
+            </label>
+
+            <label className={styles.field} htmlFor="login-password">
+              <span>{t("auth.login.passwordLabel")}</span>
               <PasswordInput
+                id="login-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 autoComplete="current-password"
-                placeholder="••••••••"
+                className={styles.passwordInput}
               />
-            </div>
-
-            <label className="flex items-center gap-2 cursor-pointer select-none">
-              <input
-                type="checkbox"
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-                className="h-4 w-4 rounded border-white/20 bg-white/5 text-xiio-accent focus:ring-xiio-accent focus:ring-offset-0"
-              />
-              <span className="text-sm text-xiio-muted">{t("auth.login.rememberMe")}</span>
             </label>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="mt-2 w-full py-3 rounded-lg bg-xiio-accent hover:bg-xiio-accent-hover disabled:opacity-50 text-white font-semibold transition"
-            >
-              {loading ? t("auth.login.submitting") : t("auth.login.submit")}
+            <div className={styles.optionsRow}>
+              <label className={styles.rememberLabel}>
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                />
+                <span>{t("auth.login.rememberMe")}</span>
+              </label>
+              <button
+                type="button"
+                onClick={() => void handleForgotPassword()}
+                disabled={loading}
+                className={styles.forgotButton}
+              >
+                Forgot password?
+              </button>
+            </div>
+
+            <button type="submit" disabled={loading} className={styles.submitButton}>
+              <span>{loading ? t("auth.login.submitting") : t("auth.login.submit")}</span>
+              <ArrowRightIcon />
             </button>
           </form>
 
-          <p className="mt-6 text-center text-xs text-xiio-muted">
-            {t("auth.login.noAccount")}{" "}
-            <Link href="/signup" className="text-xiio-accent hover:underline font-medium">
-              {t("common.signup")}
-            </Link>
-          </p>
-
-          <div className="flex items-center gap-3 mt-6 mb-5">
-            <div className="flex-1 h-px bg-white/10" />
-            <span className="text-xs text-xiio-muted">{t("common.or")}</span>
-            <div className="flex-1 h-px bg-white/10" />
+          <div className={styles.divider} aria-hidden="true">
+            <span />
+            <p>Or continue with</p>
+            <span />
           </div>
 
-          <SocialAuthButtons
-            layout="login"
-            disabled={loading}
-            onGoogle={() => void runSocial("google", () => loginWithGoogle(rememberMe))}
-            onApple={() => void runSocial("apple", () => loginWithApple(rememberMe))}
-            onKakao={() => void runSocial("kakao", () => loginWithKakao(rememberMe))}
-            onNaver={() => void runSocial("naver", () => loginWithNaver(rememberMe))}
-          />
+          <div className={styles.socialRow}>
+            <button
+              type="button"
+              disabled={loading}
+              onClick={() => void runSocial("google", () => loginWithGoogle(rememberMe))}
+            >
+              <GoogleIcon />
+              <span>Continue with Google</span>
+            </button>
+            <button
+              type="button"
+              disabled={loading}
+              onClick={() => void runSocial("kakao", () => loginWithKakao(rememberMe))}
+            >
+              <span className={styles.kakaoIcon}>
+                <KakaoIcon />
+              </span>
+              <span>Continue with Kakao</span>
+            </button>
+          </div>
+
+          <p className={styles.signupPrompt}>
+            <span>New to OONA?</span>
+            <Link href="/signup">
+              Create an account
+              <ArrowRightIcon />
+            </Link>
+          </p>
         </div>
-      </div>
+      </section>
     </main>
   );
 }
 
 export default function LoginPage() {
-  const { t } = useTranslations();
-
   return (
-    <Suspense
-      fallback={
-        <main className="min-h-screen flex items-center justify-center bg-xiio-bg text-xiio-muted">
-          {t("common.loading")}
-        </main>
-      }
-    >
+    <Suspense fallback={<main className={styles.loadingScreen}>Loading…</main>}>
       <LoginForm />
     </Suspense>
   );

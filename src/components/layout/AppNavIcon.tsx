@@ -31,6 +31,42 @@ export function AppNavIconSvg({ icon, active = false, className = iconClass }: P
           />
         </svg>
       );
+    case "browse":
+      if (active) {
+        return (
+          <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+            <path d="M5 4h14a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2zm0 2v2h2V6H5zm12 0v2h2V6h-2zM5 10v4h2v-4H5zm12 0v4h2v-4h-2zM5 16v2h2v-2H5zm12 0v2h2v-2h-2zm-6.5-6.2v4.4a.5.5 0 00.77.42l3.3-2.2a.5.5 0 000-.84l-3.3-2.2a.5.5 0 00-.77.42z" />
+          </svg>
+        );
+      }
+      return (
+        <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+          <rect x="3.75" y="4.75" width="16.5" height="14.5" rx="2" strokeWidth={sw} />
+          <path strokeLinecap="round" strokeWidth={sw} d="M7.5 5v14M16.5 5v14M4 9h3.5M4 15h3.5M16.5 9H20M16.5 15H20" />
+          <path d="M10.75 10v4l3-2-3-2z" fill="currentColor" stroke="none" />
+        </svg>
+      );
+    case "search":
+      return (
+        <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+          <circle cx="11" cy="11" r="6.5" strokeWidth={sw} />
+          <path strokeLinecap="round" strokeWidth={sw} d="M16.5 16.5L20 20" />
+        </svg>
+      );
+    case "me":
+      if (active) {
+        return (
+          <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+            <path d="M12 12a4 4 0 100-8 4 4 0 000 8zm-7.5 8a7.5 7.5 0 0115 0v.5h-15V20z" />
+          </svg>
+        );
+      }
+      return (
+        <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+          <circle cx="12" cy="8" r="3.75" strokeWidth={sw} />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={sw} d="M4.75 20a7.25 7.25 0 0114.5 0" />
+        </svg>
+      );
     case "discover":
       return (
         <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>

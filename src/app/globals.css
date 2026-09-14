@@ -16,6 +16,31 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+
+@layer utilities {
+  /* Horizontal rails hide the scrollbar but keep native scrolling */
+  .scrollbar-none {
+    scrollbar-width: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+  /* Space reserved above the mobile bottom tab bar */
+  .pb-mobile-tabbar {
+    padding-bottom: calc(64px + env(safe-area-inset-bottom));
+  }
+  @media (min-width: 1024px) {
+    .pb-mobile-tabbar {
+      padding-bottom: 0;
+    }
+  }
+}
+
 ::-webkit-scrollbar {
   width: 6px;
 }

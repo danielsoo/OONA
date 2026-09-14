@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import SocietyBannerPicker from "@/components/society/SocietyBannerPicker";
+import PageHeader from "@/components/ui/PageHeader";
 import SocietyProfileHeroLayout from "@/components/society/SocietyProfileHeroLayout";
 import { useAuth } from "@/context/AuthContext";
 import { useTranslations } from "@/context/LocaleContext";
@@ -32,10 +33,7 @@ function EditIcon({ className }: { className?: string }) {
 function FallbackHeader() {
   const { t } = useTranslations();
   return (
-    <header className="mb-8 px-4 pt-6 lg:px-12">
-      <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">{t("society.title")}</h1>
-      <p className="mt-2 max-w-2xl text-sm text-white/50 sm:text-base">{t("society.lead")}</p>
-    </header>
+    <PageHeader className="px-4 lg:px-12" title={t("society.title")} description={t("society.lead")} />
   );
 }
 

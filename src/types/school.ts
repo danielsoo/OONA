@@ -1,5 +1,16 @@
 export type SchoolStatus = "active" | "pending" | "merged";
 
+export type SchoolLocationSource = "verified" | "geocoded" | "submitted";
+
+export type SchoolGeoLocation = {
+  latitude: number;
+  longitude: number;
+  city?: string;
+  country?: string;
+  countryCode?: string;
+  source: SchoolLocationSource;
+};
+
 /** Firestore `schools/{slug}` — canonical, self-serve-growable school registry */
 export type SchoolDoc = {
   name: string;
@@ -9,6 +20,8 @@ export type SchoolDoc = {
   colorPrimary: string;
   colorSecondary: string;
   logoUrl?: string | null;
+  /** Official campus coordinates. The map projects these automatically. */
+  location?: SchoolGeoLocation | null;
   status: SchoolStatus;
   /** set when status === "merged" — canonical slug to redirect to */
   mergedIntoSlug?: string;
@@ -30,6 +43,9 @@ export type SchoolSuggestion = {
   logoUrl?: string | null;
   colorPrimary: string;
   colorSecondary: string;
+  location?: SchoolGeoLocation | null;
+  source?: "local" | "ror";
+  externalId?: string;
 };
 
 export type SchoolStats = {

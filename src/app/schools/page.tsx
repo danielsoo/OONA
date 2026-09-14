@@ -1,5 +1,5 @@
-import SchoolsDirectoryPage from "@/components/school/SchoolsDirectoryPage";
+import NorthreachMapPage from "@/components/school/NorthreachMapPage";
 
 export default function SchoolsPage() {
-  return <SchoolsDirectoryPage />;
+  return <NorthreachMapPage />;
 }

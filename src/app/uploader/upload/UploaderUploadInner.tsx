@@ -103,21 +103,21 @@ export default function UploaderUploadInner() {
   }
 
   return (
-    <AppPageShell>
-      <header className="mb-8 border-b border-white/[0.08] pb-6 md:mb-10">
+    <AppPageShell className="!bg-[#080808] !pt-0" contentClassName="!max-w-none">
+      <header className="mb-8 border-b border-white/[0.1] pb-7 pt-10 md:mb-10 md:pt-12">
         <SectionLabel>{t("uploader.uploadStudioLabel")}</SectionLabel>
-        <div className="mt-3 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+        <div className="mt-4 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
           <div className="min-w-0">
             <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-              <h1 className="text-[30px] font-semibold leading-tight tracking-[-0.03em] text-white md:text-[34px]">
-                {requestedDraftId ? t("uploader.editUploadTitle") : t("uploader.uploadTitle")}
+              <h1 className="font-serif text-[44px] font-normal leading-none tracking-[-0.045em] text-[#f5f4f2] md:text-[64px]">
+                {requestedDraftId ? "Refine your work." : "Bring your work to OONA."}
               </h1>
               {requestedDraftId ? (
                 <span className="text-[13px] text-white/40">{t("uploader.draftLabel")}</span>
               ) : null}
             </div>
-            <p className="mt-2 max-w-2xl text-[13px] leading-relaxed text-white/45 md:text-sm">
-              {t("uploader.uploadBody")}
+            <p className="mt-3 max-w-2xl text-[15px] font-light leading-relaxed text-white/55 md:text-[19px]">
+              Upload the highest-quality master available.
             </p>
           </div>
           <UploaderHeaderActions area="upload-studio" />

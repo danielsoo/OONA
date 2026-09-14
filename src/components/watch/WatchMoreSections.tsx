@@ -49,7 +49,7 @@ export default function WatchMoreSections({
   const viewAllHref = sectionCatalogHref(section);
 
   return (
-    <div className="flex flex-col gap-14 mt-6">
+    <div className="mt-16 flex flex-col gap-12">
       {moreLikeThisStories.length > 0 ? (
         <HomeContentRow
           title={t("watch.moreLikeThis")}

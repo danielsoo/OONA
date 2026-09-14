@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/server/api-auth";
 import { getDbOrNull } from "@/lib/server/works";
 import { collectSchoolsForSuggestions, filterSchoolSuggestions } from "@/lib/server/schools";
+import { searchRorSchools } from "@/lib/server/ror";
 
 export async function GET(request: Request) {
   const auth = await requireUser(request);
@@ -13,11 +14,10 @@ export async function GET(request: Request) {
   }
 
   const db = await getDbOrNull();
-  if (!db) {
-    return NextResponse.json({ items: [] });
-  }
-
-  const catalog = await collectSchoolsForSuggestions(db);
-  const items = filterSchoolSuggestions(catalog, q);
+  const catalog = db ? await collectSchoolsForSuggestions(db) : [];
+  const localItems = filterSchoolSuggestions(catalog, q).map((item) => ({ ...item, source: "local" as const }));
+  const remoteItems = localItems.length < 8 ? await searchRorSchools(q, 8 - localItems.length) : [];
+  const localNames = new Set(localItems.map((item) => item.name.trim().toLowerCase()));
+  const items = [...localItems, ...remoteItems.filter((item) => !localNames.has(item.name.trim().toLowerCase()))].slice(0, 8);
   return NextResponse.json({ items });
 }

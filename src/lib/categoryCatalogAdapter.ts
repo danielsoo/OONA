@@ -9,7 +9,8 @@ export function catalogItemToHomeStory(item: CatalogFeedItem): HomeStoryItem {
     id: item.id,
     title: item.title,
     category: item.approvedCategory ?? item.section,
-    duration: item.approvedTags[0] ?? "",
+    // Card meta reads "Category · Creator"; the creator says more than a tag.
+    duration: item.director?.trim() || item.approvedTags[0] || "",
     imageUrl: item.thumbnailUrl ?? "",
     href: watchHref(item.ownerUid, item.workId),
     imageStyle: item.thumbnailCrop ? promoCropToVideoStyle(item.thumbnailCrop) : undefined,

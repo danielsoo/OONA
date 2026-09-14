@@ -44,3 +44,16 @@ export function formatReleaseDate(iso: string, locale: string = "en-US"): string
     return "";
   }
 }
+
+/**
+ * Runtime label that never reads "0 min": clips under a minute show seconds.
+ * Pass `t` to localise the seconds label (ui.watch.seconds).
+ */
+export function formatRuntime(
+  durationSec: number,
+  t?: (key: string, vars?: Record<string, string | number>) => string
+): string {
+  const sec = Math.max(0, Math.round(durationSec));
+  if (sec < 60) return t ? t("ui.watch.seconds", { count: sec }) : `${sec} sec`;
+  return formatDurationMinutes(sec);
+}

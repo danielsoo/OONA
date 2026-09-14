@@ -1303,6 +1303,16 @@ export default function UploaderUploadForm({
         </div>
       </div>
 
+      <div className="mb-9 hidden lg:block">
+        <UploadWizardStepper
+          steps={UPLOAD_STEP_META}
+          currentIndex={stepIndex}
+          onStepClick={handleStepClick}
+          disabled={busy || uploadComplete}
+          orientation="horizontal"
+        />
+      </div>
+
       <div className="mb-6 flex flex-col gap-3 rounded-xl border border-white/[0.08] bg-[#101013] px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
@@ -1354,17 +1364,7 @@ export default function UploaderUploadForm({
         </div>
       </div>
 
-      <div className="grid min-w-0 gap-6 lg:grid-cols-[15.5rem_minmax(0,1fr)] lg:items-start xl:grid-cols-[17.5rem_minmax(0,1fr)] xl:gap-8">
-        <div className="sticky top-24 hidden self-start lg:block">
-          <UploadWizardStepper
-            steps={UPLOAD_STEP_META}
-            currentIndex={stepIndex}
-            onStepClick={handleStepClick}
-            disabled={busy || uploadComplete}
-            orientation="vertical"
-          />
-        </div>
-
+      <div className="min-w-0">
         <div className="min-w-0">
           <UploaderFormShell
             layout="stacked"

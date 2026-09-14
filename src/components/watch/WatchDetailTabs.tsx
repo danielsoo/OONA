@@ -1,8 +1,11 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
-import WatchMoreSections from "@/components/watch/WatchMoreSections";
+import type { ReactNode } from "react";
+import EmptyState from "@/components/ui/EmptyState";
+import SectionHeader from "@/components/ui/SectionHeader";
+import Tabs from "@/components/ui/Tabs";
 import { useTranslations } from "@/context/LocaleContext";
 import {
   filmingLocationFor,
@@ -11,225 +14,231 @@ import {
   releaseDateFor,
   reviewsFor,
 } from "@/data/watchExtras";
-import { formatDurationMinutes, gradientForTitle } from "@/lib/works/catalog-ui";
+import { DEMO_MODE } from "@/lib/demoMode";
+import { formatRuntime, gradientForTitle } from "@/lib/works/catalog-ui";
 import { aspectRatioMessageKey } from "@/lib/works/aspect-ratio";
 import type { PublicWorkCredit } from "@/types/watch";
-import type { VideoAspectRatio, WorkSection } from "@/types/work";
+import type { VideoAspectRatio } from "@/types/work";
 
-export type WatchDetailTab = "overview" | "details" | "credits" | "reviews";
-
-const TABS: WatchDetailTab[] = ["overview", "details", "credits", "reviews"];
-
-const TAB_LABEL_KEYS: Record<WatchDetailTab, string> = {
-  overview: "watch.tabs.overview",
-  details: "watch.tabs.details",
-  credits: "watch.tabs.credits",
-  reviews: "watch.tabs.reviews",
-};
+export type WatchDetailTab = "overview" | "credits" | "reviews";
 
 type Props = {
+  /** Owner of the work; reserved for per-work extras once they exist. */
   ownerUid: string;
   workId: string;
-  section: WorkSection;
-  title: string;
+  tab: WatchDetailTab;
+  onTabChange: (tab: WatchDetailTab) => void;
+  /** The signed-in viewer uploaded this work. */
+  isOwner: boolean;
   description?: string;
   durationSec?: number;
   approvedCategory?: string;
+  approvedTags: string[];
   approvedAspectRatio?: VideoAspectRatio;
   approvedSchoolId?: string;
   approvedSchoolName?: string;
   credits: PublicWorkCredit[];
 };
 
-function DetailRow({ label, value, href }: { label: string; value: string; href?: string }) {
-  const content = (
-    <>
-      <span className="text-[13px] text-white/45">{label}</span>
-      <span className="text-[13.5px] text-white font-medium">{value}</span>
-    </>
-  );
-  if (href) {
-    return (
-      <Link
-        href={href}
-        className="flex items-center justify-between gap-4 py-3 border-b border-white/[0.06] last:border-b-0 hover:bg-white/[0.02] transition"
-      >
-        {content}
-      </Link>
-    );
-  }
+function InfoRow({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className="flex items-center justify-between gap-4 py-3 border-b border-white/[0.06] last:border-b-0">
-      {content}
+    <div className="grid grid-cols-[112px_minmax(0,1fr)] gap-4 border-b border-line py-3 last:border-b-0">
+      <dt className="text-small text-ink-3">{label}</dt>
+      <dd className="min-w-0 text-small font-medium text-ink">{children}</dd>
     </div>
   );
 }
 
+/** Overview (synopsis + details) · Credits · Reviews (demo only). Nothing is repeated across tabs. */
 export default function WatchDetailTabs({
-  ownerUid,
   workId,
-  section,
-  title,
+  tab,
+  onTabChange,
+  isOwner,
   description,
   durationSec,
   approvedCategory,
+  approvedTags,
   approvedAspectRatio,
   approvedSchoolId,
   approvedSchoolName,
   credits,
 }: Props) {
   const { t } = useTranslations();
-  const [tab, setTab] = useState<WatchDetailTab>("overview");
 
-  const journal = productionJournalFor(workId);
-  const reviews = reviewsFor(workId);
-  const behindTheScenes = [0, 1, 2, 3];
-  const productionStills = [0, 1, 2, 3, 4, 5];
+  const tabs = [
+    { id: "overview", label: t("watch.tabs.overview") },
+    { id: "credits", label: `${t("watch.tabs.credits")}${credits.length > 0 ? ` ${credits.length}` : ""}` },
+    ...(DEMO_MODE ? [{ id: "reviews", label: t("watch.tabs.reviews") }] : []),
+  ];
 
   return (
-    <section className="mt-6">
-      <div className="sticky top-[60px] z-20 -mx-1 mb-7 flex gap-7 overflow-x-auto border-b border-white/[0.08] bg-[#08090b]/95 px-1 pt-1 backdrop-blur-md sm:gap-8">
-        {TABS.map((id) => (
-          <button
-            key={id}
-            type="button"
-            onClick={() => setTab(id)}
-            className={`pb-4 text-[14.5px] transition ${
-              tab === id
-                ? "border-b-2 border-white text-white font-semibold"
-                : "text-white/45 hover:text-white/70"
-            }`}
-          >
-            {t(TAB_LABEL_KEYS[id])}
-          </button>
-        ))}
-      </div>
+    <section>
+      <Tabs
+        items={tabs}
+        activeId={tab}
+        onChange={(id) => onTabChange(id as WatchDetailTab)}
+        ariaLabel={t("ui.watch.details")}
+        className="sticky top-[60px] z-20 mb-8 bg-xiio-bg/95 pt-2 backdrop-blur-md"
+      />
 
-      <div className={tab === "overview" ? "flex flex-col gap-14" : "hidden"}>
-          <div className="max-w-3xl">
+      {tab === "overview" ? (
+        <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-16">
+          <div className="flex min-w-0 flex-col gap-10">
             {description ? (
-              <p className="text-white/80 text-sm md:text-base whitespace-pre-wrap">{description}</p>
+              <p className="max-w-[65ch] whitespace-pre-wrap text-body text-ink-2">{description}</p>
             ) : (
-              <p className="text-white/40 text-sm">{t("watch.tabs.overviewEmpty")}</p>
+              <p className="text-body text-ink-3">{t("watch.tabs.overviewEmpty")}</p>
             )}
+
+            {DEMO_MODE ? (
+              <DemoExtras workId={workId} t={t} />
+            ) : isOwner ? (
+              <EmptyState
+                title={t("ui.watch.ownerExtrasTitle")}
+                body={t("ui.watch.ownerExtrasBody")}
+                action={{ href: `/uploader/works/${workId}/edit`, label: t("ui.watch.ownerExtrasAction") }}
+              />
+            ) : null}
           </div>
 
-          <div>
-            <h2 className="text-[19px] font-bold text-white mb-5">{t("watch.tabs.behindTheScenes")}</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              {behindTheScenes.map((i) => (
-                <div
-                  key={i}
-                  className={`aspect-[4/3] rounded-xl border border-white/[0.06] ${gradientForTitle(`${title}-bts-${i}`)}`}
-                />
-              ))}
-            </div>
-          </div>
+          <aside aria-label={t("ui.watch.details")}>
+            <h2 className="mb-2 text-h3 font-semibold text-ink">{t("ui.watch.details")}</h2>
+            <dl>
+              {approvedCategory ? <InfoRow label={t("watch.tabs.genre")}>{approvedCategory}</InfoRow> : null}
+              {durationSec ? (
+                <InfoRow label={t("watch.tabs.runtime")}>{formatRuntime(durationSec, t)}</InfoRow>
+              ) : null}
+              {approvedAspectRatio ? (
+                <InfoRow label={t("watch.tabs.aspectRatio")}>{t(aspectRatioMessageKey(approvedAspectRatio))}</InfoRow>
+              ) : null}
+              {approvedSchoolId && approvedSchoolName ? (
+                <InfoRow label={t("watch.tabs.school")}>
+                  <Link href={`/school/${approvedSchoolId}`} className="text-xiio-accent hover:text-xiio-accent-hover">
+                    {approvedSchoolName}
+                  </Link>
+                </InfoRow>
+              ) : null}
+              {DEMO_MODE ? (
+                <>
+                  <InfoRow label={t("watch.tabs.language")}>{languageFor(workId)}</InfoRow>
+                  <InfoRow label={t("watch.tabs.releaseDate")}>{releaseDateFor(workId)}</InfoRow>
+                  <InfoRow label={t("watch.tabs.filmingLocation")}>{filmingLocationFor(workId)}</InfoRow>
+                </>
+              ) : null}
+            </dl>
+            {approvedTags.length > 0 ? (
+              <ul className="mt-5 flex flex-wrap gap-2">
+                {approvedTags.map((tag) => (
+                  <li key={tag} className="rounded-full bg-white/[0.06] px-3 py-1 text-small text-ink-2">
+                    #{tag}
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </aside>
+        </div>
+      ) : null}
 
-          <div>
-            <h2 className="text-[19px] font-bold text-white mb-5">{t("watch.tabs.productionStills")}</h2>
-            <div className="flex gap-4 overflow-x-auto pb-1 scrollbar-none" style={{ scrollbarWidth: "none" }}>
-              {productionStills.map((i) => (
-                <div
-                  key={i}
-                  className={`shrink-0 w-[240px] aspect-[3/2] rounded-xl border border-white/[0.06] ${gradientForTitle(`${title}-still-${i}`)}`}
-                />
-              ))}
-            </div>
-          </div>
-
-          <div className="max-w-3xl">
-            <h2 className="text-[19px] font-bold text-white mb-5">{t("watch.tabs.productionJournal")}</h2>
-            <div className="flex flex-col">
-              {journal.map((entry, i) => (
-                <div key={i} className="py-5 border-b border-white/[0.06] last:border-b-0">
-                  <p className="text-[12px] uppercase tracking-[0.08em] text-xiio-accent font-bold mb-2.5">
-                    {entry.date}
-                  </p>
-                  <p className="text-[14.5px] leading-relaxed text-white/70">{entry.text}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-      </div>
-
-      <div className={tab === "details" ? "max-w-md" : "hidden"}>
-          {approvedCategory ? <DetailRow label={t("watch.tabs.genre")} value={approvedCategory} /> : null}
-          {durationSec ? <DetailRow label={t("watch.tabs.runtime")} value={formatDurationMinutes(durationSec)} /> : null}
-          <DetailRow label={t("watch.tabs.language")} value={languageFor(workId)} />
-          <DetailRow label={t("watch.tabs.releaseDate")} value={releaseDateFor(workId)} />
-          <DetailRow label={t("watch.tabs.filmingLocation")} value={filmingLocationFor(workId)} />
-          {approvedAspectRatio ? (
-            <DetailRow label={t("watch.tabs.aspectRatio")} value={t(aspectRatioMessageKey(approvedAspectRatio))} />
-          ) : null}
-          {approvedSchoolId && approvedSchoolName ? (
-            <DetailRow label={t("watch.tabs.school")} value={approvedSchoolName} href={`/school/${approvedSchoolId}`} />
-          ) : null}
-      </div>
-
-      <div className={tab === "credits" ? "max-w-2xl" : "hidden"}>
-          <p className="text-[12px] text-white/40 mb-4.5">{t("watch.tabs.creditsHint")}</p>
+      {tab === "credits" ? (
+        <div className="max-w-2xl">
+          <p className="mb-4 text-small text-ink-3">{t("watch.tabs.creditsHint")}</p>
           {credits.length > 0 ? (
-            <div className="flex flex-col">
+            <ul className="flex flex-col">
               {credits.map((c) => {
+                const role = t(`watch.creditRole.${c.role}`);
+                const character =
+                  c.characterName && c.characterName.trim() !== c.displayName.trim()
+                    ? t("ui.watch.creditAs", { name: c.characterName.trim() })
+                    : null;
                 const inner = (
                   <>
-                    <div
-                      className={`w-11 h-11 rounded-full shrink-0 ${gradientForTitle(c.displayName)} overflow-hidden`}
-                    />
-                    <div className="min-w-0 flex-1">
-                      <p className="text-[14.5px] font-semibold text-white truncate">{c.displayName}</p>
-                      <p className="text-[12.5px] text-white/45 capitalize">
-                        {c.characterName || t(`watch.creditRole.${c.role}`)}
-                      </p>
-                    </div>
+                    <span
+                      className={`relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full text-small font-semibold text-ink ${gradientForTitle(c.displayName)}`}
+                      aria-hidden
+                    >
+                      {c.avatarUrl ? (
+                        <Image src={c.avatarUrl} alt="" fill sizes="44px" unoptimized className="object-cover" />
+                      ) : (
+                        c.displayName.slice(0, 1).toUpperCase()
+                      )}
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-body font-semibold text-ink">{c.displayName}</span>
+                      <span className="block truncate text-small text-ink-3">
+                        {character ? `${role} · ${character}` : role}
+                      </span>
+                    </span>
                     {c.profileHref ? (
-                      <span className="text-[13px] text-xiio-accent shrink-0">{t("watch.tabs.viewProfile")} ›</span>
+                      <span className="shrink-0 text-small font-medium text-xiio-accent">
+                        {t("watch.tabs.viewProfile")} ›
+                      </span>
                     ) : null}
                   </>
                 );
-                return c.profileHref ? (
-                  <Link
-                    key={c.id}
-                    href={c.profileHref}
-                    className="flex items-center gap-3.5 py-4 px-1 border-b border-white/[0.06] last:border-b-0 hover:bg-white/[0.03] transition"
-                  >
-                    {inner}
-                  </Link>
-                ) : (
-                  <div key={c.id} className="flex items-center gap-3.5 py-4 px-1 border-b border-white/[0.06] last:border-b-0">
-                    {inner}
-                  </div>
+                return (
+                  <li key={c.id} className="border-b border-line last:border-b-0">
+                    {c.profileHref ? (
+                      <Link
+                        href={c.profileHref}
+                        className="flex items-center gap-3.5 px-1 py-4 transition-colors hover:bg-white/[0.03]"
+                      >
+                        {inner}
+                      </Link>
+                    ) : (
+                      <div className="flex items-center gap-3.5 px-1 py-4">{inner}</div>
+                    )}
+                  </li>
                 );
               })}
-            </div>
+            </ul>
           ) : (
-            <p className="text-white/40 text-sm">{t("watch.tabs.creditsEmpty")}</p>
+            <p className="text-body text-ink-3">{t("watch.tabs.creditsEmpty")}</p>
           )}
-      </div>
-
-      <div className={tab === "reviews" ? "block" : "hidden"}>
-        <div className="max-w-2xl flex flex-col">
-            {reviews.map((rv, i) => (
-              <div key={i} className="py-5 border-b border-white/[0.06] last:border-b-0">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-[14px] font-semibold text-white">{rv.name}</span>
-                  <span className="text-[11.5px] text-white/35">{rv.time}</span>
-                </div>
-                <div className="text-[13px] text-xiio-gold tracking-[0.05em] mb-2.5">{rv.stars}</div>
-                <p className="text-[14.5px] leading-relaxed text-white/70">{rv.text}</p>
-              </div>
-            ))}
         </div>
-        {tab === "reviews" ? (
-          <WatchMoreSections
-            section={section}
-            ownerUid={ownerUid}
-            workId={workId}
-            showFromSameCreator={false}
-          />
-        ) : null}
-      </div>
+      ) : null}
+
+      {tab === "reviews" && DEMO_MODE ? (
+        <ul className="flex max-w-2xl flex-col">
+          {reviewsFor(workId).map((rv, i) => (
+            <li key={i} className="border-b border-line py-5 last:border-b-0">
+              <div className="mb-2 flex items-center justify-between">
+                <span className="text-body font-semibold text-ink">{rv.name}</span>
+                <span className="text-small text-ink-4">{rv.time}</span>
+              </div>
+              <div className="mb-2.5 text-small tracking-[0.05em] text-xiio-gold">{rv.stars}</div>
+              <p className="text-body text-ink-2">{rv.text}</p>
+            </li>
+          ))}
+        </ul>
+      ) : null}
     </section>
+  );
+}
+
+function DemoExtras({ workId, t }: { workId: string; t: (key: string) => string }) {
+  const journal = productionJournalFor(workId);
+  return (
+    <>
+      <div>
+        <SectionHeader title={t("watch.tabs.behindTheScenes")} />
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} className={`aspect-[4/3] rounded-card ring-1 ring-inset ring-line ${gradientForTitle(`${workId}-bts-${i}`)}`} />
+          ))}
+        </div>
+      </div>
+      <div>
+        <SectionHeader title={t("watch.tabs.productionJournal")} />
+        <ul className="flex flex-col">
+          {journal.map((entry, i) => (
+            <li key={i} className="border-b border-line py-5 last:border-b-0">
+              <p className="mb-2 text-micro font-semibold uppercase text-xiio-accent">{entry.date}</p>
+              <p className="text-body text-ink-2">{entry.text}</p>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </>
   );
 }

@@ -18,7 +18,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "XIIO — The next generation content platform",
+  title: "OONA — The next generation content platform",
   description: "Films, series, shows, and emerging creators — all in one cinematic platform.",
 };
 

@@ -4,12 +4,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import AppPageShell from "@/components/layout/AppPageShell";
-import SubpageHeader from "@/components/layout/SubpageHeader";
+import PageHeader from "@/components/ui/PageHeader";
 import ProfileAvatar from "@/components/profile/ProfileAvatar";
 import SectionLabel from "@/components/layout/SectionLabel";
 import { useAuth } from "@/context/AuthContext";
 import { useTranslations } from "@/context/LocaleContext";
 import { useCatalogFeed } from "@/hooks/useCatalogFeed";
+import { useSchoolsFeed } from "@/hooks/useSchoolsFeed";
+import { schoolPosterGradient } from "@/lib/school-brand";
 import { peopleProfileHref } from "@/lib/dm/peopleProfileHref";
 import { gradientForTitle, watchHref } from "@/lib/works/catalog-ui";
 import type { CatalogFeedItem } from "@/types/work";
@@ -88,6 +90,14 @@ export default function SearchPage({ initialQuery = "" }: { initialQuery?: strin
 
   const q = debouncedQuery.trim().toLowerCase();
 
+  const { items: schools } = useSchoolsFeed(50);
+  const schoolResults = useMemo(() => {
+    if (!q) return [];
+    return schools
+      .filter((s) => s.name.toLowerCase().includes(q) || (s.shortName ?? "").toLowerCase().includes(q))
+      .slice(0, 10);
+  }, [schools, q]);
+
   const titleResults = useMemo(() => {
     if (!q) return [];
     return allWorks.filter((w) => w.title.toLowerCase().includes(q)).slice(0, 20);
@@ -119,18 +129,30 @@ export default function SearchPage({ initialQuery = "" }: { initialQuery?: strin
 
   return (
     <AppPageShell>
-      <SubpageHeader title={t("search.title")} backFallbackHref="/" />
-
-      <div className="relative max-w-xl mb-8">
-        <input
-          type="search"
-          autoFocus
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder={t("search.placeholder")}
-          className="w-full h-11 rounded-full bg-white/[0.04] border border-white/[0.1] px-5 text-white placeholder:text-white/30 focus:outline-none focus:border-xiio-accent/50"
-        />
-      </div>
+      <PageHeader title={t("search.title")} className="!pt-4 lg:!pt-8">
+        <label className="relative block max-w-xl">
+          <span className="sr-only">{t("search.title")}</span>
+          <svg
+            viewBox="0 0 24 24"
+            className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-ink-3"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={1.75}
+            aria-hidden
+          >
+            <circle cx="11" cy="11" r="6.5" />
+            <path strokeLinecap="round" d="M16.5 16.5L20 20" />
+          </svg>
+          <input
+            type="search"
+            autoFocus
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder={t("topBar.searchPlaceholder")}
+            className="h-12 w-full rounded-full border border-line-strong bg-white/[0.04] pl-12 pr-5 text-body text-ink placeholder:text-ink-4 focus:border-xiio-accent/60 focus:outline-none"
+          />
+        </label>
+      </PageHeader>
 
       {!q ? (
         recentSearches.length > 0 ? (
@@ -147,7 +169,7 @@ export default function SearchPage({ initialQuery = "" }: { initialQuery?: strin
                     setQuery(term);
                     setDebouncedQuery(term);
                   }}
-                  className="rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-[13px] text-white/70 hover:text-white hover:border-white/25 transition"
+                  className="rounded-full border border-line bg-white/[0.03] px-4 py-2 text-small text-ink-2 hover:text-ink hover:border-line-strong transition"
                 >
                   {term}
                 </button>
@@ -155,7 +177,7 @@ export default function SearchPage({ initialQuery = "" }: { initialQuery?: strin
             </div>
           </section>
         ) : (
-          <p className="text-white/40 text-sm">{t("search.prompt")}</p>
+          <p className="text-ink-3 text-body">{t("search.prompt")}</p>
         )
       ) : (
         <div className="flex flex-col gap-8">
@@ -164,23 +186,23 @@ export default function SearchPage({ initialQuery = "" }: { initialQuery?: strin
               <SectionLabel>{t("search.titlesLabel")}</SectionLabel>
             </div>
             {titleResults.length === 0 ? (
-              <p className="text-white/40 text-sm">{t("search.noResults")}</p>
+              <p className="text-ink-3 text-body">{t("search.noResults")}</p>
             ) : (
               <div className="flex flex-col">
                 {titleResults.map((w) => (
                   <Link
                     key={w.id}
                     href={watchHref(w.ownerUid, w.workId)}
-                    className="flex items-center gap-3.5 py-2.5 border-b border-white/[0.06] last:border-b-0 hover:bg-white/[0.02] transition"
+                    className="flex items-center gap-3.5 py-2.5 border-b border-line last:border-b-0 hover:bg-white/[0.02] transition"
                   >
-                    <div className={`relative w-14 aspect-video rounded-md overflow-hidden shrink-0 ${gradientForTitle(w.title)}`}>
+                    <div className={`relative w-20 aspect-video rounded-control overflow-hidden shrink-0 ${gradientForTitle(w.title)}`}>
                       {w.thumbnailUrl ? (
-                        <Image src={w.thumbnailUrl} alt="" fill sizes="56px" className="object-cover" unoptimized />
+                        <Image src={w.thumbnailUrl} alt="" fill sizes="80px" className="object-cover" unoptimized />
                       ) : null}
                     </div>
                     <div className="min-w-0">
-                      <p className="text-[13.5px] font-medium text-white truncate">{w.title}</p>
-                      <p className="text-[11.5px] text-white/45 mt-0.5">{w.approvedCategory ?? w.section}</p>
+                      <p className="text-body font-medium text-ink truncate">{w.title}</p>
+                      <p className="text-small text-ink-3 mt-0.5">{w.approvedCategory ?? w.section}</p>
                     </div>
                   </Link>
                 ))}
@@ -194,9 +216,9 @@ export default function SearchPage({ initialQuery = "" }: { initialQuery?: strin
                 <SectionLabel>{t("search.peopleLabel")}</SectionLabel>
               </div>
               {peopleLoading ? (
-                <p className="text-white/40 text-sm">{t("common.loading")}</p>
+                <p className="text-ink-3 text-body">{t("common.loading")}</p>
               ) : people.length === 0 ? (
-                <p className="text-white/40 text-sm">{t("search.noResults")}</p>
+                <p className="text-ink-3 text-body">{t("search.noResults")}</p>
               ) : (
                 <div className="flex flex-col">
                   {people.map((p) => {
@@ -205,7 +227,7 @@ export default function SearchPage({ initialQuery = "" }: { initialQuery?: strin
                       <Link
                         key={p.uid}
                         href={href ?? "#"}
-                        className="flex items-center gap-3 py-2.5 border-b border-white/[0.06] last:border-b-0 hover:bg-white/[0.02] transition"
+                        className="flex items-center gap-3 py-2.5 border-b border-line last:border-b-0 hover:bg-white/[0.02] transition"
                       >
                         <ProfileAvatar
                           displayName={p.displayName}
@@ -213,8 +235,8 @@ export default function SearchPage({ initialQuery = "" }: { initialQuery?: strin
                           className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-xs font-bold text-white overflow-hidden shrink-0"
                         />
                         <div className="min-w-0">
-                          <p className="text-[13.5px] font-medium text-white truncate">{p.displayName}</p>
-                          <p className="text-[11.5px] text-white/45 mt-0.5 truncate">
+                          <p className="text-body font-medium text-ink truncate">{p.displayName}</p>
+                          <p className="text-small text-ink-3 mt-0.5 truncate">
                             {p.headline || p.roleTags[0] || `@${p.handle}`}
                           </p>
                         </div>
@@ -223,6 +245,31 @@ export default function SearchPage({ initialQuery = "" }: { initialQuery?: strin
                   })}
                 </div>
               )}
+            </section>
+          ) : null}
+
+          {schoolResults.length > 0 ? (
+            <section>
+              <div className="mb-3">
+                <SectionLabel>{t("ui.search.schools")}</SectionLabel>
+              </div>
+              <div className="flex flex-col">
+                {schoolResults.map((s) => (
+                  <Link
+                    key={s.id}
+                    href={`/school/${s.id}`}
+                    className="flex items-center gap-3 py-2.5 border-b border-line last:border-b-0 hover:bg-white/[0.02] transition"
+                  >
+                    <span
+                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-control text-[11px] font-bold text-ink"
+                      style={{ background: schoolPosterGradient(s.colorPrimary, s.colorSecondary) }}
+                    >
+                      {s.initials}
+                    </span>
+                    <p className="min-w-0 truncate text-body font-medium text-ink">{s.name}</p>
+                  </Link>
+                ))}
+              </div>
             </section>
           ) : null}
         </div>

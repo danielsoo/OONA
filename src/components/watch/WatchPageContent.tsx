@@ -1,30 +1,38 @@
 "use client";
 
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { useCallback, useEffect, useRef, useState } from "react";
+import type { PublicWorkCredit } from "@/types/watch";
 import filmHeroImage from "../../../film_hero.webp";
 import AppPageShell from "@/components/layout/AppPageShell";
 import SubpageHeader from "@/components/layout/SubpageHeader";
-import ReportContentModal from "@/components/report/ReportContentModal";
 import WatchlistButton from "@/components/watchlist/WatchlistButton";
-import GuestLimitedPlayer from "@/components/watch/GuestLimitedPlayer";
-import SeriesEpisodeSection from "@/components/watch/SeriesEpisodeSection";
-import StreamProgressIframe from "@/components/watch/StreamProgressIframe";
-import StreamHlsVideo from "@/components/shorts/StreamHlsVideo";
 import WatchDetailTabs from "@/components/watch/WatchDetailTabs";
 import WatchMoreSections from "@/components/watch/WatchMoreSections";
-import PlaybackVideo from "@/components/PlaybackVideo";
 import { useAuth } from "@/context/AuthContext";
 import { useAdminAccess } from "@/hooks/useAdminAccess";
 import { useRecordEngagementView } from "@/hooks/useRecordEngagementView";
 import { useTranslations } from "@/context/LocaleContext";
-import { releaseDateFor } from "@/data/watchExtras";
 import { formatApiError, formatClientError } from "@/lib/clientErrors";
 import { requestPublicWatch } from "@/lib/watchDataCache";
 import { aspectRatioMessageKey, aspectRatioNumeric } from "@/lib/works/aspect-ratio";
-import { formatDurationMinutes, sectionCatalogHref } from "@/lib/works/catalog-ui";
+import { formatRuntime, sectionCatalogHref } from "@/lib/works/catalog-ui";
+import { DEMO_MODE } from "@/lib/demoMode";
+import Chip from "@/components/ui/Chip";
+import { Button } from "@/components/ui/Button";
 import type { PublicWorkWatch } from "@/types/watch";
 import type { VideoAspectRatio } from "@/types/work";
+
+// Players (hls.js), the admin player, the report dialog and the demo series
+// panel load only when they are about to be shown. This keeps the watch route
+// small, so it compiles and opens faster.
+const GuestLimitedPlayer = dynamic(() => import("@/components/watch/GuestLimitedPlayer"), { ssr: false });
+const StreamProgressIframe = dynamic(() => import("@/components/watch/StreamProgressIframe"), { ssr: false });
+const StreamHlsVideo = dynamic(() => import("@/components/shorts/StreamHlsVideo"), { ssr: false });
+const PlaybackVideo = dynamic(() => import("@/components/PlaybackVideo"), { ssr: false });
+const ReportContentModal = dynamic(() => import("@/components/report/ReportContentModal"), { ssr: false });
+const SeriesEpisodeSection = dynamic(() => import("@/components/watch/SeriesEpisodeSection"), { ssr: false });
 
 type Props = { ownerUid: string; workId: string };
 
@@ -40,7 +48,27 @@ export default function WatchPageContent({ ownerUid, workId }: Props) {
   const [err, setErr] = useState<string | null>(null);
   const [reportOpen, setReportOpen] = useState(false);
   const [playerOpen, setPlayerOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
+  const [detailTab, setDetailTab] = useState<"overview" | "credits" | "reviews">("overview");
   const playerRef = useRef<HTMLDivElement>(null);
+  const tabsRef = useRef<HTMLDivElement>(null);
+  const moreRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!moreOpen) return;
+    const onDown = (e: MouseEvent) => {
+      if (moreRef.current && !moreRef.current.contains(e.target as Node)) setMoreOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMoreOpen(false);
+    };
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [moreOpen]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -98,19 +126,47 @@ export default function WatchPageContent({ ownerUid, workId }: Props) {
 
   const ratioId: VideoAspectRatio = data.approvedAspectRatio ?? "16:9";
   const numericRatio = aspectRatioNumeric(ratioId);
-  const tagLine = data.approvedTags.length > 0 ? data.approvedTags.join(" · ") : null;
-  const releaseYear = releaseDateFor(workId).match(/\b\d{4}\b/)?.[0];
+  const sectionLabelKey =
+    data.section === "series"
+      ? "ui.browse.tabSeries"
+      : data.section === "entertainment"
+        ? "ui.browse.tabEntertainment"
+        : "ui.browse.tabFilms";
+  const eyebrowKey =
+    data.section === "series"
+      ? "ui.watch.sectionSeries"
+      : data.section === "entertainment"
+        ? "ui.watch.sectionEntertainment"
+        : "ui.watch.sectionFilm";
   const metadata = [
-    data.durationSec ? formatDurationMinutes(data.durationSec) : null,
-    releaseYear,
     data.approvedCategory,
+    data.durationSec ? formatRuntime(data.durationSec, t) : null,
   ].filter(Boolean) as string[];
+  const heroCredits = buildHeroCredits(data.credits, data.director, t);
   const heroImage = data.thumbnailUrl || filmHeroImage.src;
   const isGuest = !authLoading && !user;
   const showingPrologue = phase === "prologue" && Boolean(data.prologue?.playbackUrl);
   const activePlayback = showingPrologue ? data.prologue! : data;
   const useGuestPlayer = isGuest && Boolean(activePlayback.playbackUrl);
-  const playLabel = data.section === "series" ? t("watch.watchSeries") : t("watch.playFilm");
+  const playLabel = t("watch.playFilm");
+  const isOwner = Boolean(user && user.uid === ownerUid);
+  const showSeriesPanel = DEMO_MODE && data.section === "series";
+
+  const showCredits = () => {
+    setDetailTab("credits");
+    window.setTimeout(() => {
+      tabsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 40);
+  };
+
+  const openReport = () => {
+    setMoreOpen(false);
+    if (!user) {
+      window.location.href = "/login";
+      return;
+    }
+    setReportOpen(true);
+  };
 
   const openPlayer = () => {
     setPlayerOpen(true);
@@ -120,8 +176,8 @@ export default function WatchPageContent({ ownerUid, workId }: Props) {
   };
 
   return (
-    <main className="min-h-screen bg-[#08090b] pb-20">
-      <section className="relative min-h-[clamp(560px,68vh,700px)] overflow-hidden border-b border-white/[0.06]">
+    <main className="min-h-screen bg-xiio-bg pb-20">
+      <section className="relative isolate overflow-hidden border-b border-line">
         <div
           className="absolute inset-0 bg-cover bg-center scale-[1.01]"
           style={{
@@ -132,62 +188,103 @@ export default function WatchPageContent({ ownerUid, workId }: Props) {
           }}
           aria-hidden="true"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-black via-black/60 to-black/5" aria-hidden="true" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#08090b] via-transparent to-black/20" aria-hidden="true" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black via-black/65 to-black/10" aria-hidden="true" />
+        <div className="absolute inset-0 bg-gradient-to-t from-xiio-bg via-transparent to-black/20" aria-hidden="true" />
 
-        <Link
-          href={sectionCatalogHref(data.section)}
-          className="absolute left-5 top-7 z-10 inline-flex items-center gap-2 text-[14px] text-white/75 hover:text-white transition lg:left-12"
-        >
-          <span aria-hidden="true">‹</span>
-          {t("watch.back")}
-        </Link>
+        <div className="relative z-[1] flex min-h-[480px] flex-col justify-end px-4 pb-10 pt-6 lg:min-h-[560px] lg:px-12 lg:pb-14">
+          <Link
+            href={sectionCatalogHref(data.section)}
+            className="mb-auto inline-flex w-fit items-center gap-1.5 rounded-full py-1 text-small font-medium text-ink-2 transition-colors hover:text-ink"
+          >
+            <span aria-hidden="true">‹</span>
+            {t(sectionLabelKey)}
+          </Link>
 
-        <div className="relative z-[1] flex min-h-[clamp(560px,68vh,700px)] items-center px-5 pb-14 pt-24 lg:px-12">
-          <div className="max-w-[620px]">
-            {tagLine ? (
-              <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/55">{tagLine}</p>
-            ) : null}
-            <h1 className="font-serif text-[54px] leading-[0.96] tracking-[-0.025em] text-white sm:text-[70px] lg:text-[82px]">
+          <div className="mt-16 max-w-[680px]">
+            <p className="mb-3 text-micro font-semibold uppercase text-xiio-accent">{t(eyebrowKey)}</p>
+            <h1 className="font-serif text-[clamp(2.5rem,5vw,4rem)] font-semibold leading-[1.05] text-ink">
               {data.title}
             </h1>
             {metadata.length > 0 ? (
-              <p className="mt-6 flex flex-wrap gap-x-2.5 text-[14px] text-white/65">
-                {metadata.map((item, index) => (
-                  <span key={`${item}-${index}`}>
-                    {index > 0 ? <span className="mr-2.5 text-white/35">·</span> : null}
-                    {item}
-                  </span>
-                ))}
-              </p>
+              <p className="mt-4 text-small text-ink-2">{metadata.join(" · ")}</p>
             ) : null}
             {data.description ? (
-              <p className="mt-6 max-w-[590px] whitespace-pre-wrap text-[16px] leading-7 text-white/76 sm:text-[17px]">
+              <p className="mt-4 line-clamp-3 max-w-[60ch] whitespace-pre-wrap text-body text-ink-2">
                 {data.description}
               </p>
             ) : null}
-            {data.director ? (
-              <p className="mt-3 text-[13px] text-white/48">
-                {t("watch.director")} · {data.director}
-              </p>
+
+            {heroCredits.visible.length > 0 ? (
+              <div className="mt-5 flex flex-wrap items-center gap-2">
+                {heroCredits.visible.map((credit) => (
+                  <Chip key={credit.key} label={credit.role} href={credit.href ?? undefined}>
+                    {credit.name}
+                  </Chip>
+                ))}
+                {heroCredits.hiddenCount > 0 ? (
+                  <button
+                    type="button"
+                    onClick={showCredits}
+                    className="h-8 rounded-full px-2 text-small font-medium text-ink-3 transition-colors hover:text-ink"
+                  >
+                    +{heroCredits.hiddenCount}
+                  </button>
+                ) : null}
+              </div>
             ) : null}
 
-            <div className="mt-9 flex flex-wrap items-center gap-3">
-              <button
-                type="button"
+            <div className="mt-8 flex flex-wrap items-center gap-3">
+              <Button
+                variant="primary"
+                size="lg"
                 onClick={openPlayer}
-                className="inline-flex h-12 min-w-[164px] items-center justify-center gap-2 rounded-full bg-white px-7 text-[14px] font-semibold text-black transition hover:bg-white/88"
+                className="min-w-[148px]"
+                icon={
+                  <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor" aria-hidden>
+                    <path d="M8 5v14l11-7z" />
+                  </svg>
+                }
               >
-                <span aria-hidden="true">▶</span>
                 {playLabel}
-              </button>
+              </Button>
               <WatchlistButton ownerUid={ownerUid} workId={workId} variant="hero" />
+              <div ref={moreRef} className="relative">
+                <button
+                  type="button"
+                  onClick={() => setMoreOpen((v) => !v)}
+                  aria-haspopup="menu"
+                  aria-expanded={moreOpen}
+                  aria-label={t("ui.watch.more")}
+                  className="flex h-12 w-12 items-center justify-center rounded-full border border-line-strong bg-white/[0.04] text-ink transition-colors hover:bg-white/[0.1]"
+                >
+                  <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor" aria-hidden>
+                    <circle cx="5" cy="12" r="1.75" />
+                    <circle cx="12" cy="12" r="1.75" />
+                    <circle cx="19" cy="12" r="1.75" />
+                  </svg>
+                </button>
+                {moreOpen ? (
+                  <div
+                    role="menu"
+                    className="animate-dropdown-in absolute bottom-full left-0 z-30 mb-2 w-48 rounded-card border border-line-strong bg-xiio-card py-1 shadow-xl"
+                  >
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={openReport}
+                      className="w-full px-4 py-2.5 text-left text-small text-ink-2 transition-colors hover:bg-white/[0.06] hover:text-ink"
+                    >
+                      {t("ui.watch.report")}
+                    </button>
+                  </div>
+                ) : null}
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      <div className="mx-auto w-full max-w-[1480px] px-5 pt-7 lg:px-12">
+      <div className="w-full min-w-0 overflow-x-clip px-4 pt-8 lg:px-12">
         {playerOpen ? (
           <div ref={playerRef} className="mb-12 scroll-mt-20">
             <div className="mb-4 flex items-center justify-between gap-4">
@@ -260,59 +357,46 @@ export default function WatchPageContent({ ownerUid, workId }: Props) {
           </div>
         ) : null}
 
-        <div className="relative z-10 flex h-0 justify-end">
-          <button
-            type="button"
-            onClick={() => {
-              if (!user) {
-                window.location.href = "/login";
-                return;
-              }
-              setReportOpen(true);
-            }}
-            className="text-xs text-white/35 transition hover:text-red-400"
-          >
-            {t("watch.report")}
-          </button>
+
+        <div ref={tabsRef} className="scroll-mt-20">
+          {showSeriesPanel ? (
+            <SeriesEpisodeSection
+              focusItem={{
+                id: `${ownerUid}_${workId}`,
+                ownerUid,
+                workId,
+                title: data.title,
+                director: data.director,
+                section: data.section,
+                approvedCategory: data.approvedCategory,
+                approvedTags: data.approvedTags,
+                thumbnailUrl: data.thumbnailUrl,
+              }}
+              approvedAspectRatio={data.approvedAspectRatio}
+              approvedSchoolId={data.approvedSchoolId}
+              approvedSchoolName={data.approvedSchoolName}
+              credits={data.credits}
+            />
+          ) : (
+            <WatchDetailTabs
+              ownerUid={ownerUid}
+              workId={workId}
+              tab={detailTab}
+              onTabChange={setDetailTab}
+              isOwner={isOwner}
+              description={data.description}
+              durationSec={data.durationSec}
+              approvedCategory={data.approvedCategory}
+              approvedTags={data.approvedTags}
+              approvedAspectRatio={data.approvedAspectRatio}
+              approvedSchoolId={data.approvedSchoolId}
+              approvedSchoolName={data.approvedSchoolName}
+              credits={data.credits}
+            />
+          )}
         </div>
 
-        {data.section !== "series" ? (
-          <WatchDetailTabs
-            ownerUid={ownerUid}
-            workId={workId}
-            section={data.section}
-            title={data.title}
-            description={data.description}
-            durationSec={data.durationSec}
-            approvedCategory={data.approvedCategory}
-            approvedAspectRatio={data.approvedAspectRatio}
-            approvedSchoolId={data.approvedSchoolId}
-            approvedSchoolName={data.approvedSchoolName}
-            credits={data.credits}
-          />
-        ) : (
-          <SeriesEpisodeSection
-            focusItem={{
-              id: `${ownerUid}_${workId}`,
-              ownerUid,
-              workId,
-              title: data.title,
-              director: data.director,
-              section: data.section,
-              approvedCategory: data.approvedCategory,
-              approvedTags: data.approvedTags,
-              thumbnailUrl: data.thumbnailUrl,
-            }}
-            approvedAspectRatio={data.approvedAspectRatio}
-            approvedSchoolId={data.approvedSchoolId}
-            approvedSchoolName={data.approvedSchoolName}
-            credits={data.credits}
-          />
-        )}
-
-        {data.section === "series" ? (
-          <WatchMoreSections section={data.section} ownerUid={ownerUid} workId={workId} />
-        ) : null}
+        <WatchMoreSections section={data.section} ownerUid={ownerUid} workId={workId} />
 
         {adminChecked && isAdmin && data.playbackUrl ? (
           <details className="mt-14 rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 text-sm text-xiio-muted">
@@ -327,13 +411,40 @@ export default function WatchPageContent({ ownerUid, workId }: Props) {
         ) : null}
       </div>
 
-      <ReportContentModal
-        open={reportOpen}
-        onClose={() => setReportOpen(false)}
-        targetType="full"
-        targetOwnerUid={ownerUid}
-        targetWorkId={workId}
-      />
+      {reportOpen ? (
+        <ReportContentModal
+          open={reportOpen}
+          onClose={() => setReportOpen(false)}
+          targetType="full"
+          targetOwnerUid={ownerUid}
+          targetWorkId={workId}
+        />
+      ) : null}
     </main>
   );
+}
+
+type HeroCredit = { key: string; role: string; name: string; href: string | null };
+
+const HERO_CREDIT_LIMIT = 4;
+
+/** Director first, then the rest in credit order; at most four chips in the hero. */
+function buildHeroCredits(
+  credits: PublicWorkCredit[],
+  director: string | undefined,
+  t: (key: string, vars?: Record<string, string | number>) => string
+): { visible: HeroCredit[]; hiddenCount: number } {
+  const ordered = [...credits].sort(
+    (a, b) => Number(b.role === "director") - Number(a.role === "director")
+  );
+  const all: HeroCredit[] = ordered.map((c) => ({
+    key: c.id,
+    role: t(`watch.creditRole.${c.role}`),
+    name: c.displayName,
+    href: c.profileHref,
+  }));
+  if (all.length === 0 && director?.trim()) {
+    all.push({ key: "director", role: t("watch.creditRole.director"), name: director.trim(), href: null });
+  }
+  return { visible: all.slice(0, HERO_CREDIT_LIMIT), hiddenCount: Math.max(0, all.length - HERO_CREDIT_LIMIT) };
 }

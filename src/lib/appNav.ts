@@ -32,6 +32,7 @@ export function shouldHideAppShell(pathname: string): boolean {
 
 export type AppNavIcon =
   | "home"
+  | "browse"
   | "discover"
   | "films"
   | "entertainment"
@@ -41,7 +42,9 @@ export type AppNavIcon =
   | "myList"
   | "messages"
   | "upload"
-  | "about";
+  | "about"
+  | "search"
+  | "me";
 
 export type AppNavItem = {
   id: string;
@@ -50,42 +53,49 @@ export type AppNavItem = {
   icon: AppNavIcon;
   badgeKey?: string;
   requiresAuth?: boolean;
+  /** Extra path prefixes that keep this item highlighted (e.g. Browse covers /series). */
+  match?: string[];
   section?: "primary" | "secondary";
 };
 
-/** Browse group — Home, Discover, Films, Series, Entertainment */
+/** The three catalog routes share one Browse destination with tabs. */
+export const BROWSE_PATHS = ["/movies", "/series", "/entertainment"] as const;
+
+/** Watch: Home and Browse */
 export const PRIMARY_NAV: AppNavItem[] = [
-  { id: "home", labelKey: "nav.home", href: "/", icon: "home", section: "primary" },
-  { id: "discover", labelKey: "nav.discover", href: "/discover", icon: "discover", section: "primary" },
-  { id: "films", labelKey: "nav.films", href: "/movies", icon: "films", section: "primary" },
-  { id: "series", labelKey: "nav.series", href: "/series", icon: "series", section: "primary" },
+  { id: "home", labelKey: "nav.home", href: "/", icon: "home", section: "primary", match: ["/discover"] },
   {
-    id: "entertainment",
-    labelKey: "nav.entertainment",
-    href: "/entertainment",
-    icon: "entertainment",
+    id: "browse",
+    labelKey: "nav.browse",
+    href: "/movies",
+    icon: "browse",
     section: "primary",
+    match: [...BROWSE_PATHS],
   },
 ];
 
-/** Network group — Schools, Society, My List, Messages */
+/** Connect: people and schools */
 export const NETWORK_NAV: AppNavItem[] = [
+  {
+    id: "creators",
+    labelKey: "nav.creators",
+    href: "/society",
+    icon: "society",
+    section: "primary",
+    match: ["/society", "/people", "/creators"],
+  },
   {
     id: "schools",
     labelKey: "nav.schools",
     href: "/schools",
     icon: "campus",
     section: "primary",
+    match: ["/schools", "/school"],
   },
-  { id: "society", labelKey: "nav.society", href: "/society", icon: "society", section: "primary" },
-  {
-    id: "myList",
-    labelKey: "nav.myList",
-    href: "/my-list",
-    icon: "myList",
-    requiresAuth: true,
-    section: "primary",
-  },
+];
+
+/** Yours: conversations and saved works */
+export const PERSONAL_NAV: AppNavItem[] = [
   {
     id: "messages",
     labelKey: "nav.messages",
@@ -94,9 +104,40 @@ export const NETWORK_NAV: AppNavItem[] = [
     requiresAuth: true,
     section: "primary",
   },
+  {
+    id: "myList",
+    labelKey: "nav.myList",
+    href: "/my-list",
+    icon: "myList",
+    requiresAuth: true,
+    section: "primary",
+  },
 ];
 
-export const SECONDARY_NAV: AppNavItem[] = [
-  { id: "upload", labelKey: "nav.upload", href: "/uploader/upload", icon: "upload", section: "secondary" },
-  { id: "about", labelKey: "nav.aboutXiio", href: "/about", icon: "about", section: "secondary" },
+/** Upload lives in the top bar; About moved to the profile menu and sidebar footer. */
+export const SECONDARY_NAV: AppNavItem[] = [];
+
+export const UPLOAD_HREF = "/uploader/upload";
+
+/** Mobile bottom tab bar. */
+export const MOBILE_TABS: AppNavItem[] = [
+  { id: "home", labelKey: "nav.home", href: "/", icon: "home", match: ["/discover"] },
+  { id: "browse", labelKey: "nav.browse", href: "/movies", icon: "browse", match: [...BROWSE_PATHS] },
+  { id: "upload", labelKey: "nav.upload", href: UPLOAD_HREF, icon: "upload", requiresAuth: true },
+  {
+    id: "messages",
+    labelKey: "nav.messages",
+    href: "/messages",
+    icon: "messages",
+    requiresAuth: true,
+  },
+  { id: "me", labelKey: "nav.me", href: "/account", icon: "me", requiresAuth: true },
 ];
+
+export function isNavItemActive(item: AppNavItem, pathname: string): boolean {
+  const prefixes = [item.href, ...(item.match ?? [])];
+  return prefixes.some((href) => {
+    if (href === "/") return pathname === "/";
+    return pathname === href || pathname.startsWith(`${href}/`);
+  });
+}

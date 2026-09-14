@@ -2,14 +2,15 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import ContentCard from "@/components/ContentCard";
 import AppPageShell from "@/components/layout/AppPageShell";
-import SubpageHeader from "@/components/layout/SubpageHeader";
+import EmptyState from "@/components/ui/EmptyState";
+import PageHeader from "@/components/ui/PageHeader";
+import WorkCard from "@/components/ui/WorkCard";
 import { useAuth } from "@/context/AuthContext";
 import { useTranslations } from "@/context/LocaleContext";
 import { formatClientError } from "@/lib/clientErrors";
 import { getCached, getOrLoadCached } from "@/lib/feedCache";
-import { gradientForTitle, watchHref } from "@/lib/works/catalog-ui";
+import { watchHref } from "@/lib/works/catalog-ui";
 import type { CatalogFeedItem } from "@/types/work";
 
 export default function MyListPage() {
@@ -80,48 +81,30 @@ export default function MyListPage() {
 
   return (
     <AppPageShell>
-      <SubpageHeader
-        title={t("myList.title")}
-        description={t("myList.subtitle")}
-        backFallbackHref="/"
-      />
+      <PageHeader title={t("myList.title")} description={t("myList.subtitle")} className="!pt-4 lg:!pt-8" />
 
       {loading ? (
-        <p className="text-xiio-muted">{t("common.loading")}</p>
+        <p className="text-body text-ink-3">{t("common.loading")}</p>
       ) : err ? (
         <p className="text-red-400">{err}</p>
       ) : items.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-xiio-muted mb-6">{t("myList.empty")}</p>
-          <div className="flex flex-wrap justify-center gap-3">
-            <Link
-              href="/"
-              className="text-sm px-4 py-2 rounded-lg bg-white/10 text-white hover:bg-white/15 transition"
-            >
-              {t("common.home")}
-            </Link>
-            <Link
-              href="/movies"
-              className="text-sm px-4 py-2 rounded-lg bg-xiio-accent hover:bg-xiio-accent-hover text-white transition"
-            >
-              {t("nav.movies")}
-            </Link>
-          </div>
-        </div>
+        <EmptyState
+          title={t("myList.empty")}
+          action={{ href: "/movies", label: t("ui.home.browseCta") }}
+        />
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+        <ul className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5">
           {items.map((item) => (
-            <ContentCard
-              key={item.id}
-              href={watchHref(item.ownerUid, item.workId)}
-              title={item.title}
-              contentCategory={item.approvedCategory}
-              tags={item.approvedTags}
-              thumbnailUrl={item.thumbnailUrl}
-              gradient={gradientForTitle(item.title)}
-            />
+            <li key={item.id}>
+              <WorkCard
+                href={watchHref(item.ownerUid, item.workId)}
+                title={item.title}
+                meta={[item.approvedCategory, item.director].filter(Boolean).join(" · ")}
+                imageUrl={item.thumbnailUrl}
+              />
+            </li>
           ))}
-        </div>
+        </ul>
       )}
     </AppPageShell>
   );

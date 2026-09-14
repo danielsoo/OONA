@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:turbo": "NEXT_DEV_DIR=.next-turbo next dev --turbopack",
     "preview:sidebar": "python3 -m http.server 3456 --directory preview",
     "build": "next build",
     "start": "next start",

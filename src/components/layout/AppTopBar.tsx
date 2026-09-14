@@ -2,48 +2,34 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { useTranslations } from "@/context/LocaleContext";
 import ProfileAvatar from "@/components/ProfileAvatar";
 import NotificationBell from "@/components/notifications/NotificationBell";
-import { IconSearch } from "@/components/icons/MockupIcons";
 import { useAdminAccess } from "@/hooks/useAdminAccess";
 import { getUserProfile } from "@/lib/userProfile";
 import { MOCKUP_HOME } from "@/lib/mockupHomeSpec";
+import XiioWordmark from "@/components/layout/XiioWordmark";
+import TopBarSearch from "@/components/search/TopBarSearch";
+import { AppNavIconSvg } from "@/components/layout/AppNavIcon";
+import { ButtonLink } from "@/components/ui/Button";
+import { UPLOAD_HREF } from "@/lib/appNav";
 import type { UserProfileDoc } from "@/types/user";
 
 type Props = {
   onMenuOpen: () => void;
 };
 
-function MockProfileIcon() {
-  return (
-    <svg
-      className="w-[18px] h-[18px] text-white/60"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-      aria-hidden
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={1.5}
-        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-      />
-    </svg>
-  );
-}
-
 export default function AppTopBar({ onMenuOpen }: Props) {
   const { t } = useTranslations();
   const { user, logout } = useAuth();
   const { isAdmin, checked: adminChecked } = useAdminAccess();
   const router = useRouter();
+  const pathname = usePathname();
+  const onSearchPage = pathname === "/search" || pathname.startsWith("/search/");
   const [profile, setProfile] = useState<UserProfileDoc | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [searchValue, setSearchValue] = useState("");
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -72,7 +58,7 @@ export default function AppTopBar({ onMenuOpen }: Props) {
 
   return (
     <header
-      className={`sticky top-0 z-30 flex min-w-0 items-center gap-3 px-4 ${MOCKUP_HOME.topBarRightPad} ${MOCKUP_HOME.topBarHeight} border-b border-white/[0.06] bg-xiio-bg/90 backdrop-blur-md`}
+      className={`sticky top-0 z-30 flex min-w-0 items-center gap-3 px-4 ${MOCKUP_HOME.topBarRightPad} ${MOCKUP_HOME.topBarHeight} border-b border-line bg-xiio-bg/90 backdrop-blur-md`}
     >
       <button
         type="button"
@@ -85,30 +71,37 @@ export default function AppTopBar({ onMenuOpen }: Props) {
         </svg>
       </button>
 
-      <div className="min-w-0 flex-1" aria-hidden />
+      <Link href="/" className="lg:hidden inline-flex items-center" aria-label={t("common.logoHome")}>
+        <XiioWordmark className="!h-[14px]" />
+      </Link>
 
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          const value = searchValue.trim();
-          router.push(value ? `/search?q=${encodeURIComponent(value)}` : "/search");
-        }}
-        className={`absolute left-1/2 hidden -translate-x-1/2 sm:block ${MOCKUP_HOME.searchBar}`}
-      >
-        <label>
-          <span className="sr-only">{t("topBar.searchLabel")}</span>
-          <IconSearch className={`absolute top-1/2 -translate-y-1/2 ${MOCKUP_HOME.searchIconLeft} w-4 h-4 text-white/30`} />
-          <input
-            type="search"
-            value={searchValue}
-            onChange={(e) => setSearchValue(e.target.value)}
-            placeholder={t("topBar.searchPlaceholder")}
-            className="w-full h-full rounded-full bg-white/[0.04] border border-white/[0.08] py-2 pl-11 pr-4 text-white placeholder:text-white/30 focus:outline-none focus:border-xiio-accent/50"
-          />
-        </label>
-      </form>
+      {!onSearchPage ? (
+        <TopBarSearch className={`mx-auto hidden md:block ${MOCKUP_HOME.searchBar}`} />
+      ) : null}
 
-      <div className="flex items-center gap-1 shrink-0">
+      <div className="ml-auto flex items-center gap-1 shrink-0">
+        {!onSearchPage ? (
+          <Link
+            href="/search"
+            className="md:hidden p-2 text-ink-2 hover:text-ink"
+            aria-label={t("ui.shell.openSearch")}
+          >
+            <AppNavIconSvg icon="search" className="w-5 h-5" />
+          </Link>
+        ) : null}
+        <ButtonLink
+          href={user ? UPLOAD_HREF : "/login"}
+          variant="accent"
+          size="sm"
+          className="hidden lg:inline-flex mr-2"
+          icon={
+            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden>
+              <path strokeLinecap="round" d="M12 5v14M5 12h14" />
+            </svg>
+          }
+        >
+          {t("ui.shell.upload")}
+        </ButtonLink>
         <NotificationBell />
 
         {user ? (
@@ -146,6 +139,13 @@ export default function AppTopBar({ onMenuOpen }: Props) {
                 >
                   {t("profileMenu.settings")}
                 </button>
+                <Link
+                  href="/about"
+                  onClick={() => setMenuOpen(false)}
+                  className="block w-full text-left px-3 py-2 text-sm text-white/70 hover:bg-white/5"
+                >
+                  {t("ui.shell.about")}
+                </Link>
                 {adminChecked && isAdmin ? (
                   <Link
                     href="/admin"
@@ -169,13 +169,9 @@ export default function AppTopBar({ onMenuOpen }: Props) {
             ) : null}
           </div>
         ) : (
-          <Link
-            href="/login"
-            className="w-8 h-8 rounded-full border border-white/20 flex items-center justify-center hover:bg-white/5 transition"
-            aria-label={t("common.login")}
-          >
-            <MockProfileIcon />
-          </Link>
+          <ButtonLink href="/login" variant="secondary" size="sm" className="ml-1">
+            {t("ui.shell.signIn")}
+          </ButtonLink>
         )}
       </div>
     </header>

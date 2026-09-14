@@ -1,18 +1,45 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import AppPageShell from "@/components/layout/AppPageShell";
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 import NotificationListItem from "@/components/notifications/NotificationListItem";
 import { useAuth } from "@/context/AuthContext";
 import { useTranslations } from "@/context/LocaleContext";
 import { useNotifications } from "@/context/NotificationContext";
-import type { NotificationListItem as NotificationListItemType } from "@/types/notification";
+import type { NotificationListItem as NotificationListItemType, NotificationType } from "@/types/notification";
+import styles from "./notifications.module.css";
+
+type FilterId = "all" | "collaborations" | "connections" | "works" | "system";
+
+const FILTERS: { id: FilterId; label: string }[] = [
+  { id: "all", label: "All" },
+  { id: "collaborations", label: "Collaborations" },
+  { id: "connections", label: "Connections" },
+  { id: "works", label: "Works" },
+  { id: "system", label: "System" },
+];
+
+function categoryFor(type: NotificationType): Exclude<FilterId, "all"> {
+  if (type.startsWith("business_invite")) return "collaborations";
+  if (type === "new_follower" || type === "new_dm_message" || type === "new_room_message") {
+    return "connections";
+  }
+  if (type === "work_approve" || type === "work_reject") return "works";
+  return "system";
+}
+
+function isRecent(createdAt: string | null): boolean {
+  if (!createdAt) return true;
+  const time = Date.parse(createdAt);
+  return Number.isNaN(time) || Date.now() - time < 24 * 60 * 60 * 1000;
+}
 
 export default function NotificationsPage() {
   const { user } = useAuth();
   const { t } = useTranslations();
   const { refresh } = useNotifications();
   const [notifications, setNotifications] = useState<NotificationListItemType[]>([]);
+  const [filter, setFilter] = useState<FilterId>("all");
   const [loading, setLoading] = useState(true);
   const [marking, setMarking] = useState(false);
 
@@ -25,6 +52,7 @@ export default function NotificationsPage() {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       });
+      setNotifications((current) => current.map((item) => ({ ...item, read: true })));
       await refresh();
     } finally {
       setMarking(false);
@@ -57,38 +85,88 @@ export default function NotificationsPage() {
     };
   }, [user]);
 
+  const filtered = useMemo(
+    () => notifications.filter((item) => filter === "all" || categoryFor(item.type) === filter),
+    [filter, notifications]
+  );
+  const today = filtered.filter((item) => isRecent(item.createdAt));
+  const earlier = filtered.filter((item) => !isRecent(item.createdAt));
+  const unreadCount = notifications.filter((item) => !item.read).length;
+  const collaborationCount = notifications.filter((item) => categoryFor(item.type) === "collaborations").length;
+  const workCount = notifications.filter((item) => categoryFor(item.type) === "works").length;
+
   return (
-    <AppPageShell className="pb-10">
-      <div className="mx-auto w-full max-w-2xl">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-xl font-bold text-white">{t("notifications.title")}</h1>
-          {notifications.length > 0 ? (
-            <button
-              type="button"
-              onClick={() => void markAllRead()}
-              disabled={marking}
-              className="text-[13px] text-xiio-accent hover:underline disabled:opacity-40"
-            >
-              {t("notifications.markAllRead")}
-            </button>
+    <main className={styles.page}>
+      <header className={styles.pageHeader}>
+        <div>
+          <h1>{t("notifications.title")}</h1>
+          <p>Stay close to your work and collaborators.</p>
+        </div>
+        {notifications.length > 0 ? (
+          <button type="button" onClick={() => void markAllRead()} disabled={marking}>
+            <span aria-hidden>✓</span>
+            {t("notifications.markAllRead")}
+          </button>
+        ) : null}
+      </header>
+
+      <nav className={styles.filters} aria-label="Notification categories">
+        {FILTERS.map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            className={filter === item.id ? styles.activeFilter : undefined}
+            onClick={() => setFilter(item.id)}
+          >
+            {item.label}
+          </button>
+        ))}
+      </nav>
+
+      <div className={styles.contentGrid}>
+        <section className={styles.feed} aria-live="polite">
+          {loading ? <p className={styles.status}>{t("common.loading")}</p> : null}
+          {!loading && filtered.length === 0 ? (
+            <p className={styles.status}>{t("notifications.empty")}</p>
           ) : null}
-        </div>
-        <div className="rounded-2xl border border-white/10 bg-xiio-surface/40 overflow-hidden">
-          {loading && (
-            <p className="px-4 py-8 text-sm text-xiio-muted text-center">{t("common.loading")}</p>
-          )}
-          {!loading && notifications.length === 0 && (
-            <p className="px-4 py-8 text-sm text-xiio-muted text-center">{t("notifications.empty")}</p>
-          )}
-          {!loading && notifications.length > 0 && (
-            <div className="divide-y divide-white/5">
-              {notifications.map((n) => (
-                <NotificationListItem key={n.id} notification={n} />
-              ))}
+          {today.length > 0 ? (
+            <div className={styles.group}>
+              <h2>Today</h2>
+              <div className={styles.timeline}>
+                {today.map((notification) => (
+                  <NotificationListItem key={notification.id} notification={notification} />
+                ))}
+              </div>
             </div>
-          )}
-        </div>
+          ) : null}
+          {earlier.length > 0 ? (
+            <div className={styles.group}>
+              <h2>Earlier this week</h2>
+              <div className={styles.timeline}>
+                {earlier.map((notification) => (
+                  <NotificationListItem key={notification.id} notification={notification} />
+                ))}
+              </div>
+            </div>
+          ) : null}
+        </section>
+
+        <aside className={styles.activity}>
+          <div className={styles.activityTitle}>
+            <h2>Your activity</h2>
+            <Link href="/settings">Notification settings <span aria-hidden>→</span></Link>
+          </div>
+          <div className={styles.stats}>
+            <div><strong>{unreadCount}</strong><span>Unread</span></div>
+            <div><strong>{collaborationCount}</strong><span>Collaborations</span></div>
+            <div><strong>{workCount}</strong><span>Work updates</span></div>
+          </div>
+          <div className={styles.activityNote}>
+            <p>Every response, connection, and milestone stays in one quiet place.</p>
+            <span>More voices. A brighter tomorrow.</span>
+          </div>
+        </aside>
       </div>
-    </AppPageShell>
+    </main>
   );
 }

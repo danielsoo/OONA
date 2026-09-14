@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useTranslations } from "@/context/LocaleContext";
 import { invalidateCache } from "@/lib/feedCache";
+import { buttonClass } from "@/components/ui/Button";
 
 type Props = {
   ownerUid: string;
@@ -102,17 +103,19 @@ export default function WatchlistButton({ ownerUid, workId, variant = "compact" 
       disabled={busy || (Boolean(user) && !loaded)}
       title={title}
       aria-label={title}
-      className={`shrink-0 inline-flex items-center justify-center gap-2 border transition disabled:opacity-50 ${
+      className={
         isHero
-          ? "h-12 rounded-full px-7 text-[14px] font-medium backdrop-blur-sm"
-          : "rounded-lg px-3 py-1.5 text-sm"
-      } ${
-        saved
-          ? "text-white border-white/30 bg-white/10 hover:bg-white/15"
-          : isHero
-            ? "text-white border-white/30 bg-black/15 hover:bg-white/10 hover:border-white/45"
-            : "text-white/80 border-white/15 hover:text-white hover:border-white/25"
-      }`}
+          ? buttonClass({
+              variant: "secondary",
+              size: "lg",
+              className: saved ? "!bg-white/[0.12] backdrop-blur-sm" : "backdrop-blur-sm",
+            })
+          : `shrink-0 inline-flex items-center justify-center gap-2 rounded-lg border px-3 py-1.5 text-sm transition disabled:opacity-50 ${
+              saved
+                ? "text-white border-white/30 bg-white/10 hover:bg-white/15"
+                : "text-white/80 border-white/15 hover:text-white hover:border-white/25"
+            }`
+      }
     >
       <ListIcon filled={saved} />
       <span className={isHero ? "inline" : "hidden sm:inline"}>{label}</span>

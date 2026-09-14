@@ -2,13 +2,20 @@ import { getOrLoadCached } from "@/lib/feedCache";
 import type { SchoolListItem } from "@/types/school";
 import type { CatalogFeedItem, WorkSection } from "@/types/work";
 
-export function normalizedCatalogLimit(limit: number): number {
-  return limit <= 12 ? 12 : limit;
+/** The feed API caps every catalog request at 24, so fetch that once per section. */
+export const CATALOG_FETCH_LIMIT = 24;
+
+/**
+ * Every caller (home 12, browse 24, search 30, prefetcher) shares one request
+ * and one cache entry per section; useCatalogFeed slices to what it shows.
+ */
+export function normalizedCatalogLimit(_limit: number): number {
+  return CATALOG_FETCH_LIMIT;
 }
 
 export function catalogFeedCacheKey(section: WorkSection, limit: number): string {
   // v4 includes publication timestamps and preserves newest-first catalog ordering.
-  return `catalog:v4:${section}:${normalizedCatalogLimit(limit)}`;
+  return `catalog:v5:${section}:${normalizedCatalogLimit(limit)}`;
 }
 
 type ThumbnailItem = { thumbnailUrl?: string };
@@ -25,23 +32,17 @@ function preloadImage(url: string): Promise<void> {
 }
 
 /**
- * Keep the already-rendered shell/fallback artwork visible until lightweight
- * CDN thumbnails are in the browser cache. A timeout prevents a bad asset from
- * holding the feed indefinitely.
+ * Warm the browser cache for feed thumbnails without holding the feed back.
+ * Cards render immediately with their gradient fallback and the image fades in
+ * when it arrives. (Previously the list waited up to 3.5s for every image.)
  */
-export async function preloadFeedThumbnails<T extends ThumbnailItem>(
-  items: T[],
-  timeoutMs = 3_500
-): Promise<T[]> {
+export async function preloadFeedThumbnails<T extends ThumbnailItem>(items: T[]): Promise<T[]> {
+  if (typeof window === "undefined") return items;
   const urls = Array.from(
     new Set(items.map((item) => item.thumbnailUrl).filter((url): url is string => Boolean(url)))
   );
-  if (urls.length === 0 || typeof window === "undefined") return items;
-
-  await Promise.race([
-    Promise.all(urls.map(preloadImage)),
-    new Promise<void>((resolve) => window.setTimeout(resolve, timeoutMs)),
-  ]);
+  // Fire and forget: only the first screenful, the rest load lazily with the cards.
+  urls.slice(0, 8).forEach((url) => void preloadImage(url));
   return items;
 }
 

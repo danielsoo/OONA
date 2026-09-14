@@ -11,6 +11,7 @@ import {
   primaryRoleLabelKey,
 } from "@/lib/societyMockData";
 import type { SocietyPerson } from "@/lib/societyTypes";
+import { buttonClass } from "@/components/ui/Button";
 
 type Props = {
   person: SocietyPerson;
@@ -49,17 +50,17 @@ export default memo(function SocietyCreatorRow({
           <ProfileAvatar
             displayName={person.displayName}
             avatarUrl={person.avatarUrl}
-            className="flex h-[72px] w-[72px] shrink-0 items-center justify-center overflow-hidden rounded-full bg-xiio-accent/20 text-xl font-bold text-white ring-2 ring-white/10 sm:h-20 sm:w-20 sm:text-2xl"
+            className="flex h-[72px] w-[72px] shrink-0 items-center justify-center overflow-hidden rounded-lg bg-white/[0.05] text-xl font-bold text-white ring-1 ring-white/10 sm:h-20 sm:w-20 sm:text-2xl"
             imgClassName="h-full w-full object-cover"
           />
         </Link>
 
-        <div className="min-w-0 w-full shrink-0 sm:w-[160px] lg:w-[180px]">
+        <div className="min-w-0 flex-1 sm:w-[160px] sm:flex-none lg:w-[180px]">
           <div className="flex items-center gap-2">
             <Link
               href={`/people/${person.handle}`}
               prefetch={false}
-              className="truncate text-lg font-semibold text-white transition hover:text-xiio-accent"
+              className="truncate text-h3 font-semibold text-ink transition-colors hover:text-xiio-accent"
             >
               {person.displayName}
             </Link>
@@ -70,8 +71,8 @@ export default memo(function SocietyCreatorRow({
               />
             ) : null}
           </div>
-          <p className="mt-0.5 text-sm text-white/50">{roleLabel}</p>
-          <p className="mt-0.5 truncate text-sm text-white/50">{school}</p>
+          <p className="mt-0.5 text-small text-ink-3">{roleLabel}</p>
+          <p className="mt-0.5 truncate text-small text-ink-3">{school}</p>
         </div>
       </div>
 
@@ -83,7 +84,7 @@ export default memo(function SocietyCreatorRow({
           {tags.map((tag) => (
             <span
               key={tag}
-              className="rounded-full border border-white/20 px-3 py-1 text-xs text-white/60"
+              className="rounded-md border border-white/10 bg-white/[0.055] px-3 py-1 text-xs text-white/60"
             >
               {tag}
             </span>
@@ -96,11 +97,11 @@ export default memo(function SocietyCreatorRow({
           type="button"
           disabled={connectBusy || connected}
           onClick={onConnect}
-          className={`rounded-lg px-5 py-2 text-sm font-medium transition disabled:opacity-50 ${
-            connected
-              ? "border border-white/20 bg-white/5 text-white/60"
-              : "border border-xiio-accent text-xiio-accent hover:bg-xiio-accent/10"
-          }`}
+          className={buttonClass({
+            variant: "secondary",
+            size: "md",
+            className: connected ? "!text-ink-3" : "",
+          })}
         >
           {connectBusy
             ? t("society.connecting")

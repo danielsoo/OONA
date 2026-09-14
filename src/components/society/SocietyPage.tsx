@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import SocietyConnectionsPanel, {
   type SocietyTabId,
 } from "@/components/society/SocietyConnectionsPanel";
-import SocietyProfileHero from "@/components/society/SocietyProfileHero";
 import SocietyRightRail from "@/components/society/SocietyRightRail";
 
 const SOCIETY_TABS: SocietyTabId[] = ["discover", "connections", "requests", "sent", "works"];
@@ -28,14 +27,21 @@ export default function SocietyPage() {
   );
 
   return (
-    <div className="pb-16">
-      <SocietyProfileHero />
-      <div className="px-4 lg:px-12">
-        <div className="flex flex-col gap-10 xl:flex-row xl:items-start xl:gap-12">
+    <main className="min-h-[calc(100svh-82px)] bg-[#080808] pb-16 text-white">
+      <header className="px-4 pb-9 pt-10 sm:px-7 lg:px-12 lg:pb-12 lg:pt-14">
+        <h1 className="font-serif text-[48px] font-normal leading-none tracking-[-0.045em] text-[#f5f4f2] sm:text-[64px] lg:text-[72px]">
+          Creators
+        </h1>
+        <p className="mt-3 text-[16px] font-light text-white/55 sm:text-[19px]">
+          Discover creators and build something together.
+        </p>
+      </header>
+      <div className="px-4 sm:px-7 lg:px-12">
+        <div className="flex flex-col gap-10 xl:flex-row xl:items-start xl:gap-10">
           <SocietyConnectionsPanel activeTab={tab} onTabChange={onTabChange} />
           {tab !== "works" ? <SocietyRightRail /> : null}
         </div>
       </div>
-    </div>
+    </main>
   );
 }

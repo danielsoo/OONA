@@ -1,5 +1,5 @@
-import HomeMockPage from "@/components/home/HomeMockPage";
+import CinematicHomePage from "@/components/home/CinematicHomePage";
 
 export default function HomePage() {
-  return <HomeMockPage />;
+  return <CinematicHomePage />;
 }

@@ -14,7 +14,7 @@ export default function MessagesLayout({ children }: { children: ReactNode }) {
 
   if (!user) {
     return (
-      <main className="h-[calc(100dvh-60px)] flex items-center justify-center overflow-hidden bg-xiio-bg">
+      <main className="h-[calc(100dvh-60px-64px-env(safe-area-inset-bottom))] lg:h-[calc(100dvh-60px)] flex items-center justify-center overflow-hidden bg-xiio-bg">
         <Link href="/login" className="text-xiio-accent hover:underline">
           {t("common.loginRequired")}
         </Link>

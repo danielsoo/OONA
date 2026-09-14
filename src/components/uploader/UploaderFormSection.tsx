@@ -12,7 +12,7 @@ type Props = {
 /** 업로드 폼 분류 구역 카드 */
 export default function UploaderFormSection({ title, hint, children }: Props) {
   return (
-    <section className="space-y-5 rounded-xl border border-white/[0.08] bg-[#101013] p-5 md:p-6">
+    <section className="space-y-6 border-b border-white/[0.1] bg-transparent pb-9">
       <header>
         <SectionLabel>{title}</SectionLabel>
         {hint ? <p className="mt-2 text-[12px] leading-relaxed text-white/40">{hint}</p> : null}

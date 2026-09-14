@@ -45,9 +45,9 @@ export default function UploaderSubmitFooter({
   return (
     <div
       ref={footerRef}
-      className="sticky bottom-0 z-20 -mx-1 border-t border-white/[0.08] bg-xiio-bg/95 px-1 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur-md"
+      className="sticky bottom-0 z-20 -mx-1 border-t border-white/[0.08] bg-[#080808]/95 px-1 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur-md"
     >
-      <div className="space-y-4 rounded-xl border border-white/[0.08] bg-[#101013] p-4 md:px-5">
+      <div className="space-y-4 bg-[#080808] p-4 md:px-5">
         {uploadError ? (
           <div
             role="alert"
@@ -119,7 +119,7 @@ export default function UploaderSubmitFooter({
             type="button"
             onClick={onPrimary}
             disabled={busy || uploadComplete}
-            className="inline-flex h-11 min-w-36 items-center justify-center rounded-full bg-[#f5f4f2] px-7 text-[13px] font-semibold text-[#0b0b0d] transition hover:bg-white disabled:opacity-40"
+            className="inline-flex h-11 min-w-36 items-center justify-center rounded-full border border-[#76d8ff]/80 bg-transparent px-7 text-[13px] font-semibold text-white transition hover:bg-[#76d8ff]/10 hover:shadow-[0_0_24px_rgba(79,194,246,0.15)] disabled:opacity-40"
           >
             {uploadComplete
               ? t("uploader.uploadRedirecting")

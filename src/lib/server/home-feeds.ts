@@ -107,9 +107,10 @@ async function loadPromoShortsFeed(db: Firestore): Promise<PromoFeedItem[]> {
       : null;
     if (!videoUrl) return [];
 
+    // Story cards render at most ~180px wide; 360x640 covers 2x screens.
     const thumbnailUrl = getStreamThumbnailUrl(item.promo.streamUid!, {
-      width: 720,
-      height: 1280,
+      width: 360,
+      height: 640,
       fit: "crop",
     });
 
@@ -188,8 +189,9 @@ async function loadCatalogWorksFeed(
     const thumbnailUrl = getStreamThumbnailUrl(
       promo?.streamUid ?? item.work.streamUid!,
       {
-        width: 1280,
-        height: 720,
+        // Catalog cards render at most ~300px wide; 640x360 covers 2x screens.
+        width: 640,
+        height: 360,
         fit: "crop",
       }
     );

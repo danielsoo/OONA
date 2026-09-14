@@ -80,29 +80,24 @@ export default function SocietyProfileHeroLayout({
 }: SocietyProfileHeroLayoutProps) {
   const { t } = useTranslations();
   const bannerPreset = resolveSocietyBannerBackground(societyBannerBackgroundId);
-
   return (
     <section
       className="relative isolate mb-8 min-h-[280px] w-full overflow-hidden -mt-[60px] pt-[60px] sm:min-h-[300px] md:min-h-[320px] sm:mb-10"
       aria-busy={loading}
     >
-      <div
-        className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#0a1628] via-[#060a12] to-[#030508]"
-        aria-hidden
-      />
+      <div className="pointer-events-none absolute inset-0 bg-[#070707]" aria-hidden />
 
       <div className="pointer-events-none absolute inset-y-0 right-0 w-[50%]" aria-hidden>
         <Image
           src={bannerPreset.src}
           alt=""
           fill
-          className="object-cover opacity-90"
+          className="object-cover opacity-25"
           style={{ objectPosition: bannerPreset.objectPosition }}
           sizes="50vw"
           priority
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#060a12] via-[#060a12]/75 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#070707] via-[#070707]/90 to-black/35" />
       </div>
 
       <div

@@ -1,4 +1,4 @@
-/** 001 home mockup full frame (1536×1024 PNG) — reference constants only */
+/** 001 home mockup full frame (1536×1024 PNG): reference constants only */
 export const MOCKUP_FRAME = { width: 1536, height: 1024 } as const;
 
 export const MOCKUP_SIDEBAR = 239;
@@ -10,7 +10,7 @@ export const MOCKUP_CONTENT_INSET = {
   rightMargin: 76,
 } as const;
 
-/** Implemented sidebar width (12rem) — gap after border-r to main content start */
+/** Implemented sidebar width (12rem): gap after border-r to main content start */
 export const APP_SIDEBAR_IMPLEMENTATION_PX = 220;
 const MOCKUP_SIDEBAR_CONTENT_GAP_PX =
   MOCKUP_CONTENT_INSET.left - APP_SIDEBAR_IMPLEMENTATION_PX;
@@ -20,15 +20,18 @@ export const APP_CONTENT_BOUNDARY_INSET_PX = Math.round(
 );
 export const APP_CONTENT_RIGHT_MARGIN_PX = MOCKUP_CONTENT_INSET.rightMargin;
 
-/** App chrome — sidebar vs main column (photos excluded) */
+/** App chrome: sidebar vs main column (photos excluded) */
 export const APP_SIDEBAR_BG = "#0d0d10";
 export const APP_MAIN_BG = "#0b0b0d";
 
-/** Section headers — All Films style (dot + xs bold caps) */
+/**
+ * Section headers: one style everywhere: 22px sentence case (text-h2).
+ * The old dot + 12px caps label is retired; `dot` stays for existing markup.
+ */
 export const MOCKUP_SECTION_LABEL = {
-  row: "flex items-center gap-2",
-  dot: "w-1.5 h-1.5 rounded-full bg-xiio-accent shrink-0",
-  text: "text-xs font-bold tracking-[0.2em] uppercase text-white",
+  row: "flex min-w-0 items-center",
+  dot: "hidden",
+  text: "text-h2 font-semibold text-ink",
 } as const;
 
 /** Measured layout px on 001 mockup */

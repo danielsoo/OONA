@@ -24,6 +24,7 @@ import {
 } from "@/lib/societyPeopleCache";
 import type { SocietyPerson } from "@/lib/societyTypes";
 import type { ProfileRoleTag } from "@/types/portfolio";
+import { buttonClass } from "@/components/ui/Button";
 
 export type SocietyTabId = "discover" | "connections" | "requests" | "sent" | "works";
 
@@ -255,20 +256,20 @@ export default function SocietyConnectionsPanel({ activeTab, onTabChange }: Prop
 
   return (
     <div className="min-w-0 flex-1">
-      <nav className="flex gap-8 overflow-x-auto border-b border-white/10 sm:gap-10" aria-label="Connections tabs">
+      <nav className="scrollbar-none flex gap-7 overflow-x-auto border-b border-line" aria-label="Connections tabs">
         {tabs.map((item) => (
           <button
             key={item.id}
             type="button"
             onClick={() => onTabChange(item.id)}
-            className={`relative shrink-0 px-1 pb-3 text-sm font-medium transition ${
-              tab === item.id ? "text-white" : "text-white/45 hover:text-white/70"
+            className={`relative shrink-0 pb-3 text-body font-medium transition-colors ${
+              tab === item.id ? "text-ink" : "text-ink-3 hover:text-ink-2"
             }`}
           >
             {t(item.labelKey)}
             {tab === item.id ? (
               <span
-                className="absolute bottom-0 left-1/2 h-0.5 w-[calc(100%+1rem)] -translate-x-1/2 bg-xiio-accent"
+                className="absolute inset-x-0 bottom-0 h-0.5 rounded-full bg-ink"
                 aria-hidden
               />
             ) : null}
@@ -285,12 +286,12 @@ export default function SocietyConnectionsPanel({ activeTab, onTabChange }: Prop
               onChange={(e) => setQ(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && submitSearch()}
               placeholder={t("discover.searchPlaceholder")}
-              className="min-w-[200px] flex-1 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white"
+              className="h-10 min-w-[200px] flex-1 rounded-full border border-line bg-white/[0.04] px-4 text-small text-ink placeholder:text-ink-4 focus:border-xiio-accent/50 focus:outline-none"
             />
             <button
               type="button"
               onClick={submitSearch}
-              className="rounded-lg bg-xiio-accent px-4 py-2 text-sm text-white"
+              className={buttonClass({ variant: "secondary", size: "md" })}
             >
               {t("discover.search")}
             </button>

@@ -9,6 +9,10 @@ import type { User } from "firebase/auth";
 
 export type SchoolPickerValue = { id: string; name: string } | null;
 
+function suggestionLocation(school: SchoolSuggestion): string {
+  return [school.location?.city, school.location?.country].filter(Boolean).join(", ");
+}
+
 type Props = {
   value: SchoolPickerValue;
   onChange: (value: SchoolPickerValue) => void;
@@ -44,17 +48,8 @@ export default function SchoolPicker({
     !suggestions.some((s) => s.name.toLowerCase() === query.trim().toLowerCase());
   const optionCount = suggestions.length + (showCreateOption ? 1 : 0);
 
-  const selectSchool = useCallback(
-    (s: SchoolSuggestion) => {
-      onChange({ id: s.id, name: s.name });
-      setQuery("");
-      setOpen(false);
-    },
-    [onChange]
-  );
-
   const createSchool = useCallback(
-    async (name: string) => {
+    async (name: string, location?: SchoolSuggestion["location"]) => {
       const trimmed = name.trim();
       if (!trimmed || !user || creatingRef.current) return;
       creatingRef.current = true;
@@ -64,7 +59,7 @@ export default function SchoolPicker({
         const res = await fetch("/api/schools", {
           method: "POST",
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-          body: JSON.stringify({ name: trimmed }),
+          body: JSON.stringify({ name: trimmed, ...(location ? { location } : {}) }),
         });
         const data = (await res.json()) as { school?: { id: string; name: string } };
         if (data.school) {
@@ -80,6 +75,19 @@ export default function SchoolPicker({
       }
     },
     [user, onChange]
+  );
+
+  const selectSchool = useCallback(
+    (school: SchoolSuggestion) => {
+      if (school.source === "ror") {
+        void createSchool(school.name, school.location);
+        return;
+      }
+      onChange({ id: school.id, name: school.name });
+      setQuery("");
+      setOpen(false);
+    },
+    [createSchool, onChange]
   );
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -172,7 +180,14 @@ export default function SchoolPicker({
                 onClick={() => selectSchool(s)}
                 onMouseEnter={() => setHighlight(i)}
               >
-                {s.name}
+                <span className="flex min-w-0 flex-col">
+                  <span className="truncate">{s.name}</span>
+                  {suggestionLocation(s) ? (
+                    <span className="mt-0.5 truncate text-[10px] text-white/45">
+                      {suggestionLocation(s)}{s.source === "ror" ? " · verified directory" : ""}
+                    </span>
+                  ) : null}
+                </span>
               </button>
             </li>
           ))}
