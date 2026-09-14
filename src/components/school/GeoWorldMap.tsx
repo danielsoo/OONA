@@ -78,14 +78,14 @@ export default function GeoWorldMap({ showAdminOutlines = false }: { showAdminOu
     >
       <defs>
         <linearGradient id="oona-land" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#15364d" />
-          <stop offset="0.46" stopColor="#082236" />
-          <stop offset="1" stopColor="#020d17" />
+          <stop offset="0" stopColor="#214f6b" />
+          <stop offset="0.46" stopColor="#0d334b" />
+          <stop offset="1" stopColor="#041925" />
         </linearGradient>
         <linearGradient id="oona-land-volume" x1="0" y1="0" x2="0.72" y2="1">
-          <stop offset="0" stopColor="#6f93a8" stopOpacity="0.38" />
-          <stop offset="0.27" stopColor="#1b435b" stopOpacity="0.2" />
-          <stop offset="0.66" stopColor="#061723" stopOpacity="0.08" />
+          <stop offset="0" stopColor="#78a9c3" stopOpacity="0.62" />
+          <stop offset="0.27" stopColor="#28627f" stopOpacity="0.36" />
+          <stop offset="0.66" stopColor="#0b2c42" stopOpacity="0.18" />
           <stop offset="1" stopColor="#00070d" stopOpacity="0.48" />
         </linearGradient>
         <clipPath id="oona-land-clip">
@@ -98,8 +98,14 @@ export default function GeoWorldMap({ showAdminOutlines = false }: { showAdminOu
             <feMergeNode in="SourceGraphic" />
           </feMerge>
         </filter>
+        <filter id="oona-land-aura" x="-8%" y="-16%" width="116%" height="132%">
+          <feGaussianBlur stdDeviation="5.5" />
+        </filter>
       </defs>
 
+      <g className="geo-world-aura" filter="url(#oona-land-aura)">
+        {countryPaths.map((country) => <path key={`aura-${country.key}`} d={country.path} />)}
+      </g>
       <g className="geo-world-depth geo-world-depth-back" transform="translate(0 9)">
         {countryPaths.map((country) => <path key={`depth-back-${country.key}`} d={country.path} />)}
       </g>
