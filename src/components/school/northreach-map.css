@@ -109,8 +109,7 @@
   vector-effect: non-scaling-stroke;
 }
 
-.nr .geo-world-foundation path,
-.nr .geo-world-relief path {
+.nr .geo-world-foundation path {
   fill: url("#oona-land");
   fill-rule: evenodd;
   stroke: none;
@@ -129,19 +128,14 @@
     drop-shadow(0 13px 12px rgba(0, 0, 0, 0.6));
 }
 
-.nr .geo-world-relief {
-  opacity: 0.56;
-  mix-blend-mode: screen;
-}
-
-.nr .geo-world-lighting {
-  mix-blend-mode: screen;
-  opacity: 0.94;
-}
-
 .nr .geo-world-surface {
-  opacity: 0.96;
+  opacity: 0.94;
   filter: drop-shadow(0 3px 2px rgba(0, 0, 0, 0.72));
+}
+
+.nr .geo-world-terrain-texture {
+  opacity: 0.9;
+  filter: saturate(0.76) contrast(1.17) brightness(0.76);
 }
 
 .nr .geo-world-volume {
@@ -150,8 +144,8 @@
 
 .nr .geo-world-rim path {
   fill: none;
-  stroke: rgba(137, 190, 218, 0.36);
-  stroke-width: 0.7;
+  stroke: rgba(128, 185, 214, 0.18);
+  stroke-width: 0.52;
   vector-effect: non-scaling-stroke;
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.92));
 }
