@@ -59,15 +59,6 @@
   container-type: inline-size;
 }
 
-.nr .map-shade {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background:
-    linear-gradient(90deg, rgba(1, 8, 14, 0.05) 0%, transparent 55%, rgba(2, 9, 16, 0.18) 76%, rgba(2, 8, 14, 0.36) 100%),
-    linear-gradient(180deg, rgba(1, 8, 14, 0.2) 0%, transparent 17%);
-}
-
 .nr .geo-map-stage {
   position: absolute;
   z-index: 2;
@@ -92,50 +83,6 @@
   background: url("/images/schools/oona-fictional-islands-v1.jpg") center / 100% 100% no-repeat;
   filter: saturate(0.92) contrast(1.04) brightness(0.94);
 }
-
-.nr .fictional-map-art::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(90deg, rgba(1, 8, 15, 0.22), transparent 8%, transparent 92%, rgba(1, 8, 15, 0.18)),
-    linear-gradient(180deg, rgba(1, 8, 15, 0.1), transparent 12%, transparent 90%, rgba(1, 8, 15, 0.24));
-}
-
-.nr .fictional-island-labels {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  pointer-events: none;
-}
-
-.nr .fictional-island-label {
-  position: absolute;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  color: rgba(152, 186, 230, 0.72);
-  font-family: Georgia, "Times New Roman", serif;
-  letter-spacing: 0.025em;
-  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.92);
-}
-
-.nr .fictional-island-label strong {
-  font-size: clamp(17px, 1.55cqw, 25px);
-  font-weight: 400;
-}
-
-.nr .fictional-island-label small {
-  color: rgba(145, 166, 201, 0.5);
-  font-size: clamp(9px, 0.8cqw, 12px);
-  font-style: italic;
-}
-
-.nr .fictional-island-label.north { top: 5%; left: 68%; }
-.nr .fictional-island-label.west { top: 40%; left: 1.5%; }
-.nr .fictional-island-label.center { top: 49%; left: 50%; align-items: center; transform: translate(-50%, -50%); }
-.nr .fictional-island-label.east { top: 41%; right: 0.5%; text-align: right; }
-.nr .fictional-island-label.south { bottom: 7%; left: 31%; }
 
 .nr .geo-map-stage::before {
   content: "";
@@ -684,7 +631,6 @@
     overflow: hidden;
     background: linear-gradient(180deg, #020b13, #020912);
   }
-  .nr .map-shade { background: linear-gradient(180deg, rgba(1, 8, 14, 0.26), transparent 27%, rgba(1, 8, 14, 0.03)); }
   .nr .schools-intro { top: 84px; left: 22px; }
   .nr .region-filter, .nr .region-button { width: 148px; }
   .nr .region-button { min-height: 37px; padding-inline: 15px; font-size: 11px; }
@@ -730,8 +676,6 @@
     backdrop-filter: none;
   }
   .nr .legend { display: none; }
-  .nr .fictional-island-label strong { font-size: clamp(11px, 2.5vw, 17px); }
-  .nr .fictional-island-label small { display: none; }
   .nr .ranking-rail {
     position: relative;
     top: auto;

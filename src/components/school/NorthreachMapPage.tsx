@@ -346,8 +346,6 @@ export default function NorthreachMapPage() {
     <div className="nr">
       <main className="atlas-shell">
         <section className="map-panel" aria-label="Interactive school map">
-          <div className="map-shade" aria-hidden="true" />
-
           <div className="schools-intro">
             <h1 className="map-heading-visually-hidden">Schools on OONA</h1>
 
@@ -403,31 +401,7 @@ export default function NorthreachMapPage() {
             {ACTIVE_MAP_MODE === "geographic" ? (
               <GeoWorldMap showAdminOutlines={mapDiagnosticsEnabled} viewport={mapViewport} />
             ) : (
-              <>
-                <div className="fictional-map-art" aria-hidden="true" />
-                <div className="fictional-island-labels" aria-hidden="true">
-                  <span className="fictional-island-label north">
-                    <strong>Northreach</strong>
-                    <small>Ideas in motion</small>
-                  </span>
-                  <span className="fictional-island-label west">
-                    <strong>Westmere</strong>
-                    <small>Stories across cultures</small>
-                  </span>
-                  <span className="fictional-island-label center">
-                    <strong>OONA</strong>
-                    <small>Create. Connect. Grow.</small>
-                  </span>
-                  <span className="fictional-island-label east">
-                    <strong>Eastvale</strong>
-                    <small>New perspectives</small>
-                  </span>
-                  <span className="fictional-island-label south">
-                    <strong>Southreach</strong>
-                    <small>More voices. Further.</small>
-                  </span>
-                </div>
-              </>
+              <div className="fictional-map-art" aria-hidden="true" />
             )}
 
             {ACTIVE_MAP_MODE === "geographic" && mapDiagnosticsEnabled ? (
