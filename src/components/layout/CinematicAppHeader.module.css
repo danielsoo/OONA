@@ -22,6 +22,11 @@
   backdrop-filter: none;
 }
 
+.schoolHeader {
+  border-bottom-color: transparent;
+  background: transparent;
+}
+
 .logoLink { width: fit-content; }
 .logo { width: 128px; height: auto; object-fit: contain; }
 

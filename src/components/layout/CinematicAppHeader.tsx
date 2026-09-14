@@ -99,9 +99,10 @@ export default function CinematicAppHeader() {
   const displayName = profile?.displayName?.trim() || user?.displayName || user?.email || "Member";
   const authHref = (href: string) => user ? href : "/login";
   const overlayPage = pathname === "/" || pathname === "/schools";
+  const schoolPage = pathname === "/schools";
 
   return (
-    <header className={`${styles.header} ${overlayPage ? styles.overlayHeader : ""}`}>
+    <header className={`${styles.header} ${overlayPage ? styles.overlayHeader : ""} ${schoolPage ? styles.schoolHeader : ""}`}>
       <Link href="/" className={styles.logoLink} aria-label="OONA home">
         <XiioWordmark className={styles.logo} />
       </Link>
