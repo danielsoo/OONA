@@ -9,6 +9,13 @@ export const GEO_MAP = {
   height: 600,
 } as const;
 
+export type GeoViewport = {
+  latitudeTop: number;
+  latitudeBottom: number;
+  longitudeLeft: number;
+  longitudeRight: number;
+};
+
 type Position = [number, number];
 type PolygonCoordinates = Position[][];
 type MultiPolygonCoordinates = Position[][][];
@@ -21,19 +28,23 @@ type CountryFeature = {
 };
 type CountryCollection = { features: CountryFeature[] };
 
-export function projectGeoCoordinate(latitude: number, longitude: number) {
-  const boundedLatitude = Math.max(GEO_MAP.latitudeBottom, Math.min(GEO_MAP.latitudeTop, latitude));
-  const boundedLongitude = Math.max(GEO_MAP.longitudeLeft, Math.min(GEO_MAP.longitudeRight, longitude));
+export function projectGeoCoordinate(
+  latitude: number,
+  longitude: number,
+  viewport: GeoViewport = GEO_MAP
+) {
+  const boundedLatitude = Math.max(viewport.latitudeBottom, Math.min(viewport.latitudeTop, latitude));
+  const boundedLongitude = Math.max(viewport.longitudeLeft, Math.min(viewport.longitudeRight, longitude));
   return {
-    x: ((boundedLongitude - GEO_MAP.longitudeLeft) / (GEO_MAP.longitudeRight - GEO_MAP.longitudeLeft)) * 100,
-    y: ((GEO_MAP.latitudeTop - boundedLatitude) / (GEO_MAP.latitudeTop - GEO_MAP.latitudeBottom)) * 100,
+    x: ((boundedLongitude - viewport.longitudeLeft) / (viewport.longitudeRight - viewport.longitudeLeft)) * 100,
+    y: ((viewport.latitudeTop - boundedLatitude) / (viewport.latitudeTop - viewport.latitudeBottom)) * 100,
   };
 }
 
-export function unprojectGeoCoordinate(x: number, y: number) {
+export function unprojectGeoCoordinate(x: number, y: number, viewport: GeoViewport = GEO_MAP) {
   return {
-    longitude: GEO_MAP.longitudeLeft + (x / 100) * (GEO_MAP.longitudeRight - GEO_MAP.longitudeLeft),
-    latitude: GEO_MAP.latitudeTop - (y / 100) * (GEO_MAP.latitudeTop - GEO_MAP.latitudeBottom),
+    longitude: viewport.longitudeLeft + (x / 100) * (viewport.longitudeRight - viewport.longitudeLeft),
+    latitude: viewport.latitudeTop - (y / 100) * (viewport.latitudeTop - viewport.latitudeBottom),
   };
 }
 
@@ -68,11 +79,25 @@ const countryPaths = (worldData as unknown as CountryCollection).features.flatMa
     : []
 );
 
-export default function GeoWorldMap({ showAdminOutlines = false }: { showAdminOutlines?: boolean }) {
+function viewportViewBox(viewport: GeoViewport) {
+  const [x, y] = projectPoint([viewport.longitudeLeft, viewport.latitudeTop]);
+  const [right, bottom] = projectPoint([viewport.longitudeRight, viewport.latitudeBottom]);
+  return { x, y, width: right - x, height: bottom - y };
+}
+
+export default function GeoWorldMap({
+  showAdminOutlines = false,
+  viewport = GEO_MAP,
+}: {
+  showAdminOutlines?: boolean;
+  viewport?: GeoViewport;
+}) {
+  const frame = viewportViewBox(viewport);
+
   return (
     <svg
       className="geo-world-map"
-      viewBox={`0 0 ${GEO_MAP.width} ${GEO_MAP.height}`}
+      viewBox={`${frame.x} ${frame.y} ${frame.width} ${frame.height}`}
       preserveAspectRatio="none"
       aria-hidden="true"
     >
@@ -118,12 +143,21 @@ export default function GeoWorldMap({ showAdminOutlines = false }: { showAdminOu
       <g className="geo-world-surface" clipPath="url(#oona-land-clip)">
         <image
           className="geo-world-terrain-texture"
-          href="/images/schools/oona-land-terrain-v2.jpg"
-          width={GEO_MAP.width}
-          height={GEO_MAP.height}
+          href="/images/schools/oona-society-land-v3.jpg"
+          x={frame.x}
+          y={frame.y}
+          width={frame.width}
+          height={frame.height}
           preserveAspectRatio="none"
         />
-        <rect className="geo-world-volume" width={GEO_MAP.width} height={GEO_MAP.height} fill="url(#oona-land-volume)" />
+        <rect
+          className="geo-world-volume"
+          x={frame.x}
+          y={frame.y}
+          width={frame.width}
+          height={frame.height}
+          fill="url(#oona-land-volume)"
+        />
       </g>
       <g className="geo-world-rim">
         {countryPaths.map((country) => <path key={`rim-${country.key}`} d={country.path} />)}

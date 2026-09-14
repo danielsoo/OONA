@@ -11,8 +11,10 @@ import {
   type PointerEvent as ReactPointerEvent,
 } from "react";
 import GeoWorldMap, {
+  GEO_MAP,
   projectGeoCoordinate,
   unprojectGeoCoordinate,
+  type GeoViewport,
 } from "@/components/school/GeoWorldMap";
 import { useSchoolsFeed } from "@/hooks/useSchoolsFeed";
 import type { SchoolListItem } from "@/types/school";
@@ -35,6 +37,7 @@ type MapSchool = {
   longitude?: number;
   labelOffset?: { x?: number; y?: number };
   labelSide?: LabelSide;
+  zoneSize?: "large" | "medium" | "small";
   color: string;
   colorAlt: string;
   logo?: string;
@@ -42,16 +45,49 @@ type MapSchool = {
 
 const REGIONS: Region[] = ["All Regions", "United States", "North America", "Europe", "Asia-Pacific"];
 
+const MAP_VIEWPORTS: Record<Region, GeoViewport> = {
+  "All Regions": GEO_MAP,
+  "United States": {
+    latitudeTop: 50.8,
+    latitudeBottom: 24.2,
+    longitudeLeft: -125.5,
+    longitudeRight: -66.2,
+  },
+  "North America": {
+    latitudeTop: 79,
+    latitudeBottom: 5,
+    longitudeLeft: -180,
+    longitudeRight: -26,
+  },
+  Europe: {
+    latitudeTop: 73,
+    latitudeBottom: 28,
+    longitudeLeft: -24,
+    longitudeRight: 70,
+  },
+  "Asia-Pacific": {
+    latitudeTop: 66,
+    latitudeBottom: -52,
+    longitudeLeft: -50,
+    longitudeRight: 180,
+  },
+};
+
+const MAP_GUIDES: Record<Region, { longitudes: number[]; latitudes: number[] }> = {
+  "All Regions": { longitudes: [-120, -60, 0, 60, 120], latitudes: [60, 30, 0, -30, -60] },
+  "United States": { longitudes: [-120, -100, -80], latitudes: [50, 40, 30] },
+  "North America": { longitudes: [-150, -120, -90, -60], latitudes: [60, 30] },
+  Europe: { longitudes: [0, 30, 60], latitudes: [60, 45, 30] },
+  "Asia-Pacific": { longitudes: [0, 60, 120, 180], latitudes: [60, 30, 0, -30] },
+};
+
 const AdminMapDiagnosticsControl = dynamic(
   () => import("@/components/school/AdminMapDiagnosticsControl"),
   { ssr: false }
 );
 
-const LONGITUDE_GUIDES = [-120, -60, 0, 60, 120];
-const LATITUDE_GUIDES = [60, 30, 0, -30, -60];
-
-function projectSchoolLocation(school: MapSchool): { x: number; y: number } {
-  return projectGeoCoordinate(school.latitude ?? 0, school.longitude ?? 0);
+function projectSchoolLocation(school: MapSchool, viewport: GeoViewport): { x: number; y: number } {
+  return projectGeoCoordinate(school.latitude ?? 0, school.longitude ?? 0, viewport);
 }
 
 function formatLatitude(latitude: number): string {
@@ -102,20 +138,20 @@ function registeredMapSchool(school: SchoolListItem): MapSchool | null {
 }
 
 const SCHOOLS: MapSchool[] = [
-  { id: "penn-state", name: "Penn State", short: "PS", count: "2.3K", students: 2300, region: "North America", countryCode: "US", latitude: 40.7982, longitude: -77.8599, labelSide: "left", labelOffset: { x: -3, y: 24 }, color: "#123c88", colorAlt: "#eef4ff", logo: "/images/campus/schools/psu.png" },
+  { id: "penn-state", name: "Penn State", short: "PS", count: "2.3K", students: 2300, region: "North America", countryCode: "US", latitude: 40.7982, longitude: -77.8599, labelSide: "left", labelOffset: { x: -3, y: 24 }, zoneSize: "large", color: "#123c88", colorAlt: "#eef4ff", logo: "/images/campus/schools/psu.png" },
   { id: "snu", name: "SNU", short: "SNU", count: "1.9K", students: 1900, region: "Asia-Pacific", countryCode: "KR", latitude: 37.4599, longitude: 126.9519, labelSide: "right", labelOffset: { x: 2, y: 19 }, color: "#4564a8", colorAlt: "#f4f6ff" },
-  { id: "ucla", name: "UCLA", short: "UCLA", count: "1.8K", students: 1800, region: "North America", countryCode: "US", latitude: 34.0689, longitude: -118.4452, labelSide: "left", color: "#1f78bc", colorAlt: "#f5c449", logo: "/images/campus/schools/ucla.svg" },
+  { id: "ucla", name: "UCLA", short: "UCLA", count: "1.8K", students: 1800, region: "North America", countryCode: "US", latitude: 34.0689, longitude: -118.4452, labelSide: "left", zoneSize: "medium", color: "#1f78bc", colorAlt: "#f5c449", logo: "/images/campus/schools/ucla.svg" },
   { id: "pku", name: "PKU", short: "PKU", count: "1.5K", students: 1500, region: "Asia-Pacific", countryCode: "CN", latitude: 39.9927, longitude: 116.3054, labelSide: "left", labelOffset: { y: -9 }, color: "#8d1838", colorAlt: "#fff4f6" },
-  { id: "nyu", name: "NYU", short: "NYU", count: "1.4K", students: 1400, region: "North America", countryCode: "US", latitude: 40.7295, longitude: -73.9965, labelSide: "right", labelOffset: { x: 3, y: 21 }, color: "#5d2ca8", colorAlt: "#f6f0ff", logo: "/images/campus/schools/nyu.svg" },
+  { id: "nyu", name: "NYU", short: "NYU", count: "1.4K", students: 1400, region: "North America", countryCode: "US", latitude: 40.7295, longitude: -73.9965, labelSide: "right", labelOffset: { x: 3, y: 21 }, zoneSize: "small", color: "#5d2ca8", colorAlt: "#f6f0ff", logo: "/images/campus/schools/nyu.svg" },
   { id: "tokyo", name: "University of Tokyo", short: "UT", count: "1.3K", students: 1300, region: "Asia-Pacific", countryCode: "JP", latitude: 35.7126, longitude: 139.761, labelSide: "left", labelOffset: { x: -2, y: 28 }, color: "#dfa800", colorAlt: "#1d62a5" },
   { id: "tsinghua", name: "Tsinghua", short: "TH", count: "1.2K", students: 1200, region: "Asia-Pacific", countryCode: "CN", latitude: 40.0004, longitude: 116.326, labelSide: "right", labelOffset: { y: -13 }, color: "#c86ebc", colorAlt: "#fff4ff" },
-  { id: "berkeley", name: "UC Berkeley", short: "CAL", count: "1.1K", students: 1100, region: "North America", countryCode: "US", latitude: 37.8719, longitude: -122.2585, labelSide: "left", color: "#9b6c10", colorAlt: "#f2c84b", logo: "/images/campus/schools/berkeley.svg" },
+  { id: "berkeley", name: "UC Berkeley", short: "CAL", count: "1.1K", students: 1100, region: "North America", countryCode: "US", latitude: 37.8719, longitude: -122.2585, labelSide: "left", zoneSize: "small", color: "#9b6c10", colorAlt: "#f2c84b", logo: "/images/campus/schools/berkeley.svg" },
   { id: "toronto", name: "University of Toronto", short: "U of T", count: "1.1K", students: 1080, region: "North America", countryCode: "CA", latitude: 43.6629, longitude: -79.3957, labelSide: "above", labelOffset: { x: -42, y: -22 }, color: "#1555a4", colorAlt: "#dcecff" },
   { id: "melbourne", name: "University of Melbourne", short: "UM", count: "1.0K", students: 1000, region: "Asia-Pacific", countryCode: "AU", latitude: -37.7983, longitude: 144.961, labelSide: "left", color: "#174784", colorAlt: "#eaf2ff" },
   { id: "oxford", name: "University of Oxford", short: "OX", count: "930", students: 930, region: "Europe", countryCode: "GB", latitude: 51.7548, longitude: -1.2544, labelSide: "left", color: "#1c477a", colorAlt: "#e2edf8" },
   { id: "nus", name: "National University of Singapore", short: "NUS", count: "920", students: 920, region: "Asia-Pacific", countryCode: "SG", latitude: 1.2966, longitude: 103.7764, labelSide: "left", color: "#ef7c18", colorAlt: "#163b80" },
   { id: "sydney", name: "University of Sydney", short: "USYD", count: "870", students: 870, region: "Asia-Pacific", countryCode: "AU", latitude: -33.8886, longitude: 151.1873, labelSide: "right", labelOffset: { x: 2, y: 17 }, color: "#a4142e", colorAlt: "#fff0f2" },
-  { id: "mit", name: "MIT", short: "MIT", count: "820", students: 820, region: "North America", countryCode: "US", latitude: 42.3601, longitude: -71.0942, labelSide: "right", labelOffset: { x: 8, y: -27 }, color: "#8d2837", colorAlt: "#f4e7e9" },
+  { id: "mit", name: "MIT", short: "MIT", count: "820", students: 820, region: "North America", countryCode: "US", latitude: 42.3601, longitude: -71.0942, labelSide: "right", labelOffset: { x: 8, y: -27 }, zoneSize: "small", color: "#8d2837", colorAlt: "#f4e7e9" },
   { id: "mcgill", name: "McGill University", short: "MCG", count: "620", students: 620, region: "North America", countryCode: "CA", latitude: 45.5048, longitude: -73.5772, labelSide: "left", labelOffset: { x: -4, y: -4 }, color: "#ba2636", colorAlt: "#ffffff" },
 ];
 
@@ -144,7 +180,7 @@ function SchoolCrest({ school }: { school: MapSchool }) {
 }
 
 export default function NorthreachMapPage() {
-  const [region, setRegion] = useState<Region>("All Regions");
+  const [region, setRegion] = useState<Region>("United States");
   const [regionOpen, setRegionOpen] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showAll, setShowAll] = useState(false);
@@ -159,6 +195,8 @@ export default function NorthreachMapPage() {
   const regionRef = useRef<HTMLDivElement>(null);
   const { items: registeredSchools } = useSchoolsFeed(50);
   const mapDiagnosticsEnabled = coordinateGuide;
+  const mapViewport = MAP_VIEWPORTS[region];
+  const mapGuides = MAP_GUIDES[region];
 
   const allSchools = useMemo(() => {
     const featuredIds = new Set(SCHOOLS.map((school) => school.id));
@@ -219,7 +257,7 @@ export default function NorthreachMapPage() {
       setCursorCoordinate(null);
       return;
     }
-    const coordinate = unprojectGeoCoordinate(x, y);
+    const coordinate = unprojectGeoCoordinate(x, y, mapViewport);
     setCursorCoordinate({
       x,
       y,
@@ -231,7 +269,7 @@ export default function NorthreachMapPage() {
   return (
     <div className="nr">
       <main className="atlas-shell">
-        <section className="map-panel" aria-label="Interactive global school map">
+        <section className="map-panel" aria-label="Interactive school map">
           <div className="map-shade" aria-hidden="true" />
 
           <div className="schools-intro">
@@ -279,12 +317,12 @@ export default function NorthreachMapPage() {
           </div>
 
           <div
-            className="geo-map-stage"
+            className={`geo-map-stage${region === "United States" ? " regional-focus" : ""}`}
             onPointerMove={inspectCoordinate}
             onPointerDown={inspectCoordinate}
             onPointerLeave={() => setCursorCoordinate(null)}
           >
-            <GeoWorldMap showAdminOutlines={mapDiagnosticsEnabled} />
+            <GeoWorldMap showAdminOutlines={mapDiagnosticsEnabled} viewport={mapViewport} />
 
             {mapDiagnosticsEnabled ? (
               <div className="coordinate-guide" aria-hidden="true">
@@ -294,13 +332,13 @@ export default function NorthreachMapPage() {
                 <span>Geographic map · exact coordinates</span>
               </div>
 
-              {LONGITUDE_GUIDES.map((longitude) => (
+              {mapGuides.longitudes.map((longitude) => (
                 <div
                   key={`longitude-${longitude}`}
                   className="coordinate-line longitude-line"
                   style={
                     {
-                      "--guide-position": `${projectGeoCoordinate(0, longitude).x}%`,
+                      "--guide-position": `${projectGeoCoordinate(0, longitude, mapViewport).x}%`,
                       "--guide-start": "0%",
                       "--guide-size": "100%",
                     } as CSSProperties
@@ -310,13 +348,13 @@ export default function NorthreachMapPage() {
                 </div>
               ))}
 
-              {LATITUDE_GUIDES.map((latitude) => (
+              {mapGuides.latitudes.map((latitude) => (
                 <div
                   key={`latitude-${latitude}`}
                   className="coordinate-line latitude-line"
                   style={
                     {
-                      "--guide-position": `${projectGeoCoordinate(latitude, 0).y}%`,
+                      "--guide-position": `${projectGeoCoordinate(latitude, 0, mapViewport).y}%`,
                       "--guide-start": "0%",
                       "--guide-size": "100%",
                     } as CSSProperties
@@ -344,7 +382,7 @@ export default function NorthreachMapPage() {
 
             <div className="hotspot-layer">
               {mapSchools.map((school) => {
-                const point = projectSchoolLocation(school);
+                const point = projectSchoolLocation(school, mapViewport);
                 const style = {
                   "--x": `${point.x}%`,
                   "--y": `${point.y}%`,
@@ -355,7 +393,7 @@ export default function NorthreachMapPage() {
                   <button
                     key={school.id}
                     type="button"
-                    className={`hotspot label-${school.labelSide ?? "right"}${selectedId === school.id ? " active" : ""}`}
+                    className={`hotspot zone-${school.zoneSize ?? "small"} label-${school.labelSide ?? "right"}${selectedId === school.id ? " active" : ""}`}
                     style={style}
                     data-latitude={school.latitude}
                     data-longitude={school.longitude}
