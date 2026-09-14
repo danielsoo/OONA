@@ -78,9 +78,9 @@ export default function GeoWorldMap({ showAdminOutlines = false }: { showAdminOu
     >
       <defs>
         <linearGradient id="oona-land" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#1a3a50" />
-          <stop offset="0.48" stopColor="#0b2435" />
-          <stop offset="1" stopColor="#03121e" />
+          <stop offset="0" stopColor="#15364d" />
+          <stop offset="0.46" stopColor="#082236" />
+          <stop offset="1" stopColor="#020d17" />
         </linearGradient>
         <linearGradient id="oona-land-volume" x1="0" y1="0" x2="0.72" y2="1">
           <stop offset="0" stopColor="#6f93a8" stopOpacity="0.38" />
@@ -119,14 +119,26 @@ export default function GeoWorldMap({ showAdminOutlines = false }: { showAdminOu
           />
           <feDiffuseLighting
             in="terrain"
-            surfaceScale="10"
-            diffuseConstant="0.68"
-            lightingColor="#7da6bc"
+            surfaceScale="14"
+            diffuseConstant="0.76"
+            lightingColor="#356a89"
             result="terrainLight"
           >
             <feDistantLight azimuth="225" elevation="54" />
           </feDiffuseLighting>
           <feComposite in="terrainLight" in2="SourceAlpha" operator="in" result="litTerrain" />
+          <feSpecularLighting
+            in="terrain"
+            surfaceScale="9"
+            specularConstant="0.32"
+            specularExponent="17"
+            lightingColor="#a8ddf5"
+            result="terrainShine"
+          >
+            <feDistantLight azimuth="225" elevation="58" />
+          </feSpecularLighting>
+          <feComposite in="terrainShine" in2="SourceAlpha" operator="in" result="shineInside" />
+          <feBlend in="litTerrain" in2="shineInside" mode="screen" result="terrainDepth" />
           <feGaussianBlur in="SourceAlpha" stdDeviation="3.8" result="shadowBlur" />
           <feOffset in="shadowBlur" dx="0" dy="7" result="shadowOffset" />
           <feFlood floodColor="#000309" floodOpacity="0.96" result="shadowColor" />
@@ -134,11 +146,17 @@ export default function GeoWorldMap({ showAdminOutlines = false }: { showAdminOu
           <feMerge>
             <feMergeNode in="landShadow" />
             <feMergeNode in="SourceGraphic" />
-            <feMergeNode in="litTerrain" />
+            <feMergeNode in="terrainDepth" />
           </feMerge>
         </filter>
       </defs>
 
+      <g className="geo-world-depth geo-world-depth-back" transform="translate(0 9)">
+        {countryPaths.map((country) => <path key={`depth-back-${country.key}`} d={country.path} />)}
+      </g>
+      <g className="geo-world-depth geo-world-depth-front" transform="translate(0 4)">
+        {countryPaths.map((country) => <path key={`depth-front-${country.key}`} d={country.path} />)}
+      </g>
       <g className="geo-world-foundation">
         {countryPaths.map((country) => <path key={`foundation-${country.key}`} d={country.path} />)}
       </g>
@@ -147,15 +165,6 @@ export default function GeoWorldMap({ showAdminOutlines = false }: { showAdminOu
       </g>
       <g className="geo-world-surface" clipPath="url(#oona-land-clip)">
         <rect className="geo-world-volume" width={GEO_MAP.width} height={GEO_MAP.height} fill="url(#oona-land-volume)" />
-        <image
-          className="geo-world-land-texture"
-          href="/images/schools/oona-world-map-v1.png"
-          x="-20"
-          y="-160"
-          width="2090"
-          height="1026"
-          preserveAspectRatio="none"
-        />
       </g>
       <g className="geo-world-lighting" clipPath="url(#oona-land-clip)">
         <rect width={GEO_MAP.width} height={GEO_MAP.height} fill="url(#oona-city-dots)" />
@@ -165,6 +174,9 @@ export default function GeoWorldMap({ showAdminOutlines = false }: { showAdminOu
         <circle cx="1125" cy="340" r="105" fill="url(#oona-city-glow)" />
         <circle cx="1305" cy="480" r="115" fill="url(#oona-city-glow)" />
         <circle cx="495" cy="405" r="105" fill="url(#oona-city-glow)" />
+      </g>
+      <g className="geo-world-rim">
+        {countryPaths.map((country) => <path key={`rim-${country.key}`} d={country.path} />)}
       </g>
       {showAdminOutlines ? (
         <>

@@ -179,8 +179,9 @@ export default function NorthreachMapPage() {
     }),
     [allSchools, region]
   );
-  const mapSchools = filteredSchools.filter((school) => school.latitude !== undefined && school.longitude !== undefined);
-  const rankedSchools = showAll ? filteredSchools : filteredSchools.slice(0, 10);
+  const visibleSchools = showAll ? filteredSchools : filteredSchools.slice(0, 10);
+  const mapSchools = visibleSchools.filter((school) => school.latitude !== undefined && school.longitude !== undefined);
+  const rankedSchools = visibleSchools;
   const selectedSchool = allSchools.find((school) => school.id === selectedId) ?? null;
 
   useEffect(() => {
@@ -234,8 +235,7 @@ export default function NorthreachMapPage() {
           <div className="map-shade" aria-hidden="true" />
 
           <div className="schools-intro">
-            <h1>Student creators</h1>
-            <p>A global community. A thousand voices.</p>
+            <h1 className="map-heading-visually-hidden">Schools on OONA</h1>
 
             <div className="map-controls">
               <div className="region-filter" ref={regionRef}>
@@ -376,7 +376,7 @@ export default function NorthreachMapPage() {
           </div>
 
           <aside className="legend" aria-label="Student creator legend">
-            <p>Number of student creators</p>
+            <p>Student creators</p>
             <div className="legend-line"><i className="legend-orb orb-xl" /><span>2.0K+</span></div>
             <div className="legend-line"><i className="legend-orb orb-lg" /><span>1.0K – 2.0K</span></div>
             <div className="legend-line"><i className="legend-orb orb-md" /><span>500 – 1.0K</span></div>
