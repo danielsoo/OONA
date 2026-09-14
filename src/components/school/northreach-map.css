@@ -109,12 +109,10 @@
   vector-effect: non-scaling-stroke;
 }
 
-.nr .geo-world-countries path {
+.nr .geo-world-relief path {
   fill: url("#oona-land");
   fill-rule: evenodd;
-  stroke: rgba(108, 185, 229, 0.28);
-  stroke-width: 0.72;
-  vector-effect: non-scaling-stroke;
+  stroke: none;
 }
 
 .nr .geo-world-lighting {
@@ -123,11 +121,17 @@
 }
 
 .nr .geo-world-surface {
-  opacity: 0.76;
+  opacity: 0.9;
+  filter: drop-shadow(0 3px 2px rgba(0, 0, 0, 0.72));
 }
 
 .nr .geo-world-land-texture {
-  filter: saturate(0.82) contrast(1.24) brightness(0.7);
+  opacity: 0.82;
+  filter: saturate(0.76) contrast(1.32) brightness(0.72);
+}
+
+.nr .geo-world-volume {
+  mix-blend-mode: soft-light;
 }
 
 .nr .geo-world-outline path {

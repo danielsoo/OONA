@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import dynamic from "next/dynamic";
 import {
   useEffect,
   useMemo,
@@ -38,6 +39,11 @@ type MapSchool = {
 };
 
 const REGIONS: Region[] = ["All Regions", "North America", "Europe", "Asia-Pacific"];
+
+const AdminMapDiagnosticsControl = dynamic(
+  () => import("@/components/school/AdminMapDiagnosticsControl"),
+  { ssr: false }
+);
 
 const LONGITUDE_GUIDES = [-120, -60, 0, 60, 120];
 const LATITUDE_GUIDES = [60, 30, 0, -30, -60];
@@ -149,6 +155,7 @@ export default function NorthreachMapPage() {
   } | null>(null);
   const regionRef = useRef<HTMLDivElement>(null);
   const { items: registeredSchools } = useSchoolsFeed(50);
+  const mapDiagnosticsEnabled = coordinateGuide;
 
   const allSchools = useMemo(() => {
     const featuredIds = new Set(SCHOOLS.map((school) => school.id));
@@ -196,7 +203,7 @@ export default function NorthreachMapPage() {
   }
 
   function inspectCoordinate(event: ReactPointerEvent<HTMLElement>) {
-    if (!coordinateGuide) return;
+    if (!mapDiagnosticsEnabled) return;
     const bounds = event.currentTarget.getBoundingClientRect();
     const x = ((event.clientX - bounds.left) / bounds.width) * 100;
     const y = ((event.clientY - bounds.top) / bounds.height) * 100;
@@ -254,18 +261,13 @@ export default function NorthreachMapPage() {
                 ) : null}
               </div>
 
-              <button
-                type="button"
-                className={`coordinate-toggle${coordinateGuide ? " active" : ""}`}
-                aria-pressed={coordinateGuide}
-                onClick={() => {
-                  setCoordinateGuide((visible) => !visible);
+              <AdminMapDiagnosticsControl
+                enabled={coordinateGuide}
+                onChange={(enabled) => {
+                  setCoordinateGuide(enabled);
                   setCursorCoordinate(null);
                 }}
-              >
-                <span className="coordinate-toggle-dot" aria-hidden="true" />
-                Coordinate guide
-              </button>
+              />
             </div>
           </div>
 
@@ -275,9 +277,9 @@ export default function NorthreachMapPage() {
             onPointerDown={inspectCoordinate}
             onPointerLeave={() => setCursorCoordinate(null)}
           >
-            <GeoWorldMap />
+            <GeoWorldMap showAdminOutlines={mapDiagnosticsEnabled} />
 
-            {coordinateGuide ? (
+            {mapDiagnosticsEnabled ? (
               <div className="coordinate-guide" aria-hidden="true">
               <div
                 className="coordinate-frame"
@@ -393,7 +395,7 @@ export default function NorthreachMapPage() {
                     <SchoolCrest school={school} />
                     <span className="rank-school-info">
                       <span className="rank-name">{school.name}</span>
-                      {coordinateGuide && school.latitude !== undefined && school.longitude !== undefined ? (
+                      {mapDiagnosticsEnabled && school.latitude !== undefined && school.longitude !== undefined ? (
                         <small className="rank-coordinate">
                           {formatLatitude(school.latitude)} · {formatLongitude(school.longitude)}
                         </small>
