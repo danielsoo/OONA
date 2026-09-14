@@ -15,7 +15,10 @@ type MultiPolygonCoordinates = Position[][][];
 type CountryGeometry =
   | { type: "Polygon"; coordinates: PolygonCoordinates }
   | { type: "MultiPolygon"; coordinates: MultiPolygonCoordinates };
-type CountryFeature = { geometry: CountryGeometry | null };
+type CountryFeature = {
+  geometry: CountryGeometry | null;
+  properties?: { ADMIN?: string };
+};
 type CountryCollection = { features: CountryFeature[] };
 
 export function projectGeoCoordinate(latitude: number, longitude: number) {
@@ -60,7 +63,9 @@ function geometryPath(geometry: CountryGeometry): string {
 }
 
 const countryPaths = (worldData as unknown as CountryCollection).features.flatMap((feature, index) =>
-  feature.geometry ? [{ key: index, path: geometryPath(feature.geometry) }] : []
+  feature.geometry && feature.properties?.ADMIN !== "Antarctica"
+    ? [{ key: index, path: geometryPath(feature.geometry) }]
+    : []
 );
 
 export default function GeoWorldMap() {
@@ -105,6 +110,17 @@ export default function GeoWorldMap() {
       </g>
       <g className="geo-world-countries">
         {countryPaths.map((country) => <path key={country.key} d={country.path} />)}
+      </g>
+      <g className="geo-world-surface" clipPath="url(#oona-land-clip)">
+        <image
+          className="geo-world-land-texture"
+          href="/images/schools/oona-world-map-v1.png"
+          x="-20"
+          y="-160"
+          width="2090"
+          height="1026"
+          preserveAspectRatio="none"
+        />
       </g>
       <g className="geo-world-lighting" clipPath="url(#oona-land-clip)">
         <rect width={GEO_MAP.width} height={GEO_MAP.height} fill="url(#oona-city-dots)" />

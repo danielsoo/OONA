@@ -119,7 +119,15 @@
 
 .nr .geo-world-lighting {
   mix-blend-mode: screen;
-  opacity: 0.86;
+  opacity: 0.94;
+}
+
+.nr .geo-world-surface {
+  opacity: 0.76;
+}
+
+.nr .geo-world-land-texture {
+  filter: saturate(0.82) contrast(1.24) brightness(0.7);
 }
 
 .nr .geo-world-outline path {
