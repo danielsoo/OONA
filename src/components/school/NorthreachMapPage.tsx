@@ -23,6 +23,7 @@ import "@/components/school/northreach-map.css";
 type SchoolRegion = "North America" | "Europe" | "Asia-Pacific";
 type Region = "All Regions" | "United States" | SchoolRegion;
 type LabelSide = "left" | "right" | "above" | "below";
+type FictionalZoneSize = "large" | "medium" | "small";
 
 type MapSchool = {
   id: string;
@@ -44,6 +45,52 @@ type MapSchool = {
 };
 
 const REGIONS: Region[] = ["All Regions", "United States", "North America", "Europe", "Asia-Pacific"];
+const ACTIVE_MAP_MODE: "fictional" | "geographic" =
+  process.env.NEXT_PUBLIC_SCHOOL_MAP_MODE === "geographic" ? "geographic" : "fictional";
+
+type FictionalMapPosition = {
+  x: number;
+  y: number;
+  zoneSize: FictionalZoneSize;
+};
+
+const FICTIONAL_SCHOOL_POSITIONS: Record<string, FictionalMapPosition> = {
+  ucla: { x: 30, y: 20, zoneSize: "medium" },
+  "penn-state": { x: 66, y: 25, zoneSize: "large" },
+  nyu: { x: 51, y: 18, zoneSize: "small" },
+  berkeley: { x: 40, y: 28, zoneSize: "small" },
+  mit: { x: 56, y: 29, zoneSize: "small" },
+  snu: { x: 15, y: 49, zoneSize: "medium" },
+  pku: { x: 23, y: 60, zoneSize: "small" },
+  tsinghua: { x: 28, y: 45, zoneSize: "small" },
+  nus: { x: 15, y: 64, zoneSize: "small" },
+  toronto: { x: 78, y: 47, zoneSize: "small" },
+  mcgill: { x: 87, y: 54, zoneSize: "small" },
+  melbourne: { x: 83, y: 65, zoneSize: "medium" },
+  oxford: { x: 44, y: 71, zoneSize: "small" },
+  tokyo: { x: 58, y: 78, zoneSize: "medium" },
+  sydney: { x: 52, y: 88, zoneSize: "small" },
+};
+
+const FICTIONAL_OVERFLOW_POSITIONS: FictionalMapPosition[] = [
+  { x: 22, y: 17, zoneSize: "small" },
+  { x: 61, y: 16, zoneSize: "small" },
+  { x: 72, y: 20, zoneSize: "small" },
+  { x: 10, y: 56, zoneSize: "small" },
+  { x: 29, y: 55, zoneSize: "small" },
+  { x: 76, y: 57, zoneSize: "small" },
+  { x: 89, y: 45, zoneSize: "small" },
+  { x: 38, y: 79, zoneSize: "small" },
+  { x: 64, y: 70, zoneSize: "small" },
+  { x: 59, y: 88, zoneSize: "small" },
+];
+
+const FICTIONAL_MAP_LABELS: Record<string, string> = {
+  toronto: "Univ. of Toronto",
+  mcgill: "McGill",
+  melbourne: "U of Melbourne",
+  nus: "NUS",
+};
 
 const MAP_VIEWPORTS: Record<Region, GeoViewport> = {
   "All Regions": GEO_MAP,
@@ -116,8 +163,15 @@ function regionForSchool(school: SchoolListItem): SchoolRegion {
   return "Asia-Pacific";
 }
 
-function registeredMapSchool(school: SchoolListItem): MapSchool | null {
-  if (!school.location) return null;
+function schoolNameKey(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/\b(the|university|of)\b/g, "")
+    .replace("pennsylvania", "penn")
+    .replace(/[^a-z0-9]/g, "");
+}
+
+function registeredMapSchool(school: SchoolListItem): MapSchool {
   const works = school.workCount ?? 0;
   return {
     id: school.id,
@@ -127,10 +181,10 @@ function registeredMapSchool(school: SchoolListItem): MapSchool | null {
     countDetail: works > 0 ? `${works} published works` : "Newly registered school",
     students: 0,
     region: regionForSchool(school),
-    countryCode: school.location.countryCode?.toUpperCase(),
-    latitude: school.location.latitude,
-    longitude: school.location.longitude,
-    labelSide: school.location.longitude > 115 ? "left" : "right",
+    countryCode: school.location?.countryCode?.toUpperCase(),
+    latitude: school.location?.latitude,
+    longitude: school.location?.longitude,
+    labelSide: (school.location?.longitude ?? 0) > 115 ? "left" : "right",
     color: school.colorPrimary,
     colorAlt: school.colorSecondary,
     logo: school.logoUrl ?? undefined,
@@ -180,7 +234,7 @@ function SchoolCrest({ school }: { school: MapSchool }) {
 }
 
 export default function NorthreachMapPage() {
-  const [region, setRegion] = useState<Region>("United States");
+  const [region, setRegion] = useState<Region>("All Regions");
   const [regionOpen, setRegionOpen] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showAll, setShowAll] = useState(false);
@@ -200,17 +254,24 @@ export default function NorthreachMapPage() {
 
   const allSchools = useMemo(() => {
     const featuredIds = new Set(SCHOOLS.map((school) => school.id));
-    const featuredNames = new Set(SCHOOLS.map((school) => school.name.trim().toLowerCase()));
+    const featuredNames = new Set(SCHOOLS.map((school) => schoolNameKey(school.name)));
     const additions = registeredSchools.flatMap((school) => {
-      if (featuredIds.has(school.id) || featuredNames.has(school.name.trim().toLowerCase())) return [];
-      const mapped = registeredMapSchool(school);
-      return mapped ? [mapped] : [];
+      if (featuredIds.has(school.id) || featuredNames.has(schoolNameKey(school.name))) return [];
+      const duplicatesFeaturedLocation = school.location && SCHOOLS.some((featured) =>
+        featured.latitude !== undefined
+        && featured.longitude !== undefined
+        && Math.abs(featured.latitude - school.location!.latitude) < 0.2
+        && Math.abs(featured.longitude - school.location!.longitude) < 0.2
+      );
+      if (duplicatesFeaturedLocation) return [];
+      return [registeredMapSchool(school)];
     });
     return [...SCHOOLS, ...additions];
   }, [registeredSchools]);
 
   const filteredSchools = useMemo(
     () => allSchools.filter((school) => {
+      if (ACTIVE_MAP_MODE === "fictional") return true;
       if (region === "All Regions") return true;
       if (region === "United States") return school.countryCode === "US";
       return school.region === region;
@@ -218,7 +279,22 @@ export default function NorthreachMapPage() {
     [allSchools, region]
   );
   const visibleSchools = showAll ? filteredSchools : filteredSchools.slice(0, 10);
-  const mapSchools = visibleSchools.filter((school) => school.latitude !== undefined && school.longitude !== undefined);
+  let overflowPositionIndex = 0;
+  const mapMarkers = (ACTIVE_MAP_MODE === "fictional" ? allSchools : visibleSchools)
+    .flatMap((school) => {
+      if (ACTIVE_MAP_MODE === "geographic") {
+        if (school.latitude === undefined || school.longitude === undefined) return [];
+        return [{
+          school,
+          point: projectSchoolLocation(school, mapViewport),
+          zoneSize: "small" as FictionalZoneSize,
+        }];
+      }
+
+      const point = FICTIONAL_SCHOOL_POSITIONS[school.id]
+        ?? FICTIONAL_OVERFLOW_POSITIONS[overflowPositionIndex++ % FICTIONAL_OVERFLOW_POSITIONS.length];
+      return [{ school, point, zoneSize: point.zoneSize }];
+    });
   const rankedSchools = visibleSchools;
   const selectedSchool = allSchools.find((school) => school.id === selectedId) ?? null;
 
@@ -249,7 +325,7 @@ export default function NorthreachMapPage() {
   }
 
   function inspectCoordinate(event: ReactPointerEvent<HTMLElement>) {
-    if (!mapDiagnosticsEnabled) return;
+    if (ACTIVE_MAP_MODE !== "geographic" || !mapDiagnosticsEnabled) return;
     const bounds = event.currentTarget.getBoundingClientRect();
     const x = ((event.clientX - bounds.left) / bounds.width) * 100;
     const y = ((event.clientY - bounds.top) / bounds.height) * 100;
@@ -275,56 +351,86 @@ export default function NorthreachMapPage() {
           <div className="schools-intro">
             <h1 className="map-heading-visually-hidden">Schools on OONA</h1>
 
-            <div className="map-controls">
-              <div className="region-filter" ref={regionRef}>
-                <button
-                  type="button"
-                  className="region-button"
-                  aria-haspopup="listbox"
-                  aria-expanded={regionOpen}
-                  onClick={() => setRegionOpen((open) => !open)}
-                >
-                  <span>{region}</span>
-                  <Chevron direction="down" />
-                </button>
-                {regionOpen ? (
-                  <div className="region-menu" role="listbox" aria-label="Filter schools by region">
-                    {REGIONS.map((item) => (
-                      <button
-                        key={item}
-                        type="button"
-                        role="option"
-                        aria-selected={item === region}
-                        className={item === region ? "selected" : undefined}
-                        onClick={() => chooseRegion(item)}
-                      >
-                        {item}
-                        {item === region ? <span aria-hidden="true">✓</span> : null}
-                      </button>
-                    ))}
-                  </div>
-                ) : null}
-              </div>
+            {ACTIVE_MAP_MODE === "geographic" ? (
+              <div className="map-controls">
+                <div className="region-filter" ref={regionRef}>
+                  <button
+                    type="button"
+                    className="region-button"
+                    aria-haspopup="listbox"
+                    aria-expanded={regionOpen}
+                    onClick={() => setRegionOpen((open) => !open)}
+                  >
+                    <span>{region}</span>
+                    <Chevron direction="down" />
+                  </button>
+                  {regionOpen ? (
+                    <div className="region-menu" role="listbox" aria-label="Filter schools by region">
+                      {REGIONS.map((item) => (
+                        <button
+                          key={item}
+                          type="button"
+                          role="option"
+                          aria-selected={item === region}
+                          className={item === region ? "selected" : undefined}
+                          onClick={() => chooseRegion(item)}
+                        >
+                          {item}
+                          {item === region ? <span aria-hidden="true">✓</span> : null}
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
 
-              <AdminMapDiagnosticsControl
-                enabled={coordinateGuide}
-                onChange={(enabled) => {
-                  setCoordinateGuide(enabled);
-                  setCursorCoordinate(null);
-                }}
-              />
-            </div>
+                <AdminMapDiagnosticsControl
+                  enabled={coordinateGuide}
+                  onChange={(enabled) => {
+                    setCoordinateGuide(enabled);
+                    setCursorCoordinate(null);
+                  }}
+                />
+              </div>
+            ) : null}
           </div>
 
           <div
-            className={`geo-map-stage${region === "United States" ? " regional-focus" : ""}`}
+            className={`geo-map-stage ${ACTIVE_MAP_MODE === "fictional" ? "fictional-focus" : region === "United States" ? "regional-focus" : ""}`}
             onPointerMove={inspectCoordinate}
             onPointerDown={inspectCoordinate}
             onPointerLeave={() => setCursorCoordinate(null)}
           >
-            <GeoWorldMap showAdminOutlines={mapDiagnosticsEnabled} viewport={mapViewport} />
+            {ACTIVE_MAP_MODE === "geographic" ? (
+              <GeoWorldMap showAdminOutlines={mapDiagnosticsEnabled} viewport={mapViewport} />
+            ) : (
+              <>
+                <div className="fictional-map-art" aria-hidden="true" />
+                <div className="fictional-island-labels" aria-hidden="true">
+                  <span className="fictional-island-label north">
+                    <strong>Northreach</strong>
+                    <small>Ideas in motion</small>
+                  </span>
+                  <span className="fictional-island-label west">
+                    <strong>Westmere</strong>
+                    <small>Stories across cultures</small>
+                  </span>
+                  <span className="fictional-island-label center">
+                    <strong>OONA</strong>
+                    <small>Create. Connect. Grow.</small>
+                  </span>
+                  <span className="fictional-island-label east">
+                    <strong>Eastvale</strong>
+                    <small>New perspectives</small>
+                  </span>
+                  <span className="fictional-island-label south">
+                    <strong>Southreach</strong>
+                    <small>More voices. Further.</small>
+                  </span>
+                </div>
+              </>
+            )}
 
-            {mapDiagnosticsEnabled ? (
+            {ACTIVE_MAP_MODE === "geographic" && mapDiagnosticsEnabled ? (
               <div className="coordinate-guide" aria-hidden="true">
               <div
                 className="coordinate-frame"
@@ -381,8 +487,7 @@ export default function NorthreachMapPage() {
             ) : null}
 
             <div className="hotspot-layer">
-              {mapSchools.map((school) => {
-                const point = projectSchoolLocation(school, mapViewport);
+              {mapMarkers.map(({ school, point, zoneSize }) => {
                 const style = {
                   "--x": `${point.x}%`,
                   "--y": `${point.y}%`,
@@ -393,10 +498,10 @@ export default function NorthreachMapPage() {
                   <button
                     key={school.id}
                     type="button"
-                    className={`hotspot zone-${school.zoneSize ?? "small"} label-${school.labelSide ?? "right"}${selectedId === school.id ? " active" : ""}`}
+                    className={`hotspot zone-${zoneSize} label-${school.labelSide ?? "right"}${selectedId === school.id ? " active" : ""}`}
                     style={style}
-                    data-latitude={school.latitude}
-                    data-longitude={school.longitude}
+                    data-latitude={ACTIVE_MAP_MODE === "geographic" ? school.latitude : undefined}
+                    data-longitude={ACTIVE_MAP_MODE === "geographic" ? school.longitude : undefined}
                     aria-label={`${school.name}, ${school.countDetail ?? `${school.count} student creators`}`}
                     aria-pressed={selectedId === school.id}
                     onClick={() => chooseSchool(school.id)}
@@ -404,7 +509,7 @@ export default function NorthreachMapPage() {
                     <span className="pin-halo" aria-hidden="true" />
                     <span className="pin-core" aria-hidden="true" />
                     <span className="hotspot-label">
-                      <strong>{school.name}</strong>
+                      <strong>{ACTIVE_MAP_MODE === "fictional" ? FICTIONAL_MAP_LABELS[school.id] ?? school.name : school.name}</strong>
                       <small>{school.count}</small>
                     </span>
                   </button>

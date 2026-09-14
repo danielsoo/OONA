@@ -79,6 +79,64 @@
   touch-action: none;
 }
 
+.nr .geo-map-stage.fictional-focus {
+  bottom: 22px;
+  aspect-ratio: auto;
+}
+
+.nr .fictional-map-art {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: url("/images/schools/oona-fictional-islands-v1.jpg") center / 100% 100% no-repeat;
+  filter: saturate(0.92) contrast(1.04) brightness(0.94);
+}
+
+.nr .fictional-map-art::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(1, 8, 15, 0.22), transparent 8%, transparent 92%, rgba(1, 8, 15, 0.18)),
+    linear-gradient(180deg, rgba(1, 8, 15, 0.1), transparent 12%, transparent 90%, rgba(1, 8, 15, 0.24));
+}
+
+.nr .fictional-island-labels {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.nr .fictional-island-label {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: rgba(152, 186, 230, 0.72);
+  font-family: Georgia, "Times New Roman", serif;
+  letter-spacing: 0.025em;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.92);
+}
+
+.nr .fictional-island-label strong {
+  font-size: clamp(17px, 1.55cqw, 25px);
+  font-weight: 400;
+}
+
+.nr .fictional-island-label small {
+  color: rgba(145, 166, 201, 0.5);
+  font-size: clamp(9px, 0.8cqw, 12px);
+  font-style: italic;
+}
+
+.nr .fictional-island-label.north { top: 5%; left: 68%; }
+.nr .fictional-island-label.west { top: 40%; left: 1.5%; }
+.nr .fictional-island-label.center { top: 49%; left: 50%; align-items: center; transform: translate(-50%, -50%); }
+.nr .fictional-island-label.east { top: 41%; right: 0.5%; text-align: right; }
+.nr .fictional-island-label.south { bottom: 7%; left: 31%; }
+
 .nr .geo-map-stage::before {
   content: "";
   position: absolute;
@@ -382,7 +440,7 @@
 .nr .label-below .hotspot-label { left: 50%; top: calc(100% + 10px); transform: translate(calc(-50% + var(--label-x, 0px)), var(--label-y, 0px)); text-align: center; }
 .nr .hotspot:hover .hotspot-label, .nr .hotspot.active .hotspot-label { color: white; }
 
-.nr .regional-focus .hotspot {
+.nr :is(.regional-focus, .fictional-focus) .hotspot {
   --zone-width: clamp(78px, 8.8cqw, 126px);
   --zone-height: clamp(58px, 6.7cqw, 96px);
   width: var(--zone-width);
@@ -391,17 +449,17 @@
   transform: translate(-50%, -50%) rotate(-4deg);
   filter: drop-shadow(0 0 18px rgba(61, 130, 255, 0.56));
 }
-.nr .regional-focus .hotspot.zone-medium {
+.nr :is(.regional-focus, .fictional-focus) .hotspot.zone-medium {
   --zone-width: clamp(100px, 11.5cqw, 164px);
   --zone-height: clamp(72px, 8.5cqw, 122px);
   transform: translate(-50%, -50%) rotate(3deg);
 }
-.nr .regional-focus .hotspot.zone-large {
+.nr :is(.regional-focus, .fictional-focus) .hotspot.zone-large {
   --zone-width: clamp(124px, 14cqw, 198px);
   --zone-height: clamp(88px, 10.2cqw, 146px);
   transform: translate(-50%, -50%) rotate(-2deg);
 }
-.nr .regional-focus .pin-core {
+.nr :is(.regional-focus, .fictional-focus) .pin-core {
   inset: 0;
   border: 1px solid rgba(171, 215, 255, 0.34);
   border-radius: inherit;
@@ -414,17 +472,17 @@
     0 0 18px rgba(65, 129, 255, 0.52),
     0 0 44px rgba(43, 95, 226, 0.32);
 }
-.nr .regional-focus .pin-halo {
+.nr :is(.regional-focus, .fictional-focus) .pin-halo {
   inset: -11%;
   border-color: rgba(106, 167, 255, 0.18);
   border-radius: inherit;
   background: radial-gradient(ellipse, rgba(63, 120, 245, 0.2), transparent 69%);
 }
-.nr .regional-focus .hotspot-label,
-.nr .regional-focus .label-left .hotspot-label,
-.nr .regional-focus .label-right .hotspot-label,
-.nr .regional-focus .label-above .hotspot-label,
-.nr .regional-focus .label-below .hotspot-label {
+.nr :is(.regional-focus, .fictional-focus) .hotspot-label,
+.nr :is(.regional-focus, .fictional-focus) .label-left .hotspot-label,
+.nr :is(.regional-focus, .fictional-focus) .label-right .hotspot-label,
+.nr :is(.regional-focus, .fictional-focus) .label-above .hotspot-label,
+.nr :is(.regional-focus, .fictional-focus) .label-below .hotspot-label {
   z-index: 2;
   left: 50%;
   right: auto;
@@ -437,11 +495,11 @@
   text-align: center;
   text-shadow: 0 2px 9px rgba(0, 0, 0, 0.9);
 }
-.nr .regional-focus .zone-medium .hotspot-label { transform: translate(-50%, -50%) rotate(-3deg); }
-.nr .regional-focus .zone-large .hotspot-label { transform: translate(-50%, -50%) rotate(2deg); }
-.nr .regional-focus .hotspot:hover .pin-core,
-.nr .regional-focus .hotspot:focus-visible .pin-core,
-.nr .regional-focus .hotspot.active .pin-core {
+.nr :is(.regional-focus, .fictional-focus) .zone-medium .hotspot-label { transform: translate(-50%, -50%) rotate(-3deg); }
+.nr :is(.regional-focus, .fictional-focus) .zone-large .hotspot-label { transform: translate(-50%, -50%) rotate(2deg); }
+.nr :is(.regional-focus, .fictional-focus) .hotspot:hover .pin-core,
+.nr :is(.regional-focus, .fictional-focus) .hotspot:focus-visible .pin-core,
+.nr :is(.regional-focus, .fictional-focus) .hotspot.active .pin-core {
   transform: scale(1.045);
   filter: brightness(1.14);
 }
@@ -638,6 +696,7 @@
     height: clamp(270px, 54vw, 360px);
     aspect-ratio: auto;
   }
+  .nr .geo-map-stage.fictional-focus { bottom: auto; }
   .nr .coordinate-frame > span, .nr .coordinate-line > span { display: none; }
   .nr .coordinate-hint { display: none; }
   .nr .coordinate-readout { bottom: 10px; max-width: calc(100% - 24px); padding: 6px 10px; font-size: 9px; }
@@ -645,7 +704,7 @@
   .nr .hotspot { --dot: clamp(6px, 1.75cqw, 11px); }
   .nr .pin-halo { inset: calc(var(--dot) * -0.55); }
   .nr .hotspot-label { display: none; }
-  .nr .regional-focus .hotspot-label { display: flex; font-size: clamp(8px, 2.2vw, 11px); }
+  .nr :is(.regional-focus, .fictional-focus) .hotspot-label { display: flex; font-size: clamp(8px, 2.2vw, 11px); }
   .nr .hotspot.active .hotspot-label {
     display: flex;
     left: 50%;
@@ -661,7 +720,7 @@
     text-align: center;
     backdrop-filter: blur(8px);
   }
-  .nr .regional-focus .hotspot.active .hotspot-label {
+  .nr :is(.regional-focus, .fictional-focus) .hotspot.active .hotspot-label {
     top: 50%;
     bottom: auto;
     transform: translate(-50%, -50%);
@@ -671,6 +730,8 @@
     backdrop-filter: none;
   }
   .nr .legend { display: none; }
+  .nr .fictional-island-label strong { font-size: clamp(11px, 2.5vw, 17px); }
+  .nr .fictional-island-label small { display: none; }
   .nr .ranking-rail {
     position: relative;
     top: auto;
@@ -691,6 +752,20 @@
   .nr .map-controls { align-items: flex-start; flex-direction: column; gap: 6px; }
   .nr .coordinate-toggle { min-height: 32px; }
   .nr .geo-map-stage { top: 116px; height: 260px; }
+  .nr .fictional-focus .hotspot {
+    --zone-width: 46px;
+    --zone-height: 34px;
+  }
+  .nr .fictional-focus .hotspot.zone-medium {
+    --zone-width: 58px;
+    --zone-height: 43px;
+  }
+  .nr .fictional-focus .hotspot.zone-large {
+    --zone-width: 72px;
+    --zone-height: 52px;
+  }
+  .nr .fictional-focus .hotspot-label { font-size: 7px; }
+  .nr .fictional-focus .hotspot-label strong { max-width: 58px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
   .nr .ranking-rail { margin-inline: 10px; }
   .nr .ranking-head { padding: 21px 16px 15px; }
   .nr .ranking-head h2 { font-size: 27px; }
