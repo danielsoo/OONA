@@ -140,7 +140,7 @@ export default function NorthreachMapPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showAll, setShowAll] = useState(false);
   const [toastVisible, setToastVisible] = useState(false);
-  const [coordinateGuide, setCoordinateGuide] = useState(true);
+  const [coordinateGuide, setCoordinateGuide] = useState(false);
   const [cursorCoordinate, setCursorCoordinate] = useState<{
     x: number;
     y: number;

@@ -35,6 +35,23 @@
     radial-gradient(ellipse at 72% 52%, transparent 22%, rgba(1, 7, 13, 0.12) 72%, rgba(1, 6, 11, 0.35) 100%);
 }
 
+.nr .atlas-shell::after {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 22%;
+  pointer-events: none;
+  background: url("/images/schools/oona-world-map-v1.png") center bottom / 100% auto no-repeat;
+  opacity: 0.72;
+  filter: saturate(0.86) contrast(1.08) brightness(0.78);
+  transform: scaleY(1.9);
+  transform-origin: center bottom;
+  mask-image: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.42) 28%, #000 62%);
+}
+
 .nr .map-panel {
   position: absolute;
   inset: 0;
@@ -68,7 +85,10 @@
   z-index: -1;
   inset: -12% -4%;
   pointer-events: none;
-  background: radial-gradient(ellipse at 50% 52%, rgba(42, 119, 172, 0.12), transparent 61%);
+  background:
+    radial-gradient(ellipse at 76% 35%, rgba(70, 162, 222, 0.16), transparent 28%),
+    radial-gradient(ellipse at 25% 38%, rgba(45, 131, 190, 0.14), transparent 32%),
+    radial-gradient(ellipse at 50% 52%, rgba(42, 119, 172, 0.12), transparent 61%);
   mask-image: linear-gradient(90deg, transparent, black 10%, black 90%, transparent);
   opacity: 0.72;
 }
@@ -92,8 +112,20 @@
 .nr .geo-world-countries path {
   fill: url("#oona-land");
   fill-rule: evenodd;
-  stroke: rgba(108, 185, 229, 0.58);
-  stroke-width: 0.9;
+  stroke: rgba(108, 185, 229, 0.28);
+  stroke-width: 0.72;
+  vector-effect: non-scaling-stroke;
+}
+
+.nr .geo-world-lighting {
+  mix-blend-mode: screen;
+  opacity: 0.86;
+}
+
+.nr .geo-world-outline path {
+  fill: none;
+  stroke: rgba(142, 211, 250, 0.72);
+  stroke-width: 0.72;
   vector-effect: non-scaling-stroke;
 }
 
@@ -493,6 +525,7 @@
   .nr { overflow: visible; }
   .nr .atlas-shell { min-height: 0; overflow: visible; background: #020a12; }
   .nr .atlas-shell::before { display: none; }
+  .nr .atlas-shell::after { height: 13%; opacity: 0.48; transform: scaleY(2.2); }
   .nr .map-panel {
     position: relative;
     min-height: 520px;
