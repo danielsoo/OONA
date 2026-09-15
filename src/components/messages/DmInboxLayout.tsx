@@ -7,6 +7,7 @@ import DmSidebar from "@/components/messages/DmSidebar";
 import { useDmInbox } from "@/components/messages/DmInboxContext";
 import DmNewMessageModal from "@/components/messages/DmNewMessageModal";
 import RoomComposerModal from "@/components/messages/RoomComposerModal";
+import styles from "./MessagesEditorial.module.css";
 
 type Props = {
   children: ReactNode;
@@ -21,21 +22,24 @@ export default function DmInboxLayout({ children }: Props) {
 
   return (
     <>
-      <div className="mx-auto flex h-[calc(100%_-_2rem)] min-h-0 w-full max-w-[1160px] border border-white/15 rounded-2xl overflow-hidden bg-xiio-surface">
+      <div className={styles.messagesPage}>
+        <div className={styles.sectionLabel}><span>02</span> MESSAGES &amp; PROJECT CHAT <small>Ideas. Notes. Progress.</small></div>
+      <div className={styles.frame}>
         <aside
-          className={`w-full md:w-[360px] shrink-0 flex flex-col border-r border-white/10 bg-xiio-surface ${
+          className={`${styles.sidebar} ${
             hasThread ? "hidden md:flex" : "flex"
           }`}
         >
           <DmSidebar />
         </aside>
         <section
-          className={`flex-1 min-w-0 flex flex-col bg-xiio-surface ${
+          className={`${styles.pane} ${
             hasThread ? "flex" : "hidden md:flex"
           }`}
         >
           {children}
         </section>
+      </div>
       </div>
       <DmNewMessageModal />
       {businessInviteComposerOpen && (

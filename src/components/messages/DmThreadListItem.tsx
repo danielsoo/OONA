@@ -7,6 +7,7 @@ import ProfileAvatar from "@/components/profile/ProfileAvatar";
 import { formatDmTime } from "@/lib/dm/formatDmTime";
 import { useAuth } from "@/context/AuthContext";
 import { useTranslations } from "@/context/LocaleContext";
+import styles from "./MessagesEditorial.module.css";
 
 type Props = {
   thread: DmThreadRow;
@@ -43,8 +44,8 @@ export default function DmThreadListItem({ thread }: Props) {
           openThread();
         }
       }}
-      className={`flex items-center gap-3 px-4 py-3 transition hover:bg-white/5 cursor-pointer ${
-        active ? "bg-white/10" : ""
+      className={`${styles.threadRow} ${
+        active ? styles.activeThread : ""
       }`}
     >
       <DmProfileLink
@@ -56,11 +57,11 @@ export default function DmThreadListItem({ thread }: Props) {
         <ProfileAvatar
           displayName={thread.otherDisplayName}
           avatarUrl={thread.otherAvatarUrl}
-          className="w-12 h-12 rounded-full bg-white/10 ring-1 ring-white/15 flex items-center justify-center text-sm font-bold text-white overflow-hidden shrink-0"
+          className={styles.threadAvatar}
           imgClassName="w-full h-full object-cover"
         />
       </DmProfileLink>
-      <div className="min-w-0 flex-1">
+      <div className={styles.threadCopy}>
         <div className="flex items-baseline justify-between gap-2">
           <DmProfileLink
             handle={thread.otherHandle}

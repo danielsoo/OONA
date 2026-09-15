@@ -23,7 +23,7 @@ export default function MessagesLayout({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AppPageShell fitViewport className="pb-6" contentClassName="flex h-full min-h-0 items-center">
+    <AppPageShell fitViewport className="!pt-0 !px-0" contentClassName="h-full max-w-none">
       <DmInboxProvider>
         <DmInboxLayout>{children}</DmInboxLayout>
       </DmInboxProvider>

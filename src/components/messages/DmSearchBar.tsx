@@ -2,13 +2,14 @@
 
 import { useDmInbox } from "@/components/messages/DmInboxContext";
 import { useTranslations } from "@/context/LocaleContext";
+import styles from "./MessagesSupplement.module.css";
 
 export default function DmSearchBar() {
   const { search, setSearch } = useDmInbox();
   const { t } = useTranslations();
 
   return (
-    <div className="px-4 pb-2">
+    <div className={styles.searchBox}>
       <label className="relative block">
         <span className="sr-only">{t("dm.inbox.searchPlaceholder")}</span>
         <svg
@@ -30,7 +31,7 @@ export default function DmSearchBar() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder={t("dm.inbox.searchPlaceholder")}
-          className="w-full rounded-full bg-white/5 border border-white/10 py-2 pl-9 pr-3 text-sm text-white placeholder:text-xiio-muted focus:outline-none focus:border-xiio-accent/50"
+          className={styles.searchInput}
         />
       </label>
     </div>

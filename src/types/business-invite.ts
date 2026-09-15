@@ -23,6 +23,14 @@ export type BusinessInviteDoc = {
   attachmentFileName?: string;
   attachmentContentType?: string;
   threadId?: string;
+  projectId?: string;
+  projectTitle?: string;
+  role?: string;
+  permissions?: "view_comment" | "edit" | "manage";
+  availability?: string;
+  location?: string;
+  compensation?: "paid" | "unpaid" | "credit" | "negotiable";
+  budgetRange?: string;
   expiresAt: unknown;
   respondedAt?: unknown;
   createdAt?: unknown;
@@ -47,4 +55,12 @@ export type BusinessInviteCreateInput = {
   attachmentUrl?: string;
   attachmentFileName?: string;
   attachmentContentType?: string;
+  projectId?: string;
+  projectTitle?: string;
+  role?: string;
+  permissions?: "view_comment" | "edit" | "manage";
+  availability?: string;
+  location?: string;
+  compensation?: "paid" | "unpaid" | "credit" | "negotiable";
+  budgetRange?: string;
 };

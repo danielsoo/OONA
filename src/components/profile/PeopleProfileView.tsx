@@ -7,6 +7,7 @@ import SocietyProfileBody from "@/components/society/SocietyProfileBody";
 import SocietyPublicProfileHero from "@/components/society/SocietyPublicProfileHero";
 import type { HeroBackgroundId } from "@/lib/heroBackgroundPresets";
 import type { DirectorNameChangeRequest } from "@/types/user";
+import styles from "@/components/society/EditorialProfile.module.css";
 
 type WorkCard = {
   workId: string;
@@ -100,7 +101,8 @@ export default function PeopleProfileView({ handle }: Props) {
   const works = [...data.directed, ...data.credited];
 
   return (
-    <div className="pb-16">
+    <main className={styles.page}>
+      <div className={styles.inner}>
       <SocietyPublicProfileHero
         displayName={data.profile.displayName}
         handle={data.profile.handle}
@@ -118,9 +120,8 @@ export default function PeopleProfileView({ handle }: Props) {
         isSelf={isSelf}
         isFollowing={!!data.viewer?.isFollowing}
       />
-      <div className="px-4 lg:px-12">
         <SocietyProfileBody works={works} isSelf={isSelf} />
       </div>
-    </div>
+    </main>
   );
 }

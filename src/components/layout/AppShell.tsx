@@ -34,6 +34,7 @@ const CINEMATIC_APP_PATHS = [
   "/creators",
   "/discover",
   "/messages",
+  "/projects",
   "/account",
   "/settings",
   "/about",

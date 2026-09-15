@@ -5,12 +5,12 @@ import BusinessInviteList from "@/components/messages/BusinessInviteList";
 import { useDmInbox } from "@/components/messages/DmInboxContext";
 import DmInboxTabs from "@/components/messages/DmInboxTabs";
 import DmSearchBar from "@/components/messages/DmSearchBar";
-import DmShortcutsRow from "@/components/messages/DmShortcutsRow";
 import DmThreadList from "@/components/messages/DmThreadList";
 import RoomList from "@/components/messages/RoomList";
 import { useAuth } from "@/context/AuthContext";
 import { useTranslations } from "@/context/LocaleContext";
 import { getUserProfile } from "@/lib/userProfile";
+import styles from "./MessagesEditorial.module.css";
 
 export default function DmSidebar() {
   const { mainTab, openNewMessage, openRoomComposer } = useDmInbox();
@@ -35,13 +35,13 @@ export default function DmSidebar() {
   const headerLabel = handle ? `@${handle}` : displayName || t("dm.inboxTitle");
 
   return (
-    <div className="flex flex-col h-full min-h-0">
-      <div className="flex items-center justify-between px-4 py-4 shrink-0">
-        <h1 className="text-lg font-bold text-white truncate">{headerLabel}</h1>
+    <div className={styles.sidebarInner}>
+      <div className={styles.inboxHeader}>
+        <div><h1>Messages</h1><p>{headerLabel}</p></div>
         <button
           type="button"
           onClick={mainTab === "groups" ? openRoomComposer : openNewMessage}
-          className="p-2 rounded-lg text-white hover:bg-white/10 transition"
+          className={styles.composeButton}
           aria-label={mainTab === "groups" ? t("dm.rooms.newRoom") : t("dm.inbox.newMessage")}
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
@@ -62,7 +62,6 @@ export default function DmSidebar() {
       ) : (
         <>
           <DmSearchBar />
-          <DmShortcutsRow />
           <div className="flex-1 overflow-y-auto min-h-0">
             <DmThreadList />
           </div>

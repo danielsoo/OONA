@@ -6,6 +6,7 @@ import ProfileAvatar from "@/components/profile/ProfileAvatar";
 import { formatDmTime } from "@/lib/dm/formatDmTime";
 import { useAuth } from "@/context/AuthContext";
 import { useTranslations } from "@/context/LocaleContext";
+import styles from "./MessagesEditorial.module.css";
 
 type Props = {
   room: RoomListItemType;
@@ -36,8 +37,8 @@ export default function RoomListItem({ room }: Props) {
           openRoom();
         }
       }}
-      className={`flex items-center gap-3 px-4 py-3 transition hover:bg-white/5 cursor-pointer ${
-        active ? "bg-white/10" : ""
+      className={`${styles.threadRow} ${
+        active ? styles.activeThread : ""
       }`}
     >
       <div className="relative w-12 h-12 shrink-0">
@@ -62,7 +63,7 @@ export default function RoomListItem({ room }: Props) {
           </div>
         ))}
       </div>
-      <div className="min-w-0 flex-1">
+      <div className={styles.threadCopy}>
         <div className="flex items-baseline justify-between gap-2">
           <p className="font-semibold text-sm text-white truncate min-w-0">{room.name}</p>
           <span className="flex items-center gap-1.5 shrink-0">

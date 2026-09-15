@@ -3,6 +3,7 @@
 import { useDmInbox } from "@/components/messages/DmInboxContext";
 import type { DmMainTab } from "@/components/messages/types";
 import { useTranslations } from "@/context/LocaleContext";
+import styles from "./MessagesEditorial.module.css";
 
 const TABS: DmMainTab[] = ["messages", "groups", "requests", "invites"];
 
@@ -10,24 +11,19 @@ export default function DmInboxTabs() {
   const { mainTab, setMainTab } = useDmInbox();
   const { t } = useTranslations();
 
-  const labels: Record<DmMainTab, string> = {
-    messages: t("dm.tabs.messages"),
-    groups: t("dm.tabs.groups"),
-    requests: t("dm.tabs.requests"),
-    invites: t("dm.tabs.invites"),
-  };
+  const labels: Record<DmMainTab, string> = { messages: "All", groups: "Projects", requests: "Requests", invites: "Invites" };
 
   return (
-    <div className="flex border-b border-white/10 px-2">
+    <div className={styles.inboxTabs}>
       {TABS.map((id) => (
         <button
           key={id}
           type="button"
           onClick={() => setMainTab(id)}
-          className={`flex-1 py-3 text-sm font-semibold transition border-b-2 -mb-px ${
+          className={`${
             mainTab === id
-              ? "text-white border-white"
-              : "text-xiio-muted border-transparent hover:text-white"
+              ? styles.activeTab
+              : ""
           }`}
         >
           {labels[id]}

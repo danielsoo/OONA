@@ -57,13 +57,14 @@ export default function BusinessInviteCard({ invite, box, onChanged }: Props) {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       });
-      const data = (await res.json()) as { ok?: boolean; threadId?: string; message?: string };
+      const data = (await res.json()) as { ok?: boolean; threadId?: string; projectId?: string; message?: string };
       if (!res.ok || !data.ok) {
         setErr(data.message ?? t("dm.invites.errorGeneric"));
         return;
       }
       onChanged();
-      if (data.threadId) router.push(`/messages/${data.threadId}`);
+      if (data.projectId) router.push(`/projects/${data.projectId}`);
+      else if (data.threadId) router.push(`/messages/${data.threadId}`);
     } finally {
       setBusy(false);
     }
@@ -130,6 +131,12 @@ export default function BusinessInviteCard({ invite, box, onChanged }: Props) {
               <span className="text-[11px] text-xiio-muted">{statusLabel[invite.status]}</span>
             )}
           </div>
+          {invite.projectTitle && (
+            <p className="mt-2 text-xs text-white/70">
+              <span className="text-white/35">Project</span> · {invite.projectTitle}
+              {invite.role ? <span className="text-white/35"> · {invite.role}</span> : null}
+            </p>
+          )}
           {invite.message && (
             <p className="text-sm text-white/90 mt-1.5 whitespace-pre-wrap break-words">{invite.message}</p>
           )}
@@ -202,13 +209,10 @@ export default function BusinessInviteCard({ invite, box, onChanged }: Props) {
           )}
 
           {invite.status === "accepted" && invite.threadId && (
-            <button
-              type="button"
-              onClick={() => router.push(`/messages/${invite.threadId}`)}
-              className="text-xs text-xiio-accent hover:underline mt-2 block"
-            >
-              {t("dm.invites.goToChat")}
-            </button>
+            <div className="mt-2 flex gap-3">
+              <button type="button" onClick={() => router.push(`/messages/${invite.threadId}`)} className="text-xs text-xiio-accent hover:underline">{t("dm.invites.goToChat")}</button>
+              {invite.projectId ? <button type="button" onClick={() => router.push(`/projects/${invite.projectId}`)} className="text-xs text-xiio-accent hover:underline">Open project →</button> : null}
+            </div>
           )}
         </div>
       </div>

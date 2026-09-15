@@ -31,6 +31,10 @@ function errorMessage(code: string): string {
       return "대화 상대를 지정해 주세요.";
     case "direction_invalid":
       return "유효하지 않은 요청 유형입니다.";
+    case "project_not_found":
+      return "프로젝트를 찾을 수 없습니다.";
+    case "project_forbidden":
+      return "이 프로젝트에 초대할 권한이 없습니다.";
     default:
       return "제안을 보내지 못했습니다.";
   }

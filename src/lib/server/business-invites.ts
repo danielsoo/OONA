@@ -5,6 +5,8 @@ import { getOrCreateThread } from "@/lib/server/dm";
 import { getUidByHandle } from "@/lib/server/handles";
 import { createNotification } from "@/lib/server/notifications";
 import { buildPublicPortfolio, listEligibleWorksForUser } from "@/lib/server/portfolio";
+import { isProjectMember, parseProject, projectsCol } from "@/lib/server/projects";
+import { addRoomMembers, createRoom } from "@/lib/server/rooms";
 import { parseUserProfileDoc } from "@/lib/userAccess";
 import type {
   BusinessInviteCreateInput,
@@ -49,6 +51,14 @@ export function parseBusinessInvite(id: string, data: Record<string, unknown>): 
     attachmentFileName: data.attachmentFileName ? String(data.attachmentFileName) : undefined,
     attachmentContentType: data.attachmentContentType ? String(data.attachmentContentType) : undefined,
     threadId: data.threadId ? String(data.threadId) : undefined,
+    projectId: data.projectId ? String(data.projectId) : undefined,
+    projectTitle: data.projectTitle ? String(data.projectTitle) : undefined,
+    role: data.role ? String(data.role) : undefined,
+    permissions: data.permissions === "edit" || data.permissions === "manage" ? data.permissions : "view_comment",
+    availability: data.availability ? String(data.availability) : undefined,
+    location: data.location ? String(data.location) : undefined,
+    compensation: data.compensation === "paid" || data.compensation === "unpaid" || data.compensation === "credit" ? data.compensation : "negotiable",
+    budgetRange: data.budgetRange ? String(data.budgetRange) : undefined,
     expiresAt: data.expiresAt,
     respondedAt: data.respondedAt,
     createdAt: data.createdAt,
@@ -78,14 +88,22 @@ export async function createBusinessInvite(
   if (recipientUid === senderUid) return { ok: false, code: "invite_self" };
   if (await isBlocked(db, senderUid, recipientUid)) return { ok: false, code: "blocked" };
 
+  let projectTitle = input.projectTitle?.trim().slice(0, 120) || undefined;
+  if (input.projectId) {
+    const projectSnap = await projectsCol(db).doc(input.projectId).get();
+    if (!projectSnap.exists) return { ok: false, code: "project_not_found" };
+    const project = parseProject(projectSnap.id, projectSnap.data() as Record<string, unknown>);
+    if (!isProjectMember(project, senderUid) || (project.ownerUid !== senderUid && project.memberPermissions[senderUid] !== "manage")) return { ok: false, code: "project_forbidden" };
+    projectTitle = project.title;
+  }
+
   const existing = await businessInvitesCol(db)
     .where("senderUid", "==", senderUid)
     .where("recipientUid", "==", recipientUid)
     .where("direction", "==", input.direction)
     .where("status", "==", "pending")
-    .limit(1)
     .get();
-  if (!existing.empty) return { ok: false, code: "invite_duplicate_pending" };
+  if (existing.docs.some((doc) => parseBusinessInvite(doc.id, doc.data() as Record<string, unknown>).projectId === input.projectId)) return { ok: false, code: "invite_duplicate_pending" };
 
   const eligible = await listEligibleWorksForUser(db, senderUid);
   const eligibleIds = new Set(eligible.map((w) => w.workId));
@@ -110,6 +128,14 @@ export async function createBusinessInvite(
   if (input.attachmentUrl) doc.attachmentUrl = input.attachmentUrl;
   if (input.attachmentFileName) doc.attachmentFileName = input.attachmentFileName;
   if (input.attachmentContentType) doc.attachmentContentType = input.attachmentContentType;
+  if (input.projectId) doc.projectId = input.projectId;
+  if (projectTitle) doc.projectTitle = projectTitle;
+  if (input.role?.trim()) doc.role = input.role.trim().slice(0, 80);
+  doc.permissions = input.permissions === "edit" || input.permissions === "manage" ? input.permissions : "view_comment";
+  if (input.availability?.trim()) doc.availability = input.availability.trim().slice(0, 120);
+  if (input.location?.trim()) doc.location = input.location.trim().slice(0, 120);
+  doc.compensation = input.compensation === "paid" || input.compensation === "unpaid" || input.compensation === "credit" ? input.compensation : "negotiable";
+  if (input.budgetRange?.trim()) doc.budgetRange = input.budgetRange.trim().slice(0, 120);
 
   const ref = await businessInvitesCol(db).add(doc);
   await createNotification(db, {
@@ -169,7 +195,7 @@ export async function acceptBusinessInvite(
   db: Firestore,
   inviteId: string,
   accepterUid: string
-): Promise<{ ok: true; threadId: string } | { ok: false; code: string }> {
+): Promise<{ ok: true; threadId: string; projectId?: string } | { ok: false; code: string }> {
   const ref = businessInvitesCol(db).doc(inviteId);
   const snap = await ref.get();
   if (!snap.exists) return { ok: false, code: "not_found" };
@@ -195,6 +221,32 @@ export async function acceptBusinessInvite(
   if ("error" in threadResult) return { ok: false, code: threadResult.error };
 
   await ref.update({ threadId: threadResult.threadId, updatedAt: FieldValue.serverTimestamp() });
+
+  if (invite.projectId) {
+    const projectRef = projectsCol(db).doc(invite.projectId);
+    const projectSnap = await projectRef.get();
+    if (projectSnap.exists) {
+      const project = parseProject(projectSnap.id, projectSnap.data() as Record<string, unknown>);
+      if (isProjectMember(project, invite.senderUid)) {
+        let roomId = project.roomId;
+        if (roomId) {
+          const addResult = await addRoomMembers(db, roomId, invite.senderUid, [invite.recipientUid]);
+          if (!addResult.ok && addResult.code !== "members_required") roomId = undefined;
+        }
+        if (!roomId) {
+          const room = await createRoom(db, invite.senderUid, project.title, [invite.recipientUid]);
+          if (room.ok) roomId = room.roomId;
+        }
+        await projectRef.update({
+          memberIds: FieldValue.arrayUnion(invite.recipientUid),
+          [`memberRoles.${invite.recipientUid}`]: invite.role || "Collaborator",
+          [`memberPermissions.${invite.recipientUid}`]: invite.permissions || "view_comment",
+          ...(roomId ? { roomId } : {}),
+          updatedAt: FieldValue.serverTimestamp(),
+        });
+      }
+    }
+  }
   await createNotification(db, {
     recipientUid: invite.senderUid,
     type: "business_invite_accepted",
@@ -202,7 +254,7 @@ export async function acceptBusinessInvite(
     inviteId,
     threadId: threadResult.threadId,
   });
-  return { ok: true, threadId: threadResult.threadId };
+  return { ok: true, threadId: threadResult.threadId, projectId: invite.projectId };
 }
 
 export async function declineBusinessInvite(

@@ -22,7 +22,7 @@ const navItems = [
   { label: "Series", href: "/series", match: ["/series"] },
   { label: "Shows", href: "/entertainment", match: ["/entertainment"] },
   { label: "Schools", href: "/schools", match: ["/schools", "/school"] },
-  { label: "Society", href: "/society", match: ["/society", "/people", "/creators"] },
+  { label: "Society", href: "/society", match: ["/society", "/people", "/creators", "/projects"] },
 ] as const;
 
 const mobileExtras = [
@@ -169,7 +169,8 @@ export default function CinematicAppHeader() {
                   <strong>{displayName}</strong>
                   {user.email ? <span>{user.email}</span> : null}
                 </div>
-                <Link href="/account">Account & Profile</Link>
+                {profile?.handle ? <Link href={`/people/${profile.handle}`}>My profile</Link> : null}
+                <Link href="/account">Account settings</Link>
                 <Link href="/my-list">My List</Link>
                 <Link href="/messages">Messages {unreadMessages > 0 ? <span>{unreadMessages > 99 ? "99+" : unreadMessages}</span> : null}</Link>
                 <Link href={UPLOAD_HREF}>Upload a Work</Link>

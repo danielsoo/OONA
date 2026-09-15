@@ -1,362 +1,129 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import ProfileAvatar from "@/components/profile/ProfileAvatar";
 import { useAuth } from "@/context/AuthContext";
-import { useTranslations } from "@/context/LocaleContext";
-import {
-  uploadBusinessInviteAttachment,
-  validateBusinessInviteAttachmentFile,
-} from "@/lib/business-invites/attachmentUpload";
-import type { BusinessInviteDirection } from "@/types/business-invite";
+import { uploadBusinessInviteAttachment, validateBusinessInviteAttachmentFile } from "@/lib/business-invites/attachmentUpload";
+import type { ProjectListItem } from "@/types/project";
+import styles from "./InviteProjectModal.module.css";
 
-type PersonHit = {
-  uid: string;
-  handle: string;
-  displayName: string;
-  avatarUrl?: string | null;
-};
-
-type EligibleWork = {
-  workId: string;
-  ownerUid: string;
-  title: string;
-  role: string;
-  portfolioSubmissionHidden: boolean;
-};
-
-export type PresetRecipient = {
-  uid: string;
-  handle: string;
-  displayName: string;
-};
-
-type Props = {
-  presetRecipient?: PresetRecipient;
-  onClose: () => void;
-  onSent?: () => void;
-};
+type PersonHit = { uid: string; handle: string; displayName: string; avatarUrl?: string | null };
+export type PresetRecipient = { uid: string; handle: string; displayName: string; avatarUrl?: string | null };
+type Props = { presetRecipient?: PresetRecipient; onClose: () => void; onSent?: () => void };
 
 export default function BusinessInviteComposerModal({ presetRecipient, onClose, onSent }: Props) {
   const { user } = useAuth();
-  const { t } = useTranslations();
-
   const [recipient, setRecipient] = useState<PresetRecipient | null>(presetRecipient ?? null);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<PersonHit[]>([]);
-  const [searching, setSearching] = useState(false);
-
-  const [direction, setDirection] = useState<BusinessInviteDirection>("offer");
+  const [projects, setProjects] = useState<ProjectListItem[]>([]);
+  const [projectId, setProjectId] = useState("");
+  const [newProjectOpen, setNewProjectOpen] = useState(false);
+  const [newProjectTitle, setNewProjectTitle] = useState("");
+  const [role, setRole] = useState("Creative collaborator");
+  const [permissions, setPermissions] = useState<"view_comment" | "edit" | "manage">("view_comment");
+  const [availabilityStart, setAvailabilityStart] = useState("");
+  const [availabilityEnd, setAvailabilityEnd] = useState("");
+  const [location, setLocation] = useState("Remote");
+  const [compensation, setCompensation] = useState<"paid" | "unpaid" | "credit" | "negotiable">("negotiable");
+  const [budgetRange, setBudgetRange] = useState("");
   const [message, setMessage] = useState("");
-  const [works, setWorks] = useState<EligibleWork[]>([]);
-  const [selectedWorkIds, setSelectedWorkIds] = useState<Set<string>>(new Set());
   const [file, setFile] = useState<File | null>(null);
-  const [fileErr, setFileErr] = useState<string | null>(null);
-
   const [sending, setSending] = useState(false);
+  const [creating, setCreating] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!user) return;
-    void (async () => {
-      const token = await user.getIdToken();
-      const res = await fetch("/api/me/portfolio-shares", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) return;
-      const data = (await res.json()) as { eligibleWorks?: EligibleWork[] };
-      setWorks(data.eligibleWorks ?? []);
-    })();
+  const authFetch = useCallback(async (url: string, init?: RequestInit) => {
+    if (!user) throw new Error("login_required");
+    const token = await user.getIdToken();
+    return fetch(url, { ...init, headers: { Authorization: `Bearer ${token}`, ...(init?.headers ?? {}) } });
   }, [user]);
 
-  const search = useCallback(
-    async (q: string) => {
-      if (!user || q.trim().length < 1) {
-        setResults([]);
-        return;
-      }
-      setSearching(true);
-      try {
-        const token = await user.getIdToken();
-        const res = await fetch(`/api/discover/people?q=${encodeURIComponent(q.trim())}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (!res.ok) {
-          setResults([]);
-          return;
-        }
-        const data = (await res.json()) as { people?: PersonHit[] };
-        setResults((data.people ?? []).filter((p) => p.uid !== user.uid).slice(0, 12));
-      } finally {
-        setSearching(false);
-      }
-    },
-    [user]
-  );
+  const loadProjects = useCallback(async () => {
+    if (!user) return;
+    const response = await authFetch("/api/me/projects");
+    if (!response.ok) return;
+    const data = await response.json() as { projects?: ProjectListItem[] };
+    const next = data.projects ?? [];
+    setProjects(next);
+    setProjectId((current) => current || next[0]?.id || "");
+  }, [authFetch, user]);
+
+  useEffect(() => { void loadProjects(); }, [loadProjects]);
+
+  const search = useCallback(async (value: string) => {
+    if (!user || value.trim().length < 1) { setResults([]); return; }
+    const response = await authFetch(`/api/discover/people?q=${encodeURIComponent(value.trim())}`);
+    if (!response.ok) return setResults([]);
+    const data = await response.json() as { people?: PersonHit[] };
+    setResults((data.people ?? []).filter((person) => person.uid !== user.uid).slice(0, 8));
+  }, [authFetch, user]);
 
   useEffect(() => {
     if (recipient) return;
-    const id = setTimeout(() => void search(query), 300);
-    return () => clearTimeout(id);
+    const timeout = window.setTimeout(() => void search(query), 250);
+    return () => window.clearTimeout(timeout);
   }, [query, recipient, search]);
 
-  const toggleWork = (workId: string) => {
-    setSelectedWorkIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(workId)) next.delete(workId);
-      else next.add(workId);
-      return next;
-    });
-  };
+  const selectedProject = useMemo(() => projects.find((project) => project.id === projectId) ?? null, [projectId, projects]);
 
-  const onPickFile = (f: File | null) => {
-    setFileErr(null);
-    if (!f) {
-      setFile(null);
-      return;
-    }
-    const err = validateBusinessInviteAttachmentFile(f);
-    if (err === "type") {
-      setFileErr(t("dm.invites.attachFileHint"));
-      return;
-    }
-    if (err === "size") {
-      setFileErr(t("dm.invites.attachFileHint"));
-      return;
-    }
-    setFile(f);
+  const createNewProject = async () => {
+    if (!newProjectTitle.trim()) return;
+    setCreating(true); setErr(null);
+    try {
+      const response = await authFetch("/api/me/projects", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title: newProjectTitle.trim() }) });
+      const data = await response.json() as { project?: ProjectListItem; message?: string };
+      if (!response.ok || !data.project) { setErr(data.message || "The project could not be created."); return; }
+      setProjects((current) => [data.project!, ...current]);
+      setProjectId(data.project.id); setNewProjectOpen(false); setNewProjectTitle("");
+    } catch { setErr("The project could not be created."); } finally { setCreating(false); }
   };
 
   const submit = async () => {
-    if (!user || !recipient || sending) return;
-    setSending(true);
-    setErr(null);
+    if (!user || !recipient || !projectId || sending) return;
+    setSending(true); setErr(null);
     try {
       let attachment: { attachmentUrl: string; attachmentFileName: string; attachmentContentType: string } | null = null;
-      if (file) {
-        const uploadToken = crypto.randomUUID();
-        attachment = await uploadBusinessInviteAttachment(user.uid, uploadToken, file);
-      }
-
-      const token = await user.getIdToken();
-      const res = await fetch("/api/me/business-invites", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          recipientUid: recipient.uid,
-          direction,
-          message: message.trim() || undefined,
-          attachedWorkIds: [...selectedWorkIds],
-          attachmentUrl: attachment?.attachmentUrl,
-          attachmentFileName: attachment?.attachmentFileName,
-          attachmentContentType: attachment?.attachmentContentType,
-        }),
+      if (file) attachment = await uploadBusinessInviteAttachment(user.uid, crypto.randomUUID(), file);
+      const response = await authFetch("/api/me/business-invites", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ recipientUid: recipient.uid, direction: "offer", projectId, projectTitle: selectedProject?.title, role, permissions, availability: [availabilityStart, availabilityEnd].filter(Boolean).join(" → "), location, compensation, budgetRange, message: message.trim() || undefined, attachmentUrl: attachment?.attachmentUrl, attachmentFileName: attachment?.attachmentFileName, attachmentContentType: attachment?.attachmentContentType }),
       });
-      const data = (await res.json()) as { ok?: boolean; message?: string };
-      if (!res.ok || !data.ok) {
-        setErr(data.message ?? t("dm.invites.errorGeneric"));
-        return;
-      }
-      onSent?.();
-      onClose();
-    } catch {
-      setErr(t("dm.invites.errorGeneric"));
-    } finally {
-      setSending(false);
-    }
+      const data = await response.json() as { ok?: boolean; message?: string };
+      if (!response.ok || !data.ok) { setErr(data.message || "The invitation could not be sent."); return; }
+      onSent?.(); onClose();
+    } catch { setErr("The invitation could not be sent."); } finally { setSending(false); }
+  };
+
+  const chooseFile = (next: File | null) => {
+    if (next && validateBusinessInviteAttachmentFile(next)) { setErr("Attach a PDF, document, or image smaller than 15 MB."); return; }
+    setFile(next); setErr(null);
   };
 
   return (
-    <div
-      className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/70"
-      role="dialog"
-      aria-modal
-      aria-labelledby="business-invite-composer-title"
-    >
-      <button type="button" className="absolute inset-0" aria-label="Close" onClick={onClose} />
-      <div className="relative w-full max-w-lg rounded-2xl bg-xiio-surface border border-white/10 shadow-xl overflow-hidden max-h-[90vh] flex flex-col">
-        <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 shrink-0">
-          <h2 id="business-invite-composer-title" className="text-lg font-semibold text-white">
-            {t("dm.invites.composerTitle")}
-          </h2>
-          <button type="button" onClick={onClose} className="text-xiio-muted hover:text-white p-1" aria-label="Close">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-
-        <div className="p-4 space-y-4 overflow-y-auto min-h-0">
-          {!recipient && (
-            <div>
-              <input
-                type="search"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder={t("dm.invites.searchPlaceholder")}
-                autoFocus
-                className="w-full rounded-xl bg-white/5 border border-white/10 px-4 py-2.5 text-sm text-white placeholder:text-xiio-muted focus:outline-none focus:border-xiio-accent/50"
-              />
-              <ul className="max-h-48 overflow-y-auto mt-2 border border-white/10 rounded-xl divide-y divide-white/5">
-                {searching && (
-                  <li className="px-4 py-4 text-sm text-xiio-muted text-center">{t("common.loading")}</li>
-                )}
-                {!searching && query.trim() && results.length === 0 && (
-                  <li className="px-4 py-4 text-sm text-xiio-muted text-center">{t("dm.invites.noResults")}</li>
-                )}
-                {results.map((p) => (
-                  <li key={p.uid}>
-                    <button
-                      type="button"
-                      onClick={() => setRecipient({ uid: p.uid, handle: p.handle, displayName: p.displayName })}
-                      className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-white/5 transition text-left"
-                    >
-                      <ProfileAvatar
-                        displayName={p.displayName}
-                        avatarUrl={p.avatarUrl}
-                        className="w-9 h-9 rounded-full bg-xiio-accent/20 flex items-center justify-center text-xs font-bold text-white shrink-0"
-                      />
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium text-white truncate">{p.displayName}</p>
-                        <p className="text-xs text-xiio-accent">@{p.handle}</p>
-                      </div>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {recipient && (
-            <div className="flex items-center gap-3 rounded-xl bg-white/5 border border-white/10 px-3 py-2.5">
-              <ProfileAvatar
-                displayName={recipient.displayName}
-                className="w-9 h-9 rounded-full bg-xiio-accent/20 flex items-center justify-center text-xs font-bold text-white shrink-0"
-              />
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-white truncate">{recipient.displayName}</p>
-                <p className="text-xs text-xiio-accent">@{recipient.handle}</p>
-              </div>
-              {!presetRecipient && (
-                <button
-                  type="button"
-                  onClick={() => setRecipient(null)}
-                  className="text-xs text-xiio-muted hover:text-white"
-                  aria-label="Close"
-                >
-                  ×
-                </button>
-              )}
-            </div>
-          )}
-
-          <div>
-            <p className="text-xs text-xiio-muted mb-2">{t("dm.invites.directionLabel")}</p>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => setDirection("offer")}
-                className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium border transition ${
-                  direction === "offer"
-                    ? "bg-xiio-accent text-white border-xiio-accent"
-                    : "border-white/20 text-white hover:bg-white/5"
-                }`}
-              >
-                {t("dm.invites.directionOffer")}
-              </button>
-              <button
-                type="button"
-                onClick={() => setDirection("application")}
-                className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium border transition ${
-                  direction === "application"
-                    ? "bg-xiio-accent text-white border-xiio-accent"
-                    : "border-white/20 text-white hover:bg-white/5"
-                }`}
-              >
-                {t("dm.invites.directionApplication")}
-              </button>
-            </div>
+    <div className={styles.backdrop} role="dialog" aria-modal="true" aria-labelledby="invite-title">
+      <button className={styles.scrim} type="button" aria-label="Close invite" onClick={onClose} />
+      <section className={styles.modal}>
+        <header className={styles.header}><div><p>OONA SOCIETY</p><h2 id="invite-title">Invite to project</h2></div><button type="button" onClick={onClose} aria-label="Close">×</button></header>
+        <div className={styles.content}>
+          {!recipient ? <div className={styles.recipientSearch}><label>CREATOR</label><input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search by name or handle" />{results.length > 0 && <div className={styles.searchResults}>{results.map((person) => <button key={person.uid} type="button" onClick={() => setRecipient(person)}><ProfileAvatar displayName={person.displayName} avatarUrl={person.avatarUrl} className={styles.smallAvatar} /><span><strong>{person.displayName}</strong><small>@{person.handle}</small></span></button>)}</div>}</div> : <div className={styles.recipientCard}><ProfileAvatar displayName={recipient.displayName} avatarUrl={recipient.avatarUrl} className={styles.avatar} /><div><h3>{recipient.displayName}</h3><p>@{recipient.handle} · Invited collaborator</p></div><Link href={`/people/${recipient.handle}`}>View profile ↗</Link></div>}
+          <div className={styles.projectRow}><label className={styles.field}><span>PROJECT</span><select value={projectId} onChange={(event) => setProjectId(event.target.value)}><option value="">Select a project</option>{projects.map((project) => <option key={project.id} value={project.id}>{project.title}</option>)}</select></label><button className={styles.newProjectButton} type="button" onClick={() => setNewProjectOpen((open) => !open)}>＋ Create new project</button></div>
+          {newProjectOpen && <div className={styles.newProject}><input value={newProjectTitle} onChange={(event) => setNewProjectTitle(event.target.value)} placeholder="New project title" /><button type="button" disabled={creating || !newProjectTitle.trim()} onClick={() => void createNewProject()}>{creating ? "Creating…" : "Create"}</button></div>}
+          <div className={styles.twoColumns}>
+            <label className={styles.field}><span>ROLE</span><input value={role} onChange={(event) => setRole(event.target.value)} placeholder="Writer, editor, producer…" /></label>
+            <label className={styles.field}><span>PERMISSIONS</span><select value={permissions} onChange={(event) => setPermissions(event.target.value as typeof permissions)}><option value="view_comment">View and comment</option><option value="edit">Edit project</option><option value="manage">Manage members</option></select></label>
+            <div className={styles.field}><span>AVAILABILITY</span><div className={styles.dateRange}><input type="date" value={availabilityStart} onChange={(event) => setAvailabilityStart(event.target.value)} /><b>→</b><input type="date" value={availabilityEnd} onChange={(event) => setAvailabilityEnd(event.target.value)} /></div></div>
+            <label className={styles.field}><span>LOCATION</span><input value={location} onChange={(event) => setLocation(event.target.value)} placeholder="Remote or city" /></label>
+            <label className={styles.field}><span>COMPENSATION</span><select value={compensation} onChange={(event) => setCompensation(event.target.value as typeof compensation)}><option value="negotiable">Negotiable</option><option value="paid">Paid</option><option value="credit">Credit</option><option value="unpaid">Unpaid</option></select></label>
+            <label className={styles.field}><span>BUDGET RANGE (OPTIONAL)</span><input value={budgetRange} onChange={(event) => setBudgetRange(event.target.value)} placeholder="e.g. $2,000 – $5,000 USD" /></label>
           </div>
-
-          <div>
-            <label htmlFor="business-invite-message" className="text-xs text-xiio-muted mb-2 block">
-              {t("dm.invites.messageLabel")}
-            </label>
-            <textarea
-              id="business-invite-message"
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              placeholder={t("dm.invites.messagePlaceholder")}
-              rows={3}
-              maxLength={500}
-              className="w-full rounded-xl bg-white/5 border border-white/10 px-3 py-2 text-sm text-white placeholder:text-xiio-muted focus:outline-none focus:border-xiio-accent/50 resize-none"
-            />
-          </div>
-
-          {works.length > 0 && (
-            <div>
-              <p className="text-xs text-xiio-muted mb-1">{t("dm.invites.attachWorksLabel")}</p>
-              <p className="text-[10px] text-xiio-muted mb-2">{t("dm.invites.attachWorksHint")}</p>
-              <ul className="space-y-1.5 max-h-36 overflow-y-auto">
-                {works.map((w) => (
-                  <li key={w.workId} className="flex items-center gap-2 text-sm">
-                    <input
-                      type="checkbox"
-                      checked={selectedWorkIds.has(w.workId)}
-                      onChange={() => toggleWork(w.workId)}
-                      id={`attach-${w.workId}`}
-                    />
-                    <label htmlFor={`attach-${w.workId}`} className="text-white/90 flex-1 truncate">
-                      {w.title}
-                    </label>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          <div>
-            <p className="text-xs text-xiio-muted mb-1">{t("dm.invites.attachFileLabel")}</p>
-            <p className="text-[10px] text-xiio-muted mb-2">{t("dm.invites.attachFileHint")}</p>
-            {file ? (
-              <div className="flex items-center justify-between gap-2 rounded-lg bg-white/5 border border-white/10 px-3 py-2">
-                <span className="text-sm text-white truncate">{file.name}</span>
-                <button
-                  type="button"
-                  onClick={() => onPickFile(null)}
-                  className="text-xs text-red-400 hover:underline shrink-0"
-                >
-                  {t("dm.invites.attachFileRemove")}
-                </button>
-              </div>
-            ) : (
-              <input
-                type="file"
-                accept="application/pdf,.pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/*"
-                onChange={(e) => onPickFile(e.target.files?.[0] ?? null)}
-                className="w-full text-sm text-white file:mr-3 file:px-3 file:py-1.5 file:rounded-lg file:border-0 file:bg-white/10 file:text-white file:text-sm"
-              />
-            )}
-            {fileErr && <p className="text-red-400 text-xs mt-1">{fileErr}</p>}
-          </div>
-
-          {err && <p className="text-red-400 text-sm">{err}</p>}
+          <label className={styles.field}><span>PERSONAL NOTE</span><textarea value={message} onChange={(event) => setMessage(event.target.value)} maxLength={500} rows={5} placeholder={`Hi ${recipient?.displayName || "there"},\n\nTell them why this project feels like a good fit.`} /><small>{message.length} / 500</small></label>
+          <label className={styles.attachment}><span>SUPPORTING FILE (OPTIONAL)</span><input type="file" accept="application/pdf,.pdf,.doc,.docx,image/*" onChange={(event) => chooseFile(event.target.files?.[0] ?? null)} />{file && <b>{file.name}</b>}</label>
+          {err && <p className={styles.error}>{err}</p>}
         </div>
-
-        <div className="px-4 py-3 border-t border-white/10 shrink-0">
-          <button
-            type="button"
-            disabled={!recipient || sending}
-            onClick={() => void submit()}
-            className="w-full px-4 py-2.5 rounded-lg bg-xiio-accent text-white text-sm font-semibold disabled:opacity-40"
-          >
-            {sending ? t("dm.invites.sending") : t("dm.invites.send")}
-          </button>
-        </div>
-      </div>
+        <footer className={styles.footer}><button type="button" onClick={onClose}>Cancel</button><button type="button" className={styles.primary} disabled={!recipient || !projectId || sending} onClick={() => void submit()}>{sending ? "Sending…" : "Send invite"}</button></footer>
+      </section>
     </div>
   );
 }

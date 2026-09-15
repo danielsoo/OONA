@@ -261,9 +261,9 @@ export default function SocietyNetworkPanel({ activeTab, onTabChange }: Props) {
   const openInvite = (person: SocietyPerson | BusinessInviteListItem) => {
     if (!requireUser()) return;
     if ("uid" in person) {
-      setInviteRecipient({ uid: person.uid, handle: person.handle, displayName: person.displayName });
+      setInviteRecipient({ uid: person.uid, handle: person.handle, displayName: person.displayName, avatarUrl: person.avatarUrl });
     } else {
-      setInviteRecipient({ uid: person.otherUid, handle: person.otherHandle ?? "", displayName: person.otherDisplayName });
+      setInviteRecipient({ uid: person.otherUid, handle: person.otherHandle ?? "", displayName: person.otherDisplayName, avatarUrl: person.otherAvatarUrl });
     }
   };
 
@@ -280,13 +280,14 @@ export default function SocietyNetworkPanel({ activeTab, onTabChange }: Props) {
         method: action === "cancel" ? "DELETE" : "POST",
         headers: { Authorization: `Bearer ${token}` },
       });
-      const data = (await response.json()) as { threadId?: string; message?: string };
+      const data = (await response.json()) as { threadId?: string; projectId?: string; message?: string };
       if (!response.ok) {
         setError(data.message ?? "That action could not be completed.");
         return;
       }
       await loadInvites();
-      if (action === "accept" && data.threadId) router.push(`/messages/${data.threadId}`);
+      if (action === "accept" && data.projectId) router.push(`/projects/${data.projectId}`);
+      else if (action === "accept" && data.threadId) router.push(`/messages/${data.threadId}`);
     } finally {
       setBusyId(null);
     }
@@ -368,7 +369,7 @@ export default function SocietyNetworkPanel({ activeTab, onTabChange }: Props) {
         <InvitesView tab={activeTab} invites={invites} loading={loading} error={error} busyId={busyId} loggedIn={Boolean(user)} onChange={changeInvite} onMessage={startMessage} onInvite={openInvite} onLogin={requireUser} />
       ) : (
         <div className={styles.worksView}>
-          <div className={styles.sectionHeading}><div><p>YOUR PORTFOLIO</p><h2>Selected works</h2></div><Link href="/account/profile">Edit profile <span>↗</span></Link></div>
+          <div className={styles.sectionHeading}><div><p>YOUR PORTFOLIO</p><h2>Selected works</h2></div><Link href="/account?tab=profile">Edit profile <span>↗</span></Link></div>
           {!user ? <EmptyState title="Your work belongs here" body="Sign in to curate the projects collaborators see first." action={<button type="button" className={styles.primaryButton} onClick={requireUser}>Sign in</button>} /> : <SocietySelfProfileSection />}
         </div>
       )}
@@ -462,7 +463,7 @@ function InvitesView({
             <article className={styles.inviteRow} key={invite.id}>
               <ProfileAvatar displayName={invite.otherDisplayName} avatarUrl={invite.otherAvatarUrl} className={styles.inviteAvatar} imgClassName="h-full w-full object-cover" />
               <div className={styles.inviteMain}>
-                <div className={styles.inviteTop}><div><h3>{invite.otherDisplayName}</h3><p>{invite.direction === "offer" ? "Project invitation" : "Collaboration application"} <span>·</span> {inviteDate(invite.createdAt)}</p></div><span className={`${styles.status} ${styles[`status_${invite.status}`]}`}>{statusLabel(invite.status)}</span></div>
+                <div className={styles.inviteTop}><div><h3>{invite.otherDisplayName}</h3><p>{invite.projectTitle || (invite.direction === "offer" ? "Project invitation" : "Collaboration application")} {invite.role ? <><span>·</span> {invite.role}</> : null} <span>·</span> {inviteDate(invite.createdAt)}</p></div><span className={`${styles.status} ${styles[`status_${invite.status}`]}`}>{statusLabel(invite.status)}</span></div>
                 {invite.message ? <blockquote>“{invite.message}”</blockquote> : <blockquote>{received ? "They would like to discuss working together." : "You invited this creator to collaborate."}</blockquote>}
                 {invite.attachmentUrl ? <a className={styles.attachment} href={invite.attachmentUrl} target="_blank" rel="noreferrer">Attachment · {invite.attachmentFileName || "View file"} ↗</a> : null}
               </div>
@@ -470,6 +471,7 @@ function InvitesView({
                 {received && invite.status === "pending" ? <><button className={styles.primaryButton} disabled={busyId === invite.id} type="button" onClick={() => void onChange(invite, "accept")}>Accept</button><button disabled={busyId === invite.id} type="button" onClick={() => void onChange(invite, "decline")}>Decline</button></> : null}
                 {!received && invite.status === "pending" ? <button disabled={busyId === invite.id} type="button" onClick={() => void onChange(invite, "cancel")}>Cancel request</button> : null}
                 {invite.status === "accepted" ? <button disabled={busyId === invite.otherUid} type="button" onClick={() => void onMessage(invite.otherUid)}>Message</button> : null}
+                {invite.status === "accepted" && invite.projectId ? <Link href={`/projects/${invite.projectId}`}>Open project <span>↗</span></Link> : null}
                 {!received && (invite.status === "declined" || invite.status === "expired" || invite.status === "cancelled") ? <button type="button" onClick={() => onInvite(invite)}>Invite again</button> : null}
                 {invite.otherHandle ? <Link href={`/people/${invite.otherHandle}`}>View profile <span>↗</span></Link> : null}
               </div>

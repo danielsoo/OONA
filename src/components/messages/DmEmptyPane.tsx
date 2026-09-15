@@ -2,14 +2,15 @@
 
 import { useDmInbox } from "@/components/messages/DmInboxContext";
 import { useTranslations } from "@/context/LocaleContext";
+import styles from "./MessagesSupplement.module.css";
 
 export default function DmEmptyPane() {
   const { openNewMessage } = useDmInbox();
   const { t } = useTranslations();
 
   return (
-    <div className="flex flex-1 flex-col items-center justify-center px-8 text-center">
-      <div className="w-24 h-24 rounded-full border-2 border-white/20 flex items-center justify-center mb-6">
+    <div className={styles.emptyPane}>
+      <div className={styles.emptyGlyph}>
         <svg
           className="w-12 h-12 text-white"
           fill="none"
@@ -25,12 +26,13 @@ export default function DmEmptyPane() {
           />
         </svg>
       </div>
-      <h2 className="text-xl font-semibold text-white mb-2">{t("dm.inbox.emptyTitle")}</h2>
-      <p className="text-sm text-xiio-muted mb-6 max-w-sm">{t("dm.inbox.emptyLead")}</p>
+      <p>OONA MESSAGES</p>
+      <h2>{t("dm.inbox.emptyTitle")}</h2>
+      <span>{t("dm.inbox.emptyLead")}</span>
       <button
         type="button"
         onClick={openNewMessage}
-        className="px-5 py-2.5 rounded-lg bg-xiio-accent hover:bg-xiio-accent-hover text-white text-sm font-semibold transition"
+        className={styles.emptyAction}
       >
         {t("dm.inbox.sendMessageCta")}
       </button>

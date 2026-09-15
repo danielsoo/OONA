@@ -19,5 +19,5 @@ export async function POST(request: Request, { params }: Params) {
     return jsonError(result.code, "제안을 수락하지 못했습니다.", status);
   }
 
-  return NextResponse.json({ ok: true, threadId: result.threadId });
+  return NextResponse.json({ ok: true, threadId: result.threadId, projectId: result.projectId });
 }
