@@ -25,6 +25,15 @@
   isolation: isolate;
 }
 
+.nr .atlas-shell.fictional-atlas {
+  background: #020a12;
+}
+
+.nr .atlas-shell.fictional-atlas::before,
+.nr .atlas-shell.fictional-atlas::after {
+  display: none;
+}
+
 .nr .atlas-shell::before {
   content: "";
   position: absolute;
@@ -97,6 +106,10 @@
     radial-gradient(ellipse at 50% 52%, rgba(42, 119, 172, 0.17), transparent 63%);
   mask-image: linear-gradient(90deg, transparent, black 10%, black 90%, transparent);
   opacity: 0.96;
+}
+
+.nr .geo-map-stage.fictional-focus::before {
+  display: none;
 }
 
 .nr .geo-world-map {

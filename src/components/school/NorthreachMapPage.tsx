@@ -344,7 +344,7 @@ export default function NorthreachMapPage() {
 
   return (
     <div className="nr">
-      <main className="atlas-shell">
+      <main className={`atlas-shell${ACTIVE_MAP_MODE === "fictional" ? " fictional-atlas" : ""}`}>
         <section className="map-panel" aria-label="Interactive school map">
           <div className="schools-intro">
             <h1 className="map-heading-visually-hidden">Schools on OONA</h1>
