@@ -1,7 +1,6 @@
 export const BUSINESS_INVITE_DIRECTIONS = ["offer", "application"] as const;
 export type BusinessInviteDirection = (typeof BUSINESS_INVITE_DIRECTIONS)[number];
 
-/** revoked/cancelled reserved for a future "withdraw pending invite" endpoint — not implemented yet */
 export const BUSINESS_INVITE_STATUSES = [
   "pending",
   "accepted",

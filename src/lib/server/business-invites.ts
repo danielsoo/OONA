@@ -236,6 +236,34 @@ export async function declineBusinessInvite(
   return { ok: true };
 }
 
+export async function cancelBusinessInvite(
+  db: Firestore,
+  inviteId: string,
+  senderUid: string
+): Promise<{ ok: true } | { ok: false; code: string }> {
+  const ref = businessInvitesCol(db).doc(inviteId);
+
+  try {
+    await db.runTransaction(async (tx) => {
+      const snap = await tx.get(ref);
+      if (!snap.exists) throw new Error("not_found");
+      const invite = parseBusinessInvite(inviteId, snap.data() as Record<string, unknown>);
+      if (invite.senderUid !== senderUid) throw new Error("forbidden");
+      if (invite.status !== "pending") throw new Error("invalid_state");
+      tx.update(ref, {
+        status: "cancelled",
+        respondedAt: FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+    });
+  } catch (error) {
+    const code = error instanceof Error ? error.message : "invalid_state";
+    return { ok: false, code };
+  }
+
+  return { ok: true };
+}
+
 export async function getBusinessInviteWithPortfolio(
   db: Firestore,
   inviteId: string,
