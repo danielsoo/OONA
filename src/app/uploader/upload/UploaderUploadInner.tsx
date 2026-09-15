@@ -13,6 +13,7 @@ import UploaderHeaderActions from "@/components/uploader/UploaderHeaderActions";
 import { useAuth } from "@/context/AuthContext";
 import { useTranslations } from "@/context/LocaleContext";
 import { useDepositStatus } from "@/hooks/useDepositStatus";
+import styles from "./uploaderUpload.module.css";
 
 export default function UploaderUploadInner() {
   const router = useRouter();
@@ -103,8 +104,8 @@ export default function UploaderUploadInner() {
   }
 
   return (
-    <AppPageShell className="!bg-[#080808] !pt-0" contentClassName="!max-w-none">
-      <header className="mb-8 border-b border-white/[0.1] pb-7 pt-10 md:mb-10 md:pt-12">
+    <AppPageShell className={`${styles.page} !pt-0`} contentClassName="!max-w-[1460px]">
+      <header className={`${styles.header} mb-8 border-b border-white/[0.1] pb-7 pt-10 md:mb-10 md:pt-12`}>
         <SectionLabel>{t("uploader.uploadStudioLabel")}</SectionLabel>
         <div className="mt-4 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
           <div className="min-w-0">
@@ -132,18 +133,20 @@ export default function UploaderUploadInner() {
         }}
       />
 
-      <UploaderUploadForm
-        key={draftId}
-        user={user}
-        draftId={draftId}
-        restoreDraft={Boolean(requestedDraftId)}
-        initialDirector={defaultDirectorName}
-        initialSchoolNameHint={schoolNameHint}
-        onSuccess={() => {
-          router.replace("/uploader/works?submitted=1");
-        }}
-        onError={() => undefined}
-      />
+      <div className={styles.formStage}>
+        <UploaderUploadForm
+          key={draftId}
+          user={user}
+          draftId={draftId}
+          restoreDraft={Boolean(requestedDraftId)}
+          initialDirector={defaultDirectorName}
+          initialSchoolNameHint={schoolNameHint}
+          onSuccess={() => {
+            router.replace("/uploader/works?submitted=1");
+          }}
+          onError={() => undefined}
+        />
+      </div>
     </AppPageShell>
   );
 }

@@ -44,6 +44,7 @@ export type AppNavIcon =
   | "upload"
   | "about"
   | "search"
+  | "notifications"
   | "me";
 
 export type AppNavItem = {
@@ -121,14 +122,14 @@ export const UPLOAD_HREF = "/uploader/upload";
 
 /** Mobile bottom tab bar. */
 export const MOBILE_TABS: AppNavItem[] = [
-  { id: "home", labelKey: "nav.home", href: "/", icon: "home", match: ["/discover"] },
-  { id: "browse", labelKey: "nav.browse", href: "/movies", icon: "browse", match: [...BROWSE_PATHS] },
+  { id: "films", labelKey: "nav.films", href: "/movies", icon: "films", match: ["/movies", "/watch"] },
+  { id: "discover", labelKey: "nav.discover", href: "/discover", icon: "discover" },
   { id: "upload", labelKey: "nav.upload", href: UPLOAD_HREF, icon: "upload", requiresAuth: true },
   {
-    id: "messages",
-    labelKey: "nav.messages",
-    href: "/messages",
-    icon: "messages",
+    id: "notifications",
+    labelKey: "topBar.notifications",
+    href: "/notifications",
+    icon: "notifications",
     requiresAuth: true,
   },
   { id: "me", labelKey: "nav.me", href: "/account", icon: "me", requiresAuth: true },

@@ -23,6 +23,8 @@ import AccountProfileNav, {
 import AccountProfileSettingsPanel from "@/components/account/AccountProfileSettingsPanel";
 import AccountUploadsList from "@/components/account/AccountUploadsList";
 import AccountWorkActivityList from "@/components/account/AccountWorkActivityList";
+import ProfileAvatar from "@/components/profile/ProfileAvatar";
+import styles from "./AccountProfileContent.module.css";
 
 function parseMainTab(raw: string | null): MainTabId {
   if (raw === "profile") return raw;
@@ -300,6 +302,49 @@ export default function AccountProfileContent() {
     }
     return null;
   };
+
+  if (mainTab === "profile") {
+    const roleLabel = profile.roleTags?.[0]?.replaceAll("_", " ") || "Creator";
+    return (
+      <div className={styles.profileWorkspace}>
+        <aside className={styles.profileNav}>
+          <AccountProfileNav variant="sidebar" {...navProps} />
+        </aside>
+
+        <section className={styles.profileEditor}>
+          <div className={styles.mobileNav}><AccountProfileNav variant="mobile" {...navProps} /></div>
+          <header className={styles.profileHeading}>
+            <p>ACCOUNT &amp; SETTINGS</p>
+            <h1>Profile</h1>
+            <span>Shape how collaborators see you.</span>
+          </header>
+          <AccountProfileHero
+            profile={profile}
+            email={user?.email ?? null}
+            metaItems={heroMetaItems}
+            onAvatarUpdated={(avatarUrl) => setProfile((prev) => (prev ? { ...prev, avatarUrl } : prev))}
+          />
+          <section className={styles.editorSurface}>{renderMainContent()}</section>
+        </section>
+
+        <aside className={styles.publicPreview}>
+          <div className={styles.previewLabel}>PUBLIC PREVIEW <span aria-hidden="true">↗</span></div>
+          <div className={styles.previewBanner} aria-hidden="true" />
+          <ProfileAvatar
+            displayName={profile.displayName || "?"}
+            avatarUrl={profile.avatarUrl}
+            className={styles.previewAvatar}
+            imgClassName="h-full w-full object-cover"
+          />
+          <h2>{profile.displayName || "Creator"}</h2>
+          {profile.handle ? <p>@{profile.handle}</p> : null}
+          <p className={styles.previewMeta}>{roleLabel} <span>·</span> {profile.schoolName || "OONA"}</p>
+          <p className={styles.previewBio}>{profile.bio || profile.headline || "Tell collaborators about the stories you want to make."}</p>
+          <div className={styles.previewTags}>{(profile.roleTags?.length ? profile.roleTags : ["director", "storytelling"]).slice(0, 3).map((tag) => <span key={tag}>{tag.replaceAll("_", " ")}</span>)}</div>
+        </aside>
+      </div>
+    );
+  }
 
   return (
     <div className="lg:flex lg:gap-8 lg:items-start">

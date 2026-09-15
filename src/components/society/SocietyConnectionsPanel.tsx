@@ -75,9 +75,10 @@ function DropdownSelect({
 type Props = {
   activeTab: SocietyTabId;
   onTabChange: (tab: SocietyTabId) => void;
+  hideTabs?: boolean;
 };
 
-export default function SocietyConnectionsPanel({ activeTab, onTabChange }: Props) {
+export default function SocietyConnectionsPanel({ activeTab, onTabChange, hideTabs = false }: Props) {
   const { user } = useAuth();
   const { t } = useTranslations();
   const tab = activeTab;
@@ -87,15 +88,11 @@ export default function SocietyConnectionsPanel({ activeTab, onTabChange }: Prop
   const [sort, setSort] = useState<SocietySortId>("recent");
   const [q, setQ] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  const [people, setPeople] = useState<SocietyPerson[]>(() =>
-    readSocietyPeople(user, { followingOnly: tab === "connections" })?.people ?? []
-  );
-  const [connectedUids, setConnectedUids] = useState<Set<string>>(
-    () => new Set(user ? readFollowingUids(user.uid) ?? [] : [])
-  );
-  const [loading, setLoading] = useState(
-    () => tab === "discover" && !readSocietyPeople(null)?.people.length
-  );
+  // Keep the first server and client render identical. Cached browser data is
+  // restored by the effects below after hydration.
+  const [people, setPeople] = useState<SocietyPerson[]>([]);
+  const [connectedUids, setConnectedUids] = useState<Set<string>>(() => new Set());
+  const [loading, setLoading] = useState(tab === "discover");
   const [err, setErr] = useState<string | null>(null);
   const [busyUid, setBusyUid] = useState<string | null>(null);
 
@@ -256,7 +253,7 @@ export default function SocietyConnectionsPanel({ activeTab, onTabChange }: Prop
 
   return (
     <div className="min-w-0 flex-1">
-      <nav className="scrollbar-none flex gap-7 overflow-x-auto border-b border-line" aria-label="Connections tabs">
+      {!hideTabs ? <nav className="scrollbar-none flex gap-7 overflow-x-auto border-b border-line" aria-label="Connections tabs">
         {tabs.map((item) => (
           <button
             key={item.id}
@@ -275,7 +272,7 @@ export default function SocietyConnectionsPanel({ activeTab, onTabChange }: Prop
             ) : null}
           </button>
         ))}
-      </nav>
+      </nav> : null}
 
       {tab !== "requests" && tab !== "sent" && tab !== "works" ? (
         <>

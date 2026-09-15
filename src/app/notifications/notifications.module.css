@@ -1,7 +1,10 @@
 .page {
+  position: relative;
   min-height: calc(100svh - 82px);
   padding: 44px clamp(24px, 5vw, 80px) 70px;
-  background: #080808;
+  background:
+    radial-gradient(circle at 76% 8%, rgba(29, 84, 122, 0.13), transparent 30%),
+    #020a12;
   color: #f5f4f2;
 }
 
@@ -133,7 +136,7 @@
   height: 9px;
   border: 1px solid #86cfff;
   border-radius: 50%;
-  background: #080808;
+  background: #020a12;
 }
 
 .status {
@@ -211,15 +214,22 @@
 }
 
 @media (max-width: 620px) {
-  .page { padding: 30px 18px 55px; }
+  .page { min-height:100svh; padding: 104px 22px 98px; background:#020a12; }
   .pageHeader { align-items: flex-start; flex-direction: column; gap: 18px; }
-  .pageHeader h1 { font-size: 48px; }
-  .pageHeader p { font-size: 15px; }
+  .pageHeader h1 { font-size: 43px; }
+  .pageHeader p { display:none; }
+  .pageHeader > button { position:absolute; top:104px; right:22px; font-size:0; }
+  .pageHeader > button span { font-size:16px; }
   .filters { gap: 28px; margin-top: 28px; }
+  .filters button { padding:8px 15px; border:1px solid rgba(120,174,212,.28); border-radius:999px; font-size:11px; }
+  .filters .activeFilter { border-color:#5fd3ff; background:rgba(45,151,211,.12); box-shadow:0 0 18px rgba(65,190,247,.12); }
+  .filters .activeFilter::before,.filters .activeFilter::after { display:none; }
   .contentGrid { margin-top: 20px; }
+  .group h2 { margin-bottom:4px; font-family:var(--font-sans),Inter,sans-serif; font-size:14px; }
   .timeline { padding-left: 26px; }
   .timeline::before { left: 5px; }
   .timeline > button { padding-left: 5px; padding-right: 4px; }
   .timeline > button::before { left: -25px; }
   .stats strong { font-size: 26px; }
+  .activity { display:none; }
 }

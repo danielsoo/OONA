@@ -11,14 +11,10 @@ export function useCatalogFeed(
   initialItems?: CatalogFeedItem[]
 ) {
   const cacheKey = catalogFeedCacheKey(section, limit);
-  const cached = getCached<CatalogFeedItem[]>(cacheKey);
-
-  const [items, setItems] = useState<CatalogFeedItem[]>(
-    initialItems ?? cached ?? []
-  );
-  const [loading, setLoading] = useState(
-    () => initialItems === undefined && cached === undefined
-  );
+  // Browser cache must not influence the first render or the server/client
+  // trees can disagree during hydration.
+  const [items, setItems] = useState<CatalogFeedItem[]>(initialItems ?? []);
+  const [loading, setLoading] = useState(initialItems === undefined);
 
   useEffect(() => {
     if (initialItems !== undefined) {
@@ -26,6 +22,14 @@ export function useCatalogFeed(
       setItems(initialItems);
       setLoading(false);
       return;
+    }
+
+    const cached = getCached<CatalogFeedItem[]>(cacheKey);
+    if (cached !== undefined) {
+      setItems(cached.slice(0, limit));
+      setLoading(false);
+    } else {
+      setLoading(true);
     }
 
     let cancelled = false;

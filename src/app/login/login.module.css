@@ -511,17 +511,29 @@
     font-size: 12px;
   }
 
+  .backLink span { display: none; }
+
   .backLink svg {
     width: 19px;
     height: 19px;
   }
 
   .artwork {
-    background-position: 57% center;
+    inset: 0 0 auto;
+    height: 54svh;
+    min-height: 0;
+    background-position: 65% 48%;
+    background-size: auto 58svh;
   }
 
+  .artworkShade {
+    background: linear-gradient(180deg, rgba(1, 5, 10, 0.05) 0%, rgba(2, 6, 11, 0.12) 31%, rgba(3, 7, 11, 0.92) 52%, #03070b 63%);
+  }
+
+  .formPane { align-items: flex-start; }
+
   .formContent {
-    padding: 128px 24px 44px;
+    padding: 46svh 24px 100px;
   }
 
   .intro {
@@ -529,16 +541,29 @@
   }
 
   .intro h1 {
-    font-size: clamp(42px, 12vw, 50px);
+    font-size: clamp(37px, 10vw, 44px);
   }
 
   .intro p {
     margin-top: 9px;
-    font-size: 18px;
+    font-size: 14px;
   }
 
+  .field > span { display: none; }
+
+  .inputWrap input,
+  .passwordInput {
+    height: 48px;
+    padding: 0 42px 0 13px;
+    border: 1px solid rgba(139, 185, 219, 0.28);
+    border-radius: 7px;
+    background: rgba(2, 10, 17, 0.42);
+  }
+
+  .fieldIcon { right: 13px; bottom: 14px; }
+
   .field + .field {
-    margin-top: 30px;
+    margin-top: 10px;
   }
 
   .optionsRow {
@@ -586,6 +611,8 @@
     padding: 0 8px;
     font-size: 10px;
   }
+
+  .socialRow button > span:last-child { display: none; }
 
   .signupPrompt {
     gap: 8px;

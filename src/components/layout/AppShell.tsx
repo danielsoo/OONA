@@ -62,6 +62,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
             <div className="min-h-screen min-w-[360px] bg-xiio-bg text-white">
               <CinematicAppHeader />
               {children}
+              <MobileTabBar />
             </div>
           </NotificationProvider>
         </DmUnreadProvider>

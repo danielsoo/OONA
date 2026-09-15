@@ -53,6 +53,12 @@ export function AppNavIconSvg({ icon, active = false, className = iconClass }: P
           <path strokeLinecap="round" strokeWidth={sw} d="M16.5 16.5L20 20" />
         </svg>
       );
+    case "notifications":
+      return (
+        <svg className={className} fill={active ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={sw} d="M6.5 16.5h11l-1.2-1.8V10a4.3 4.3 0 10-8.6 0v4.7l-1.2 1.8zM10 19a2.2 2.2 0 004 0" />
+        </svg>
+      );
     case "me":
       if (active) {
         return (

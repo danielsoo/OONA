@@ -24,7 +24,7 @@
 
 .schoolHeader {
   border-bottom-color: transparent;
-  background: #020a12;
+  background: #010913;
 }
 
 .logoLink { width: fit-content; }
@@ -207,7 +207,7 @@
 
 @media (max-width: 600px) {
   .header { --header-pad: 20px; }
-  .menuButton { left: calc(var(--header-pad) + 150px); }
+  .menuButton, .notification { display: none; }
   .actions { gap: 5px; }
   .mobileSearch, .notification button { width: 32px; height: 32px; }
   .signIn { width: 32px; height: 32px; overflow: hidden; padding: 0; border-radius: 50%; font-size: 0; }
