@@ -9,24 +9,12 @@
 }
 
 .hero {
-  --hero-tail: clamp(120px, 15vh, 170px);
   position: relative;
   min-height: 548px;
   height: 57vh;
   max-height: 650px;
-  overflow: visible;
-  isolation: isolate;
-}
-
-.heroVisual {
-  position: absolute;
-  z-index: -3;
-  top: 0;
-  right: 0;
-  bottom: calc(-1 * var(--hero-tail));
-  left: 0;
   overflow: hidden;
-  pointer-events: none;
+  isolation: isolate;
 }
 
 .heroImage,
@@ -36,17 +24,17 @@
 }
 
 .heroImage {
-  z-index: 0;
+  z-index: -3;
   object-fit: cover;
   object-position: center 47%;
   animation: reveal 700ms ease both;
 }
 
 .heroShade {
-  z-index: 1;
+  z-index: -2;
   background:
     linear-gradient(90deg, rgba(1, 8, 14, 0.94) 0%, rgba(1, 8, 14, 0.6) 25%, rgba(1, 8, 14, 0.08) 58%, rgba(1, 8, 14, 0.45) 100%),
-    linear-gradient(180deg, rgba(1, 7, 13, 0.18) 0%, rgba(1, 7, 13, 0.06) 51%, rgba(2, 10, 18, 0.22) 68%, rgba(2, 10, 18, 0.72) 88%, #020a12 100%);
+    linear-gradient(180deg, rgba(1, 7, 13, 0.18) 0%, rgba(1, 7, 13, 0.06) 54%, #020a12 100%);
 }
 
 .header {
@@ -420,14 +408,14 @@
   content: "";
   position: absolute;
   z-index: -1;
-  top: calc(var(--content-overlap) + clamp(120px, 15vh, 170px));
+  top: var(--content-overlap);
   right: 0;
   left: 0;
-  height: clamp(170px, 20vh, 230px);
+  height: clamp(210px, 24vh, 290px);
   pointer-events: none;
   background:
-    radial-gradient(ellipse 68% 105% at 61% 0%, rgba(27, 83, 121, 0.16) 0%, rgba(12, 41, 61, 0.08) 48%, transparent 78%),
-    linear-gradient(180deg, #020a12 0%, #03101b 42%, #020a12 100%);
+    radial-gradient(ellipse 72% 115% at 61% 0%, rgba(19, 62, 91, 0.12) 0%, rgba(7, 28, 43, 0.06) 48%, transparent 82%),
+    linear-gradient(180deg, #020a12 0%, rgba(3, 16, 27, 0.9) 24%, rgba(3, 15, 25, 0.58) 54%, rgba(2, 10, 18, 0) 100%);
 }
 
 .section { min-width: 0; }
