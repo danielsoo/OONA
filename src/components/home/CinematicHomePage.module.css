@@ -9,12 +9,24 @@
 }
 
 .hero {
+  --hero-tail: clamp(120px, 15vh, 170px);
   position: relative;
   min-height: 548px;
   height: 57vh;
   max-height: 650px;
-  overflow: hidden;
+  overflow: visible;
   isolation: isolate;
+}
+
+.heroVisual {
+  position: absolute;
+  z-index: -3;
+  top: 0;
+  right: 0;
+  bottom: calc(-1 * var(--hero-tail));
+  left: 0;
+  overflow: hidden;
+  pointer-events: none;
 }
 
 .heroImage,
@@ -24,17 +36,17 @@
 }
 
 .heroImage {
-  z-index: -3;
+  z-index: 0;
   object-fit: cover;
   object-position: center 47%;
   animation: reveal 700ms ease both;
 }
 
 .heroShade {
-  z-index: -2;
+  z-index: 1;
   background:
     linear-gradient(90deg, rgba(1, 8, 14, 0.94) 0%, rgba(1, 8, 14, 0.6) 25%, rgba(1, 8, 14, 0.08) 58%, rgba(1, 8, 14, 0.45) 100%),
-    linear-gradient(180deg, rgba(1, 7, 13, 0.18) 0%, rgba(1, 7, 13, 0.06) 54%, #020a12 100%);
+    linear-gradient(180deg, rgba(1, 7, 13, 0.18) 0%, rgba(1, 7, 13, 0.06) 51%, rgba(2, 10, 18, 0.22) 68%, rgba(2, 10, 18, 0.72) 88%, #020a12 100%);
 }
 
 .header {
@@ -408,7 +420,7 @@
   content: "";
   position: absolute;
   z-index: -1;
-  top: var(--content-overlap);
+  top: calc(var(--content-overlap) + clamp(120px, 15vh, 170px));
   right: 0;
   left: 0;
   height: clamp(170px, 20vh, 230px);
