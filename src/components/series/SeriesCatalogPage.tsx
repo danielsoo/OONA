@@ -59,6 +59,7 @@ function LandscapeCard({
   subtitle,
   trailing,
   thumbnailUrl,
+  videoUrl,
   progress,
   badge,
 }: {
@@ -67,16 +68,38 @@ function LandscapeCard({
   subtitle: string;
   trailing?: string;
   thumbnailUrl?: string;
+  videoUrl?: string;
   progress?: number;
   badge?: string;
 }) {
+  const [previewing, setPreviewing] = useState(false);
+
   return (
-    <Link href={href} className="group block min-w-0">
+    <Link
+      href={href}
+      className="group block min-w-0"
+      onPointerEnter={() => setPreviewing(true)}
+      onPointerLeave={() => setPreviewing(false)}
+      onFocus={() => setPreviewing(true)}
+      onBlur={() => setPreviewing(false)}
+    >
       <div
         className="relative w-full overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.03] transition duration-200 group-hover:-translate-y-0.5 group-hover:border-white/20 group-hover:shadow-xl group-hover:shadow-black/30"
         style={VIDEO_RATIO_STYLE}
       >
         <SeriesThumbnail src={thumbnailUrl} title={title} sizes="(min-width: 1280px) 20vw, 33vw" />
+        {previewing && videoUrl ? (
+          <video
+            src={videoUrl}
+            poster={thumbnailUrl}
+            className="absolute inset-0 h-full w-full object-cover"
+            muted
+            loop
+            playsInline
+            autoPlay
+            preload="metadata"
+          />
+        ) : null}
         <div className="absolute inset-0 bg-black/10 transition group-hover:bg-black/0" />
         <div className="absolute inset-0 grid place-items-center opacity-0 transition group-hover:opacity-100">
           <span className="grid h-10 w-10 place-items-center rounded-full bg-white/90 text-black shadow-lg">
@@ -118,6 +141,7 @@ function SeriesCard({ series }: { series: SeriesDetail }) {
       title={series.title}
       subtitle={`${series.seasons.length} Season${series.seasons.length === 1 ? "" : "s"} · ${episodeCount} Episodes · ${series.genre}`}
       thumbnailUrl={firstEpisode?.thumbnailUrl}
+      videoUrl={firstEpisode?.videoUrl}
     />
   );
 }
@@ -135,6 +159,7 @@ function EpisodeCard({ episode, loggedIn }: { episode: SeriesEpisode; loggedIn: 
       title={episode.title}
       subtitle={`S${episode.seasonNumber} E${episode.episodeNumber} · ${formatDurationMinutes(episode.durationSec)}`}
       thumbnailUrl={episode.thumbnailUrl}
+      videoUrl={episode.videoUrl}
       badge="NEW"
     />
   );

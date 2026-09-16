@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import dynamic from "next/dynamic";
+import WorkCard from "@/components/ui/WorkCard";
 import {
   useEffect,
   useMemo,
@@ -17,6 +18,10 @@ import GeoWorldMap, {
   type GeoViewport,
 } from "@/components/school/GeoWorldMap";
 import { useSchoolsFeed } from "@/hooks/useSchoolsFeed";
+import { useShowcaseCatalog } from "@/hooks/useShowcaseCatalog";
+import { SERIES_MOCK_VIDEO_URLS } from "@/data/seriesMockMedia";
+import { promoCropToVideoStyle } from "@/lib/works/promo-crop-interaction";
+import { watchHref } from "@/lib/works/catalog-ui";
 import type { SchoolListItem } from "@/types/school";
 import "@/components/school/northreach-map.css";
 
@@ -248,6 +253,7 @@ export default function NorthreachMapPage() {
   } | null>(null);
   const regionRef = useRef<HTMLDivElement>(null);
   const { items: registeredSchools } = useSchoolsFeed(50);
+  const { items: campusStories } = useShowcaseCatalog("movies", 8);
   const mapDiagnosticsEnabled = coordinateGuide;
   const mapViewport = MAP_VIEWPORTS[region];
   const mapGuides = MAP_GUIDES[region];
@@ -561,6 +567,33 @@ export default function NorthreachMapPage() {
           ) : null}
         </div>
       </main>
+
+      {campusStories.length > 0 ? (
+        <section className="campus-screenings" aria-labelledby="campus-screenings-title">
+          <div className="campus-screenings-head">
+            <div>
+              <p>Now screening</p>
+              <h2 id="campus-screenings-title">Stories from across OONA</h2>
+            </div>
+            <span>Hover a film to preview</span>
+          </div>
+          <div className="campus-screenings-grid">
+            {campusStories.map((item, index) => (
+              <WorkCard
+                key={item.id}
+                href={watchHref(item.ownerUid, item.workId)}
+                title={item.title}
+                meta={item.approvedSchoolName || item.director || item.approvedCategory || "OONA"}
+                imageUrl={item.thumbnailUrl}
+                imageStyle={item.thumbnailCrop ? promoCropToVideoStyle(item.thumbnailCrop) : undefined}
+                videoUrl={SERIES_MOCK_VIDEO_URLS[index % SERIES_MOCK_VIDEO_URLS.length]}
+                videoEnabled
+                videoPreviewMode="hover"
+              />
+            ))}
+          </div>
+        </section>
+      ) : null}
     </div>
   );
 }

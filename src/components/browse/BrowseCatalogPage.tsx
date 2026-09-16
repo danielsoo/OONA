@@ -9,6 +9,8 @@ import WorkCard from "@/components/ui/WorkCard";
 import { useAuth } from "@/context/AuthContext";
 import { useCatalogFeed } from "@/hooks/useCatalogFeed";
 import { useContinueWatching } from "@/hooks/useContinueWatching";
+import { useShowcaseCatalog } from "@/hooks/useShowcaseCatalog";
+import { SERIES_MOCK_VIDEO_URLS } from "@/data/seriesMockMedia";
 import { UPLOAD_HREF } from "@/lib/appNav";
 import { watchProgressItemsToHomeStories } from "@/lib/categoryCatalogAdapter";
 import { promoCropToVideoStyle } from "@/lib/works/promo-crop-interaction";
@@ -140,7 +142,7 @@ function CrossCategoryFeatures() {
 export default function BrowseCatalogPage({ section }: Props) {
   const copy = COPY[section];
   const { user } = useAuth();
-  const { items, loading } = useCatalogFeed(section, 30);
+  const { items, loading } = useShowcaseCatalog(section, 19);
   const { items: continueWatchingAll } = useContinueWatching();
 
   const continueWatching = useMemo(
@@ -212,7 +214,7 @@ export default function BrowseCatalogPage({ section }: Props) {
               </Link>
             </div>
             <ul className={styles.cardGrid}>
-              {firstRow.map((item) => (
+              {firstRow.map((item, index) => (
                 <li key={item.id}>
                   <WorkCard
                     href={watchHref(item.ownerUid, item.workId)}
@@ -220,6 +222,9 @@ export default function BrowseCatalogPage({ section }: Props) {
                     meta={itemMeta(item)}
                     imageUrl={item.thumbnailUrl}
                     imageStyle={itemImageStyle(item)}
+                    videoUrl={SERIES_MOCK_VIDEO_URLS[index % SERIES_MOCK_VIDEO_URLS.length]}
+                    videoEnabled
+                    videoPreviewMode="hover"
                   />
                 </li>
               ))}
@@ -242,7 +247,7 @@ export default function BrowseCatalogPage({ section }: Props) {
               <h2>{copy.secondarySection}</h2>
             </div>
             <ul className={styles.cardGrid}>
-              {secondRow.map((item) => (
+              {secondRow.map((item, index) => (
                 <li key={item.id}>
                   <WorkCard
                     href={watchHref(item.ownerUid, item.workId)}
@@ -250,6 +255,9 @@ export default function BrowseCatalogPage({ section }: Props) {
                     meta={itemMeta(item)}
                     imageUrl={item.thumbnailUrl}
                     imageStyle={itemImageStyle(item)}
+                    videoUrl={SERIES_MOCK_VIDEO_URLS[(index + firstRow.length) % SERIES_MOCK_VIDEO_URLS.length]}
+                    videoEnabled
+                    videoPreviewMode="hover"
                   />
                 </li>
               ))}

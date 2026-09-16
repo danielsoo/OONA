@@ -36,6 +36,7 @@ export type WorkCardProps = {
   videoUrl?: string;
   videoQueueKey?: string;
   videoEnabled?: boolean;
+  videoPreviewMode?: "sequential" | "hover";
   ratio?: WorkCardRatio;
   /** 0–100, draws a resume bar along the bottom edge of the image. */
   progressPercent?: number;
@@ -51,6 +52,8 @@ function CardMedia({
   videoUrl,
   videoQueueKey,
   videoEnabled,
+  videoPreviewMode,
+  previewActive,
   sizes,
 }: {
   title: string;
@@ -59,6 +62,8 @@ function CardMedia({
   videoUrl?: string;
   videoQueueKey: string;
   videoEnabled: boolean;
+  videoPreviewMode: "sequential" | "hover";
+  previewActive: boolean;
   sizes: string;
 }) {
   const [imageFailed, setImageFailed] = useState(false);
@@ -66,8 +71,11 @@ function CardMedia({
   const [videoFailed, setVideoFailed] = useState(false);
   const { shouldLoad, complete } = useSequentialVideoLoad(
     videoQueueKey,
-    videoEnabled && Boolean(videoUrl)
+    videoPreviewMode === "sequential" && videoEnabled && Boolean(videoUrl)
   );
+  const shouldShowVideo = videoPreviewMode === "hover"
+    ? videoEnabled && previewActive && Boolean(videoUrl)
+    : shouldLoad;
 
   useEffect(() => setImageFailed(false), [imageUrl]);
   useEffect(() => {
@@ -90,7 +98,7 @@ function CardMedia({
           onError={() => setImageFailed(true)}
         />
       ) : null}
-      {shouldLoad && videoUrl && !videoFailed ? (
+      {shouldShowVideo && videoUrl && !videoFailed ? (
         <StreamHlsVideo
           src={videoUrl}
           className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-300 ${
@@ -104,11 +112,11 @@ function CardMedia({
           autoPlay
           onReady={() => {
             setVideoReady(true);
-            complete();
+            if (videoPreviewMode === "sequential") complete();
           }}
           onError={() => {
             setVideoFailed(true);
-            complete();
+            if (videoPreviewMode === "sequential") complete();
           }}
         />
       ) : null}
@@ -129,14 +137,21 @@ export default function WorkCard({
   videoUrl,
   videoQueueKey,
   videoEnabled = false,
+  videoPreviewMode = "sequential",
   ratio = "landscape",
   progressPercent,
   badge,
   className = "",
 }: WorkCardProps) {
+  const [previewActive, setPreviewActive] = useState(false);
+
   return (
     <Link
       href={href}
+      onPointerEnter={() => setPreviewActive(true)}
+      onPointerLeave={() => setPreviewActive(false)}
+      onFocus={() => setPreviewActive(true)}
+      onBlur={() => setPreviewActive(false)}
       className={`group block min-w-0 rounded-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-xiio-accent/70 ${className}`.trim()}
     >
       <div
@@ -149,6 +164,8 @@ export default function WorkCard({
           videoUrl={videoUrl}
           videoQueueKey={videoQueueKey ?? `card:${href}`}
           videoEnabled={videoEnabled}
+          videoPreviewMode={videoPreviewMode}
+          previewActive={previewActive}
           sizes={SIZES[ratio]}
         />
         {badge ? (

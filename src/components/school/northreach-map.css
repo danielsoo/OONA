@@ -26,6 +26,53 @@
   isolation: isolate;
 }
 
+.nr .campus-screenings {
+  position: relative;
+  z-index: 2;
+  padding: 64px clamp(24px, 4vw, 72px) 84px;
+  border-top: 1px solid rgba(126, 185, 225, 0.12);
+  background:
+    radial-gradient(circle at 78% 8%, rgba(39, 111, 162, 0.12), transparent 28%),
+    linear-gradient(180deg, #010913 0%, #020b14 100%);
+}
+
+.nr .campus-screenings-head {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.nr .campus-screenings-head p {
+  margin: 0 0 8px;
+  color: rgba(130, 202, 248, 0.76);
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+}
+
+.nr .campus-screenings-head h2 {
+  margin: 0;
+  color: #eef5fc;
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: clamp(28px, 3vw, 44px);
+  font-weight: 400;
+  letter-spacing: -0.03em;
+}
+
+.nr .campus-screenings-head > span {
+  color: rgba(201, 218, 235, 0.46);
+  font-size: 11px;
+}
+
+.nr .campus-screenings-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 24px 16px;
+}
+
 .nr .atlas-shell.fictional-atlas {
   background: var(--school-canvas);
 }
@@ -633,6 +680,7 @@
 }
 
 @media (max-width: 1040px) {
+  .nr .campus-screenings-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .nr .atlas-shell { min-height: max(100svh, 700px); }
   .nr .schools-intro { top: 91px; left: 28px; }
   .nr .ranking-rail { top: 98px; right: 16px; width: 306px; max-height: calc(100svh - 125px); }
@@ -713,6 +761,8 @@
   }
   .nr .ranking-list { max-height: none; }
   .nr .selection-toast { bottom: 16px; }
+  .nr .campus-screenings { padding: 48px 20px 68px; }
+  .nr .campus-screenings-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 520px) {
@@ -741,6 +791,8 @@
   .nr .ranking-list { margin-inline: 12px; }
   .nr .rank-row { grid-template-columns: 22px 38px minmax(0, 1fr) 40px 9px; }
   .nr .view-all { margin: 14px 13px 15px; }
+  .nr .campus-screenings-head { align-items: flex-start; flex-direction: column; gap: 8px; }
+  .nr .campus-screenings-head > span { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {

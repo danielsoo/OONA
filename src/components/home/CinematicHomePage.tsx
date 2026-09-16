@@ -14,10 +14,12 @@ import { useCatalogFeed } from "@/hooks/useCatalogFeed";
 import { useContinueWatching } from "@/hooks/useContinueWatching";
 import { usePromoFeed } from "@/hooks/usePromoFeed";
 import { useSchoolsFeed } from "@/hooks/useSchoolsFeed";
+import { SERIES_MOCK_VIDEO_URLS } from "@/data/seriesMockMedia";
 import { UPLOAD_HREF } from "@/lib/appNav";
 import { peopleProfileHref } from "@/lib/dm/peopleProfileHref";
 import { formatCompactStat } from "@/lib/formatStat";
 import { schoolPosterGradient } from "@/lib/school-brand";
+import { fillCatalogItems, uniqueCatalogItems } from "@/lib/showcaseCatalog";
 import { promoCropToVideoStyle } from "@/lib/works/promo-crop-interaction";
 import { watchHref } from "@/lib/works/catalog-ui";
 import type { PromoShort } from "@/types/promoShort";
@@ -40,6 +42,7 @@ type DisplayCard = {
   meta: string;
   image: string;
   href: string;
+  videoUrl?: string;
   imageStyle?: CSSProperties;
   progressPercent?: number;
   spaced?: boolean;
@@ -127,6 +130,7 @@ function catalogToCard(item: CatalogFeedItem, index: number): DisplayCard {
     meta: views > 0 ? `${formatCompactStat(views)} views` : item.director?.trim() || item.approvedCategory || "OONA",
     image: item.thumbnailUrl || fallbackImage(index),
     href: watchHref(item.ownerUid, item.workId),
+    videoUrl: SERIES_MOCK_VIDEO_URLS[index % SERIES_MOCK_VIDEO_URLS.length],
     imageStyle: item.thumbnailCrop ? promoCropToVideoStyle(item.thumbnailCrop) : undefined,
   };
 }
@@ -147,6 +151,7 @@ function promoToCard(item: PromoShort, index: number): DisplayCard | null {
     meta: item.director?.trim() || "Short",
     image: item.thumbnailUrl || fallbackImage(index + 2),
     href: watchHref(item.ownerUid, item.workId),
+    videoUrl: SERIES_MOCK_VIDEO_URLS[index % SERIES_MOCK_VIDEO_URLS.length],
     imageStyle: item.frameCrop ? promoCropToVideoStyle(item.frameCrop) : undefined,
   };
 }
@@ -188,27 +193,7 @@ function FilmSection({
                 <span key={index} className={styles.filmCardSkeleton} aria-hidden="true" />
               ))
             : null}
-          {items.map((item) => (
-            <Link key={item.id} href={item.href} prefetch={false} className={styles.filmCard}>
-              <Image
-                src={item.image}
-                alt=""
-                fill
-                unoptimized={item.image.startsWith("http://") || item.image.startsWith("https://")}
-                sizes="(max-width: 760px) 72vw, 230px"
-                className={styles.cardImage}
-                style={item.imageStyle}
-              />
-              <span className={styles.cardShade} aria-hidden="true" />
-              <span className={`${styles.cardTitle} ${item.spaced ? styles.spacedTitle : ""}`}>{item.title}</span>
-              <span className={styles.duration}>{item.meta}</span>
-              {item.progressPercent !== undefined ? (
-                <span className={styles.progressTrack} aria-hidden="true">
-                  <span style={{ width: `${Math.min(100, Math.max(0, item.progressPercent))}%` }} />
-                </span>
-              ) : null}
-            </Link>
-          ))}
+          {items.map((item) => <PreviewFilmCard key={item.id} item={item} />)}
         </div>
         {items.length > 5 ? (
           <button type="button" className={styles.railButton} onClick={scrollRail} aria-label={`See more ${title}`}>
@@ -217,6 +202,53 @@ function FilmSection({
         ) : null}
       </div>
     </section>
+  );
+}
+
+function PreviewFilmCard({ item }: { item: DisplayCard }) {
+  const [previewing, setPreviewing] = useState(false);
+
+  return (
+    <Link
+      href={item.href}
+      prefetch={false}
+      className={styles.filmCard}
+      onPointerEnter={() => setPreviewing(true)}
+      onPointerLeave={() => setPreviewing(false)}
+      onFocus={() => setPreviewing(true)}
+      onBlur={() => setPreviewing(false)}
+    >
+      <Image
+        src={item.image}
+        alt=""
+        fill
+        unoptimized={item.image.startsWith("http://") || item.image.startsWith("https://")}
+        sizes="(max-width: 760px) 72vw, 230px"
+        className={styles.cardImage}
+        style={item.imageStyle}
+      />
+      {previewing && item.videoUrl ? (
+        <video
+          src={item.videoUrl}
+          poster={item.image}
+          className={styles.cardVideo}
+          style={item.imageStyle}
+          muted
+          loop
+          playsInline
+          autoPlay
+          preload="metadata"
+        />
+      ) : null}
+      <span className={styles.cardShade} aria-hidden="true" />
+      <span className={`${styles.cardTitle} ${item.spaced ? styles.spacedTitle : ""}`}>{item.title}</span>
+      <span className={styles.duration}>{item.meta}</span>
+      {item.progressPercent !== undefined ? (
+        <span className={styles.progressTrack} aria-hidden="true">
+          <span style={{ width: `${Math.min(100, Math.max(0, item.progressPercent))}%` }} />
+        </span>
+      ) : null}
+    </Link>
   );
 }
 
@@ -256,19 +288,13 @@ export default function CinematicHomePage() {
   const activeHero = heroSlides[heroIndex]!;
 
   const catalog = useMemo(() => {
-    const seen = new Set<string>();
-    return [...movies, ...series, ...entertainment].filter((item) => {
-      const key = `${item.ownerUid}:${item.workId}`;
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
+    return uniqueCatalogItems([...movies, ...series, ...entertainment]);
   }, [entertainment, movies, series]);
 
   const trendingCards = useMemo(() => {
-    const live = [...catalog]
+    const live = fillCatalogItems([...catalog]
       .sort((a, b) => (b.viewCount ?? 0) - (a.viewCount ?? 0))
-      .slice(0, 12)
+      .slice(0, 12), 12)
       .map(catalogToCard);
     return live;
   }, [catalog]);
@@ -280,10 +306,14 @@ export default function CinematicHomePage() {
     [continueWatchingItems]
   );
 
-  const shortCards = useMemo(
-    () => promoItems.map(promoToCard).filter((item): item is DisplayCard => item !== null).slice(0, 12),
-    [promoItems]
-  );
+  const shortCards = useMemo(() => {
+    const promos = promoItems
+      .map(promoToCard)
+      .filter((item): item is DisplayCard => item !== null)
+      .slice(0, 12);
+    if (promos.length > 0) return promos;
+    return fillCatalogItems(catalog, 12).map(catalogToCard);
+  }, [catalog, promoItems]);
 
   const creators = useMemo(() => {
     const result = new Map<string, { uid: string; name: string; works: number }>();

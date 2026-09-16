@@ -42,19 +42,17 @@ export function usePromoFeed(fallbackToDemoOrOptions: boolean | Options = true) 
   const { user, loading: authLoading } = useAuth();
   const publicCacheKey = "promo:v3:public";
   const cacheKey = user ? `promo:v3:${user.uid}` : publicCacheKey;
-  const cached =
-    getCached<PromoShort[]>(cacheKey) ?? getCached<PromoShort[]>(publicCacheKey);
 
+  // Keep the server and browser's first render identical. The in-memory feed
+  // cache is browser-only, so reading it while initializing state can insert a
+  // section before hydration has completed.
   const [items, setItems] = useState<PromoShort[]>(() => {
-    if (cached !== undefined) return cached;
     if (initialItems !== undefined) return initialItems.map(toPromoShort);
     return fallbackToDemo ? HOME_PROMO_SHORTS : [];
   });
-  const [loading, setLoading] = useState(
-    () => cached === undefined && initialItems === undefined
-  );
+  const [loading, setLoading] = useState(initialItems === undefined);
   const [fromApi, setFromApi] = useState(
-    () => cached !== undefined || (initialItems !== undefined && initialItems.length > 0)
+    () => initialItems !== undefined && initialItems.length > 0
   );
 
   useEffect(() => {

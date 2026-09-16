@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
 import HeroCopy, { HERO_COPY_STAGE_CLASS } from "@/components/hero/HeroCopy";
 import { IconPlay } from "@/components/icons/MockupIcons";
 import SectionLabel from "@/components/layout/SectionLabel";
@@ -15,6 +16,7 @@ type ShowItem = {
   metadata: string;
   format: string;
   thumbnailUrl: string;
+  videoUrl?: string;
   badge?: string;
 };
 
@@ -39,6 +41,7 @@ const SHOWS: ShowItem[] = buildShowCatalog().map((show) => {
     metadata: `${show.seasons.length} Season${show.seasons.length === 1 ? "" : "s"} · ${episodeCount} Episodes`,
     format: show.genre,
     thumbnailUrl: firstEpisode?.thumbnailUrl ?? "/images/hero/show-catalog-v1.png",
+    videoUrl: firstEpisode?.videoUrl,
     badge: SHOW_BADGES[show.id],
   };
 });
@@ -63,13 +66,34 @@ function ShowCard({
   item: ShowItem;
   rank?: number;
 }) {
+  const [previewing, setPreviewing] = useState(false);
+
   return (
-    <Link href={`/entertainment/${item.id}`} className="group min-w-0 text-left">
+    <Link
+      href={`/entertainment/${item.id}`}
+      className="group min-w-0 text-left"
+      onPointerEnter={() => setPreviewing(true)}
+      onPointerLeave={() => setPreviewing(false)}
+      onFocus={() => setPreviewing(true)}
+      onBlur={() => setPreviewing(false)}
+    >
       <div
         className="relative w-full overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.03] transition duration-200 group-hover:-translate-y-0.5 group-hover:border-white/20 group-hover:shadow-xl group-hover:shadow-black/30"
         style={VIDEO_RATIO}
       >
         <ShowThumbnail item={item} sizes="(min-width: 1280px) 20vw, 34vw" />
+        {previewing && item.videoUrl ? (
+          <video
+            src={item.videoUrl}
+            poster={item.thumbnailUrl}
+            className="absolute inset-0 h-full w-full object-cover"
+            muted
+            loop
+            playsInline
+            autoPlay
+            preload="metadata"
+          />
+        ) : null}
         <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-black/5" />
         {rank ? (
           <span className="absolute bottom-1 left-3 font-serif text-[42px] font-semibold leading-none text-white drop-shadow-lg">
