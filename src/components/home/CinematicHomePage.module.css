@@ -9,35 +9,12 @@
 }
 
 .hero {
-  --hero-tail: clamp(150px, 18vh, 210px);
   position: relative;
   min-height: 548px;
   height: 57vh;
   max-height: 650px;
-  overflow: visible;
-  isolation: isolate;
-}
-
-.hero::after {
-  content: "";
-  position: absolute;
-  z-index: -2;
-  top: 100%;
-  right: 0;
-  left: 0;
-  height: var(--hero-tail);
-  pointer-events: none;
-  background:
-    radial-gradient(ellipse 72% 115% at 61% 0%, rgba(30, 78, 108, 0.2) 0%, rgba(10, 35, 53, 0.1) 44%, transparent 76%),
-    linear-gradient(180deg, #020a12 0%, #03101b 24%, rgba(2, 11, 19, 0.96) 58%, #020a12 100%);
-}
-
-.heroVisual {
-  position: absolute;
-  z-index: -3;
-  inset: 0;
   overflow: hidden;
-  pointer-events: none;
+  isolation: isolate;
 }
 
 .heroImage,
@@ -47,14 +24,14 @@
 }
 
 .heroImage {
-  z-index: 0;
+  z-index: -3;
   object-fit: cover;
   object-position: center 47%;
   animation: reveal 700ms ease both;
 }
 
 .heroShade {
-  z-index: 1;
+  z-index: -2;
   background:
     linear-gradient(90deg, rgba(1, 8, 14, 0.94) 0%, rgba(1, 8, 14, 0.6) 25%, rgba(1, 8, 14, 0.08) 58%, rgba(1, 8, 14, 0.45) 100%),
     linear-gradient(180deg, rgba(1, 7, 13, 0.18) 0%, rgba(1, 7, 13, 0.06) 54%, #020a12 100%);
@@ -417,6 +394,7 @@
 .heroPager i { width: 1px; height: 18px; background: rgba(156, 188, 218, 0.18); }
 
 .content {
+  --content-overlap: 64px;
   position: relative;
   z-index: 3;
   display: flex;
@@ -424,6 +402,20 @@
   gap: 31px;
   margin-top: -64px;
   padding: 0 var(--page-pad) 44px;
+}
+
+.content::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: var(--content-overlap);
+  right: 0;
+  left: 0;
+  height: clamp(170px, 20vh, 230px);
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 68% 105% at 61% 0%, rgba(27, 83, 121, 0.16) 0%, rgba(12, 41, 61, 0.08) 48%, transparent 78%),
+    linear-gradient(180deg, #020a12 0%, #03101b 42%, #020a12 100%);
 }
 
 .section { min-width: 0; }
@@ -726,7 +718,7 @@
   .heroCopy { top: auto; bottom: 106px; }
   .heroAside { display: none; }
   .heroPager { bottom: 34px; }
-  .content { margin-top: 0; padding-top: 30px; }
+  .content { --content-overlap: 0px; margin-top: 0; padding-top: 30px; }
   .trendingRail { display: flex; margin-right: calc(-1 * var(--page-pad)); padding-right: var(--page-pad); }
   .filmCard { flex: 0 0 min(260px, 72vw); }
   .railButton { display: none; }

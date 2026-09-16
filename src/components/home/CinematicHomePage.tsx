@@ -298,20 +298,18 @@ export default function CinematicHomePage() {
   return (
     <main className={styles.page}>
       <section className={styles.hero}>
-        <div className={styles.heroVisual} aria-hidden="true">
-          <Image
-            key={activeHero.image}
-            src={activeHero.image}
-            alt=""
-            fill
-            priority={heroIndex === 0}
-            fetchPriority={heroIndex === 0 ? "high" : "auto"}
-            quality={90}
-            sizes="100vw"
-            className={styles.heroImage}
-          />
-          <div className={styles.heroShade} />
-        </div>
+        <Image
+          key={activeHero.image}
+          src={activeHero.image}
+          alt=""
+          fill
+          priority={heroIndex === 0}
+          fetchPriority={heroIndex === 0 ? "high" : "auto"}
+          quality={90}
+          sizes="100vw"
+          className={styles.heroImage}
+        />
+        <div className={styles.heroShade} aria-hidden="true" />
 
         <div className={styles.heroCopy}>
           <p className={styles.eyebrow}>{activeHero.eyebrow}</p>
