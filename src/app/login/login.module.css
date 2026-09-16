@@ -10,10 +10,12 @@
   position: absolute;
   inset: 0 36.5% 0 0;
   min-height: 100%;
-  background-image: url("/images/home/xiio-portal-hero.png");
-  background-position: 70% center;
-  background-size: cover;
-  background-repeat: no-repeat;
+  overflow: hidden;
+}
+
+.artworkImage {
+  object-fit: cover;
+  object-position: 70% center;
 }
 
 .artworkShade {
@@ -436,7 +438,10 @@
 @media (max-width: 1180px) {
   .artwork {
     inset: 0 41% 0 0;
-    background-position: 68% center;
+  }
+
+  .artworkImage {
+    object-position: 68% center;
   }
 
   .formPane {
@@ -453,7 +458,10 @@
   .artwork {
     position: fixed;
     inset: 0;
-    background-position: 59% center;
+  }
+
+  .artworkImage {
+    object-position: 59% center;
   }
 
   .artworkShade {

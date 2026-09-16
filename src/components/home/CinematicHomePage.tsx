@@ -50,7 +50,7 @@ const heroSlides: HeroSlide[] = [
     eyebrow: "Emerging creators",
     title: "Ideas\nin Motion.",
     body: "Watch. Share. Be part of what’s next.",
-    image: "/images/home/xiio-portal-hero.png",
+    image: "/images/home/home_main_wave6-2x.png",
     href: "/movies",
     cta: "Explore Films",
   },
@@ -297,11 +297,18 @@ export default function CinematicHomePage() {
 
   return (
     <main className={styles.page}>
-      <section
-        className={styles.hero}
-        style={{ "--hero-image": `url(${activeHero.image})` } as CSSProperties}
-      >
-        <div key={activeHero.image} className={styles.heroImage} aria-hidden="true" />
+      <section className={styles.hero}>
+        <Image
+          key={activeHero.image}
+          src={activeHero.image}
+          alt=""
+          fill
+          priority={heroIndex === 0}
+          fetchPriority={heroIndex === 0 ? "high" : "auto"}
+          quality={90}
+          sizes="100vw"
+          className={styles.heroImage}
+        />
         <div className={styles.heroShade} aria-hidden="true" />
 
         <div className={styles.heroCopy}>

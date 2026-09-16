@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { sendPasswordResetEmail, type User } from "firebase/auth";
 import { EMAIL_NOT_VERIFIED, useAuth, isAuthAccountConflict } from "@/context/AuthContext";
 import { useTranslations } from "@/context/LocaleContext";
@@ -153,7 +154,18 @@ function LoginForm() {
     <main className={styles.page}>
       <KakaoScript />
 
-      <div className={styles.artwork} aria-hidden="true" />
+      <div className={styles.artwork} aria-hidden="true">
+        <Image
+          src="/images/home/home_main_wave6-2x.png"
+          alt=""
+          fill
+          priority
+          fetchPriority="high"
+          quality={90}
+          sizes="(max-width: 900px) 100vw, 64vw"
+          className={styles.artworkImage}
+        />
+      </div>
       <div className={styles.artworkShade} aria-hidden="true" />
 
       <header className={styles.header}>

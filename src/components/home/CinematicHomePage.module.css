@@ -25,9 +25,8 @@
 
 .heroImage {
   z-index: -3;
-  background-image: var(--hero-image);
-  background-size: cover;
-  background-position: center 47%;
+  object-fit: cover;
+  object-position: center 47%;
   animation: reveal 700ms ease both;
 }
 
@@ -716,7 +715,7 @@
 @media (max-width: 600px) {
   .page { --page-pad: 20px; }
   .hero { min-height: 590px; height: 82svh; }
-  .heroImage { background-position: 64% center; }
+  .heroImage { object-position: 64% center; }
   .headerActions { gap: 6px; }
   .iconButton,
   .mobileSearch { width: 32px; height: 32px; }

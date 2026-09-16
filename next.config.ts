@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  images: {
+    formats: ["image/avif", "image/webp"],
+  },
   // Keep the development cache separate from production builds. Running
   // `next build` while the local preview is open must not invalidate the
   // preview's CSS and JavaScript chunks.
