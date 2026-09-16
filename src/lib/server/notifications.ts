@@ -2,6 +2,11 @@ import { FieldValue, type Firestore } from "firebase-admin/firestore";
 import { NOTIFICATION_TYPES, type NotificationDoc, type NotificationType } from "@/types/notification";
 
 const MAX_MARK_READ_BATCH = 500;
+const CHAT_NOTIFICATION_TYPES = new Set<NotificationType>(["new_dm_message", "new_room_message"]);
+
+export function isActivityNotificationType(type: NotificationType): boolean {
+  return !CHAT_NOTIFICATION_TYPES.has(type);
+}
 
 export function notificationsCol(db: Firestore) {
   return db.collection("notifications");
@@ -74,21 +79,31 @@ export async function listNotificationsForUser(
   uid: string,
   limit = 20
 ): Promise<(NotificationDoc & { id: string })[]> {
+  // Older message notifications can remain in Firestore after chat moved to
+  // the dedicated Messages unread badge. Over-fetch a bounded window and keep
+  // the activity bell focused on follows, invitations and work updates.
+  const scanLimit = Math.min(Math.max(limit * 4, limit), 200);
   const snap = await notificationsCol(db)
     .where("recipientUid", "==", uid)
     .orderBy("createdAt", "desc")
-    .limit(limit)
+    .limit(scanLimit)
     .get();
-  return snap.docs.map((d) => parseNotificationDoc(d.id, d.data() as Record<string, unknown>));
+  return snap.docs
+    .map((d) => parseNotificationDoc(d.id, d.data() as Record<string, unknown>))
+    .filter((notification) => isActivityNotificationType(notification.type))
+    .slice(0, limit);
 }
 
 export async function countUnreadNotificationsForUser(db: Firestore, uid: string): Promise<number> {
   const snap = await notificationsCol(db)
     .where("recipientUid", "==", uid)
     .where("read", "==", false)
-    .count()
+    .limit(MAX_MARK_READ_BATCH)
     .get();
-  return snap.data().count;
+  return snap.docs.reduce((count, row) => {
+    const notification = parseNotificationDoc(row.id, row.data() as Record<string, unknown>);
+    return count + (isActivityNotificationType(notification.type) ? 1 : 0);
+  }, 0);
 }
 
 export async function markAllNotificationsRead(db: Firestore, uid: string): Promise<void> {

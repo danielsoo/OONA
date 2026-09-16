@@ -21,7 +21,7 @@ const FILTERS: { id: FilterId; label: string }[] = [
 
 function categoryFor(type: NotificationType): Exclude<FilterId, "all"> {
   if (type.startsWith("business_invite")) return "collaborations";
-  if (type === "new_follower" || type === "new_dm_message" || type === "new_room_message") {
+  if (type === "new_follower") {
     return "connections";
   }
   if (type === "work_approve" || type === "work_reject") return "works";
@@ -37,7 +37,7 @@ function isRecent(createdAt: string | null): boolean {
 export default function NotificationsPage() {
   const { user } = useAuth();
   const { t } = useTranslations();
-  const { refresh } = useNotifications();
+  const { clearNotifications } = useNotifications();
   const [notifications, setNotifications] = useState<NotificationListItemType[]>([]);
   const [filter, setFilter] = useState<FilterId>("all");
   const [loading, setLoading] = useState(true);
@@ -46,14 +46,14 @@ export default function NotificationsPage() {
   const markAllRead = async () => {
     if (!user || marking) return;
     setMarking(true);
+    clearNotifications();
+    setNotifications((current) => current.map((item) => ({ ...item, read: true })));
     try {
       const token = await user.getIdToken();
       await fetch("/api/me/notifications/mark-all-read", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       });
-      setNotifications((current) => current.map((item) => ({ ...item, read: true })));
-      await refresh();
     } finally {
       setMarking(false);
     }

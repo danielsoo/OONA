@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import SocietyNetworkPanel, { type SocietyTabId } from "@/components/society/SocietyNetworkPanel";
 
 const SOCIETY_TABS: SocietyTabId[] = ["discover", "connections", "requests", "sent", "works"];
@@ -12,12 +12,18 @@ function parseSocietyTab(raw: string | null): SocietyTabId {
 }
 
 export default function SocietyPage() {
-  const router = useRouter();
   const searchParams = useSearchParams();
-  const activeTab = parseSocietyTab(searchParams.get("tab"));
+  const routeTab = parseSocietyTab(searchParams.get("tab"));
+  const [activeTab, setActiveTab] = useState(routeTab);
+
+  useEffect(() => setActiveTab(routeTab), [routeTab]);
+
   const onTabChange = useCallback((tab: SocietyTabId) => {
-    router.replace(`/society?tab=${tab}`, { scroll: false });
-  }, [router]);
+    setActiveTab(tab);
+    const next = new URL(window.location.href);
+    next.searchParams.set("tab", tab);
+    window.history.replaceState(window.history.state, "", `${next.pathname}${next.search}`);
+  }, []);
 
   return <SocietyNetworkPanel activeTab={activeTab} onTabChange={onTabChange} />;
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { createContext, createElement, useContext, useEffect, useState, type ReactNode } from "react";
 import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
@@ -14,7 +14,18 @@ import type { UserProfileDoc } from "@/types/user";
 
 export type AdminCheckReason = "unauthorized" | "admin_sdk_missing" | undefined;
 
-export function useAdminAccess() {
+type AdminAccessValue = {
+  isAdmin: boolean;
+  isSuperAdmin: boolean;
+  checked: boolean;
+  reason: AdminCheckReason;
+  profile: UserProfileDoc | null;
+  authLoading: boolean;
+};
+
+const AdminAccessContext = createContext<AdminAccessValue | null>(null);
+
+function useAdminAccessState(): AdminAccessValue {
   const { user, loading: authLoading } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
@@ -114,4 +125,15 @@ export function useAdminAccess() {
   }, [user, authLoading]);
 
   return { isAdmin, isSuperAdmin, checked, reason, profile, authLoading };
+}
+
+export function AdminAccessProvider({ children }: { children: ReactNode }) {
+  const value = useAdminAccessState();
+  return createElement(AdminAccessContext.Provider, { value }, children);
+}
+
+export function useAdminAccess(): AdminAccessValue {
+  const value = useContext(AdminAccessContext);
+  if (!value) throw new Error("useAdminAccess must be used within AdminAccessProvider");
+  return value;
 }

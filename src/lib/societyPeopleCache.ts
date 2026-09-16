@@ -93,3 +93,12 @@ export function addFollowingUid(uid: string, followingUid: string): string[] {
   setCache(followingCacheKey(uid), next, FOLLOWING_TTL_MS);
   return next;
 }
+
+export function updateFollowingUid(uid: string, followingUid: string, connected: boolean): string[] {
+  const current = readFollowingUids(uid) ?? [];
+  const next = connected
+    ? [...new Set([...current, followingUid])]
+    : current.filter((item) => item !== followingUid);
+  setCache(followingCacheKey(uid), next, FOLLOWING_TTL_MS);
+  return next;
+}

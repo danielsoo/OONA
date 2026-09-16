@@ -89,15 +89,6 @@ const fallbackImages = [
   "/images/hero/show-catalog-v1.png",
 ];
 
-const fallbackTrending: DisplayCard[] = [
-  { id: "lucid", title: "Lucid", meta: "20:14", image: fallbackImages[0]!, href: "/movies" },
-  { id: "tide", title: "Tide", meta: "08:21", image: fallbackImages[1]!, href: "/movies", spaced: true },
-  { id: "between-stops", title: "Between Stops", meta: "15:10", image: fallbackImages[2]!, href: "/movies" },
-  { id: "small-things", title: "Small Things", meta: "09:17", image: fallbackImages[3]!, href: "/movies" },
-  { id: "fragments", title: "Fragments", meta: "18:03", image: fallbackImages[4]!, href: "/movies" },
-  { id: "parallel", title: "Parallel", meta: "12:46", image: fallbackImages[5]!, href: "/movies" },
-];
-
 const categories = [
   { title: "Films", image: "/images/hero/campus-wave1.png", href: "/movies" },
   { title: "Series", image: "/images/hero/campus-wave2.png", href: "/series" },
@@ -163,12 +154,22 @@ function promoToCard(item: PromoShort, index: number): DisplayCard | null {
 function SectionHeading({ children, href }: { children: ReactNode; href: string }) {
   return (
     <div className={styles.sectionHeader}>
-      <Link href={href}>{children}<ArrowIcon /></Link>
+      <Link href={href} prefetch={false}>{children}<ArrowIcon /></Link>
     </div>
   );
 }
 
-function FilmSection({ title, href, items }: { title: string; href: string; items: DisplayCard[] }) {
+function FilmSection({
+  title,
+  href,
+  items,
+  loading = false,
+}: {
+  title: string;
+  href: string;
+  items: DisplayCard[];
+  loading?: boolean;
+}) {
   const railRef = useRef<HTMLDivElement>(null);
   const scrollRail = () => {
     railRef.current?.scrollBy({
@@ -182,13 +183,18 @@ function FilmSection({ title, href, items }: { title: string; href: string; item
       <SectionHeading href={href}>{title}</SectionHeading>
       <div className={styles.railWrap}>
         <div ref={railRef} className={styles.trendingRail}>
+          {loading && items.length === 0
+            ? Array.from({ length: 6 }, (_, index) => (
+                <span key={index} className={styles.filmCardSkeleton} aria-hidden="true" />
+              ))
+            : null}
           {items.map((item) => (
-            <Link key={item.id} href={item.href} className={styles.filmCard}>
+            <Link key={item.id} href={item.href} prefetch={false} className={styles.filmCard}>
               <Image
                 src={item.image}
                 alt=""
                 fill
-                unoptimized
+                unoptimized={item.image.startsWith("http://") || item.image.startsWith("https://")}
                 sizes="(max-width: 760px) 72vw, 230px"
                 className={styles.cardImage}
                 style={item.imageStyle}
@@ -240,9 +246,9 @@ function SchoolCard({ school }: { school: SchoolListItem }) {
 
 export default function CinematicHomePage() {
   const { user } = useAuth();
-  const { items: movies } = useCatalogFeed("movies", 12);
-  const { items: series } = useCatalogFeed("series", 12);
-  const { items: entertainment } = useCatalogFeed("entertainment", 12);
+  const { items: movies, loading: moviesLoading } = useCatalogFeed("movies", 12);
+  const { items: series, loading: seriesLoading } = useCatalogFeed("series", 12);
+  const { items: entertainment, loading: entertainmentLoading } = useCatalogFeed("entertainment", 12);
   const { items: promoItems } = usePromoFeed({ fallbackToDemo: false });
   const { items: continueWatchingItems } = useContinueWatching();
   const { items: schoolItems } = useSchoolsFeed(6);
@@ -264,8 +270,10 @@ export default function CinematicHomePage() {
       .sort((a, b) => (b.viewCount ?? 0) - (a.viewCount ?? 0))
       .slice(0, 12)
       .map(catalogToCard);
-    return live.length > 0 ? live : fallbackTrending;
+    return live;
   }, [catalog]);
+
+  const catalogLoading = moviesLoading || seriesLoading || entertainmentLoading;
 
   const continueCards = useMemo(
     () => continueWatchingItems.slice(0, 12).map(progressToCard),
@@ -316,11 +324,11 @@ export default function CinematicHomePage() {
           <h1>{activeHero.title.split("\n").map((line) => <span key={line}>{line}</span>)}</h1>
           <p className={styles.heroBody}>{activeHero.body}</p>
           <div className={styles.heroActions}>
-            <Link href={activeHero.href} className={styles.primaryButton}>
+            <Link href={activeHero.href} prefetch={false} className={styles.primaryButton}>
               {activeHero.cta}
               <ArrowIcon />
             </Link>
-            <Link href={authHref(UPLOAD_HREF)} className={styles.uploadButton}>
+            <Link href={authHref(UPLOAD_HREF)} prefetch={false} className={styles.uploadButton}>
               <UploadIcon />
               Upload
             </Link>
@@ -349,7 +357,7 @@ export default function CinematicHomePage() {
           <FilmSection title="Continue Watching" href="/my-list" items={continueCards} />
         ) : null}
 
-        <FilmSection title="Trending on OONA" href="/discover" items={trendingCards} />
+        <FilmSection title="Trending on OONA" href="/discover" items={trendingCards} loading={catalogLoading} />
 
         {shortCards.length > 0 ? (
           <FilmSection title="Fresh Shorts" href="/shorts" items={shortCards} />
@@ -359,7 +367,7 @@ export default function CinematicHomePage() {
           <SectionHeading href="/discover">Explore by Category</SectionHeading>
           <div className={styles.categoryGrid}>
             {categories.map((category) => (
-              <Link key={category.title} href={category.href} className={styles.categoryCard}>
+              <Link key={category.title} href={category.href} prefetch={false} className={styles.categoryCard}>
                 <Image src={category.image} alt="" fill sizes="(max-width: 760px) 50vw, 230px" className={styles.cardImage} />
                 <span className={styles.categoryShade} aria-hidden="true" />
                 <span>{category.title}</span>
@@ -375,7 +383,7 @@ export default function CinematicHomePage() {
               {creators.map((creator) => {
                 const initials = creator.name.split(/\s+/).map((part) => part[0]).join("").slice(0, 2).toUpperCase();
                 return (
-                  <Link key={creator.uid} href={peopleProfileHref(null, creator.uid) ?? "/society"} className={styles.creatorCard}>
+                  <Link key={creator.uid} href={peopleProfileHref(null, creator.uid) ?? "/society"} prefetch={false} className={styles.creatorCard}>
                     <span className={styles.creatorAvatar}>{initials}</span>
                     <span>
                       <strong>{creator.name}</strong>

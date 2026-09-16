@@ -12,7 +12,7 @@ import type { NotificationListItem as NotificationListItemType } from "@/types/n
 export default function NotificationBell() {
   const { user } = useAuth();
   const { t } = useTranslations();
-  const { unreadCount, refresh } = useNotifications();
+  const { unreadCount, clearNotifications } = useNotifications();
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState<NotificationListItemType[]>([]);
   const [loading, setLoading] = useState(false);
@@ -31,23 +31,21 @@ export default function NotificationBell() {
     setOpen(next);
     if (!next || !user) return;
 
-    setLoading(true);
+    if (notifications.length === 0) setLoading(true);
+    clearNotifications();
     try {
       const token = await user.getIdToken();
-      const [listRes] = await Promise.all([
-        fetch("/api/me/notifications?limit=8", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch("/api/me/notifications/mark-all-read", {
-          method: "POST",
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-      ]);
+      const listRes = await fetch("/api/me/notifications?limit=8", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       if (listRes.ok) {
         const data = (await listRes.json()) as { notifications?: NotificationListItemType[] };
-        setNotifications(data.notifications ?? []);
+        setNotifications((data.notifications ?? []).map((item) => ({ ...item, read: true })));
       }
-      await refresh();
+      void fetch("/api/me/notifications/mark-all-read", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
     } finally {
       setLoading(false);
     }
@@ -79,10 +77,9 @@ export default function NotificationBell() {
             {!loading && notifications.length === 0 && (
               <p className="px-4 py-6 text-sm text-xiio-muted text-center">{t("notifications.empty")}</p>
             )}
-            {!loading &&
-              notifications.map((n) => (
-                <NotificationListItem key={n.id} notification={n} onNavigate={() => setOpen(false)} />
-              ))}
+            {notifications.map((n) => (
+              <NotificationListItem key={n.id} notification={n} onNavigate={() => setOpen(false)} />
+            ))}
           </div>
           <Link
             href="/notifications"

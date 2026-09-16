@@ -38,27 +38,39 @@ export async function GET(request: Request) {
   const limit = Math.min(Number(new URL(request.url).searchParams.get("limit") ?? 20), 50);
   const rows = await listNotificationsForUser(db, auth.session.uid, limit);
 
-  const notifications: NotificationListItem[] = await Promise.all(
-    rows.map(async (n) => {
-      let actorDisplayName: string | undefined;
-      let actorAvatarUrl: string | null | undefined;
-      let actorHandle: string | null = null;
-      if (n.actorUid) {
-        const snap = await db.collection("users").doc(n.actorUid).get();
-        const profile = snap.exists ? parseUserProfileDoc(snap.data() as Record<string, unknown>) : null;
-        actorDisplayName = profile?.displayName ?? "—";
-        actorAvatarUrl = profile?.avatarUrl ?? null;
-        actorHandle = profile?.handle ?? null;
-      }
-      return {
-        ...n,
-        createdAt: timestampToIso(n.createdAt),
-        targetPath: targetPath(n, actorHandle),
-        actorDisplayName,
-        actorAvatarUrl,
-      };
+  const actorUids = Array.from(
+    new Set(rows.flatMap((notification) => notification.actorUid ? [notification.actorUid] : []))
+  );
+  const actorSnapshots = actorUids.length > 0
+    ? await db.getAll(...actorUids.map((uid) => db.collection("users").doc(uid)))
+    : [];
+  const actors = new Map(
+    actorSnapshots.map((snap) => {
+      const profile = snap.exists
+        ? parseUserProfileDoc(snap.data() as Record<string, unknown>)
+        : null;
+      return [snap.id, profile] as const;
     })
   );
+
+  const notifications: NotificationListItem[] = rows.map((n) => {
+    let actorDisplayName: string | undefined;
+    let actorAvatarUrl: string | null | undefined;
+    let actorHandle: string | null = null;
+    if (n.actorUid) {
+      const profile = actors.get(n.actorUid) ?? null;
+      actorDisplayName = profile?.displayName ?? "—";
+      actorAvatarUrl = profile?.avatarUrl ?? null;
+      actorHandle = profile?.handle ?? null;
+    }
+    return {
+      ...n,
+      createdAt: timestampToIso(n.createdAt),
+      targetPath: targetPath(n, actorHandle),
+      actorDisplayName,
+      actorAvatarUrl,
+    };
+  });
 
   return NextResponse.json({ notifications });
 }

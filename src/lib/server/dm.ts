@@ -2,7 +2,6 @@ import { FieldValue, type Firestore } from "firebase-admin/firestore";
 import type { DmMessageDoc, DmThreadDoc } from "@/types/dm";
 import { isBlocked } from "@/lib/server/blocks";
 import { adminTimestampToMillis } from "@/lib/admin/format-timestamp";
-import { buildNotificationPayload, notificationsCol } from "@/lib/server/notifications";
 import { isAllowedReactionEmoji } from "@/lib/dm/messageReactions";
 
 const MAX_REPLY_TEXT = 160;
@@ -159,16 +158,6 @@ export async function sendDmMessage(
     lastSenderUid: senderUid,
     updatedAt: FieldValue.serverTimestamp(),
   });
-  batch.set(
-    notificationsCol(db).doc(),
-    buildNotificationPayload({
-      recipientUid: otherUid,
-      type: "new_dm_message",
-      actorUid: senderUid,
-      threadId,
-      messagePreview: trimmed.slice(0, 120),
-    })
-  );
   await batch.commit();
   return { ok: true, messageId: msgRef.id };
 }

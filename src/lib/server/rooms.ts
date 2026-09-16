@@ -3,7 +3,6 @@ import { adminTimestampToMillis } from "@/lib/admin/format-timestamp";
 import { isBlocked } from "@/lib/server/blocks";
 import { isAllowedReactionEmoji } from "@/lib/dm/messageReactions";
 import type { SendMessageReplyTo } from "@/lib/server/dm";
-import { buildNotificationPayload, notificationsCol } from "@/lib/server/notifications";
 import { MAX_ROOM_MEMBERS, type RoomDoc, type RoomMessageDoc } from "@/types/room";
 
 const MAX_TEXT = 2000;
@@ -144,20 +143,6 @@ export async function sendRoomMessage(
     lastSenderUid: senderUid,
     updatedAt: FieldValue.serverTimestamp(),
   });
-  for (const memberUid of room.memberIds) {
-    if (memberUid === senderUid) continue;
-    batch.set(
-      notificationsCol(db).doc(),
-      buildNotificationPayload({
-        recipientUid: memberUid,
-        type: "new_room_message",
-        actorUid: senderUid,
-        roomId,
-        roomName: room.name,
-        messagePreview: trimmed.slice(0, 120),
-      })
-    );
-  }
   await batch.commit();
   return { ok: true, messageId: msgRef.id };
 }

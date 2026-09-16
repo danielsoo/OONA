@@ -92,8 +92,8 @@
 }
 .mobileSearch { display: none; width: 34px; height: 34px; place-items: center; border-radius: 50%; color: #e6edf8; }
 .notification { color: #e6edf8; }
-.notification button { width: 36px; height: 36px; display: grid; place-items: center; padding: 0; }
-.notification svg { width: 19px; height: 19px; }
+.notification > div > button { width: 36px; height: 36px; display: grid; place-items: center; padding: 0; }
+.notification > div > button svg { width: 19px; height: 19px; }
 
 .accountRoot { position: relative; }
 .accountButton { display: grid; place-items: center; padding: 0; border: 0; border-radius: 50%; background: transparent; cursor: pointer; }
@@ -209,7 +209,7 @@
   .header { --header-pad: 20px; }
   .menuButton, .notification { display: none; }
   .actions { gap: 5px; }
-  .mobileSearch, .notification button { width: 32px; height: 32px; }
+  .mobileSearch, .notification > div > button { width: 32px; height: 32px; }
   .signIn { width: 32px; height: 32px; overflow: hidden; padding: 0; border-radius: 50%; font-size: 0; }
   .signIn::after { content: "→"; font-size: 15px; }
 }

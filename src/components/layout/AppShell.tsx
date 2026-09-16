@@ -6,11 +6,7 @@ import AppSidebar from "@/components/layout/AppSidebar";
 import AppTopBar from "@/components/layout/AppTopBar";
 import MobileTabBar from "@/components/layout/MobileTabBar";
 import CinematicAppHeader from "@/components/layout/CinematicAppHeader";
-import AppRoutePrefetcher from "@/components/layout/AppRoutePrefetcher";
-import PublicFeedPrefetcher from "@/components/layout/PublicFeedPrefetcher";
 import WatchRoutePrefetcher from "@/components/watch/WatchRoutePrefetcher";
-import SocietySummaryPrefetcher from "@/components/society/SocietySummaryPrefetcher";
-import { DmUnreadProvider } from "@/context/DmUnreadContext";
 import { HeroWaveLayoutProvider } from "@/context/HeroWaveLayoutContext";
 import { NotificationProvider } from "@/context/NotificationContext";
 import { APP_SIDEBAR_WIDTH, shouldHideAppShell } from "@/lib/appNav";
@@ -54,19 +50,14 @@ export default function AppShell({ children }: { children: ReactNode }) {
   if (usesCinematicAppShell(pathname)) {
     return (
       <HeroWaveLayoutProvider>
-        <DmUnreadProvider>
-          <NotificationProvider>
-            <AppRoutePrefetcher />
-            <PublicFeedPrefetcher />
-            <SocietySummaryPrefetcher />
-            <WatchRoutePrefetcher />
-            <div className="min-h-screen min-w-[360px] bg-xiio-bg text-white">
-              <CinematicAppHeader />
-              {children}
-              <MobileTabBar />
-            </div>
-          </NotificationProvider>
-        </DmUnreadProvider>
+        <NotificationProvider>
+          <WatchRoutePrefetcher />
+          <div className="min-h-screen min-w-[360px] bg-xiio-bg text-white">
+            <CinematicAppHeader />
+            {children}
+            <MobileTabBar />
+          </div>
+        </NotificationProvider>
       </HeroWaveLayoutProvider>
     );
   }
@@ -82,28 +73,23 @@ export default function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <HeroWaveLayoutProvider>
-      <DmUnreadProvider>
-        <NotificationProvider>
-          <AppRoutePrefetcher />
-          <PublicFeedPrefetcher />
-          <SocietySummaryPrefetcher />
-          <WatchRoutePrefetcher />
-          <div className="min-h-screen min-w-[360px] bg-xiio-bg text-white">
-            <AppSidebar mobileOpen={mobileOpen} onNavigate={() => setMobileOpen(false)} />
-            <div
-              className={`pb-mobile-tabbar ${MOCKUP_HOME.contentMainColumnPad} ${MOCKUP_HOME.contentColumnGuard} transition-[padding] duration-300 ease-in-out`}
-              style={{
-                ["--app-sidebar-width" as string]: APP_SIDEBAR_WIDTH,
-                ["--app-content-boundary-inset" as string]: `${APP_CONTENT_BOUNDARY_INSET_PX}px`,
-              }}
-            >
-              <AppTopBar onMenuOpen={() => setMobileOpen(true)} />
-              {children}
-            </div>
-            <MobileTabBar />
+      <NotificationProvider>
+        <WatchRoutePrefetcher />
+        <div className="min-h-screen min-w-[360px] bg-xiio-bg text-white">
+          <AppSidebar mobileOpen={mobileOpen} onNavigate={() => setMobileOpen(false)} />
+          <div
+            className={`pb-mobile-tabbar ${MOCKUP_HOME.contentMainColumnPad} ${MOCKUP_HOME.contentColumnGuard} transition-[padding] duration-300 ease-in-out`}
+            style={{
+              ["--app-sidebar-width" as string]: APP_SIDEBAR_WIDTH,
+              ["--app-content-boundary-inset" as string]: `${APP_CONTENT_BOUNDARY_INSET_PX}px`,
+            }}
+          >
+            <AppTopBar onMenuOpen={() => setMobileOpen(true)} />
+            {children}
           </div>
-        </NotificationProvider>
-      </DmUnreadProvider>
+          <MobileTabBar />
+        </div>
+      </NotificationProvider>
     </HeroWaveLayoutProvider>
   );
 }

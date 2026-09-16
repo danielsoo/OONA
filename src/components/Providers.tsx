@@ -10,6 +10,7 @@ import MemberGuard from "@/components/MemberGuard";
 import VisitRecorder from "@/components/VisitRecorder";
 import ProfileLocaleSync from "@/components/ProfileLocaleSync";
 import type { HomeHeroTheme } from "@/lib/homeHeroColors";
+import { AdminAccessProvider } from "@/hooks/useAdminAccess";
 
 export default function Providers({
   children,
@@ -21,15 +22,17 @@ export default function Providers({
   return (
     <LocaleProvider>
       <AuthProvider>
-        <ProfileProvider>
-          <HomeHeroThemeProvider initialTheme={initialHomeTheme}>
-            <ProfileLocaleSync />
-            <VisitRecorder />
-            <MemberGuard />
-            <ProfileGuard />
-            {children}
-          </HomeHeroThemeProvider>
-        </ProfileProvider>
+        <AdminAccessProvider>
+          <ProfileProvider>
+            <HomeHeroThemeProvider initialTheme={initialHomeTheme}>
+              <ProfileLocaleSync />
+              <VisitRecorder />
+              <MemberGuard />
+              <ProfileGuard />
+              {children}
+            </HomeHeroThemeProvider>
+          </ProfileProvider>
+        </AdminAccessProvider>
       </AuthProvider>
     </LocaleProvider>
   );

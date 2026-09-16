@@ -17,7 +17,8 @@ import {
   mockTagsForPerson,
   primaryRoleLabelKey,
 } from "@/lib/societyMockData";
-import { loadFollowingUids, loadSocietyPeople } from "@/lib/societyPeopleCache";
+import { loadFollowingUids, loadSocietyPeople, updateFollowingUid } from "@/lib/societyPeopleCache";
+import { loadBusinessInvites, setCachedBusinessInvites, type InviteBox } from "@/lib/societyInviteCache";
 import type { SocietyPerson } from "@/lib/societyTypes";
 import type { BusinessInviteListItem } from "@/types/business-invite";
 import type { ProfileRoleTag } from "@/types/portfolio";
@@ -160,10 +161,13 @@ export default function SocietyNetworkPanel({ activeTab, onTabChange }: Props) {
     setLoading(true);
     setError(null);
     try {
-      const result = await loadSocietyPeople(user, { followingOnly });
+      const [result, followingUids] = await Promise.all([
+        loadSocietyPeople(user, { followingOnly }),
+        user ? loadFollowingUids(user) : Promise.resolve([]),
+      ]);
       setPeople(result.people);
       setSelectedUid((current) => current && result.people.some((person) => person.uid === current) ? current : result.people[0]?.uid ?? null);
-      if (user) setFollowing(new Set(await loadFollowingUids(user)));
+      if (user) setFollowing(new Set(followingUids));
     } catch {
       setError("We couldn’t load the creator directory. Please try again.");
       setPeople([]);
@@ -181,14 +185,8 @@ export default function SocietyNetworkPanel({ activeTab, onTabChange }: Props) {
     setLoading(true);
     setError(null);
     try {
-      const token = await user.getIdToken();
-      const box = activeTab === "sent" ? "sent" : "received";
-      const response = await fetch(`/api/me/business-invites?box=${box}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!response.ok) throw new Error("load_failed");
-      const data = (await response.json()) as { invites?: BusinessInviteListItem[] };
-      setInvites(data.invites ?? []);
+      const box: InviteBox = activeTab === "sent" ? "sent" : "received";
+      setInvites(await loadBusinessInvites(user, box));
     } catch {
       setError("We couldn’t load your invitations. Please try again.");
       setInvites([]);
@@ -220,22 +218,32 @@ export default function SocietyNetworkPanel({ activeTab, onTabChange }: Props) {
 
   const toggleConnection = async (person: SocietyPerson) => {
     if (!requireUser() || !user) return;
+    const connected = following.has(person.uid);
+    const previousFollowing = following;
+    const previousPeople = people;
     setBusyId(person.uid);
+    setFollowing((current) => {
+      const next = new Set(current);
+      if (connected) next.delete(person.uid);
+      else next.add(person.uid);
+      return next;
+    });
+    updateFollowingUid(user.uid, person.uid, !connected);
+    if (connected && activeTab === "connections") {
+      setPeople((current) => current.filter((item) => item.uid !== person.uid));
+    }
     try {
-      const connected = following.has(person.uid);
       const token = await user.getIdToken();
       const response = await fetch(`/api/me/follows/${person.uid}`, {
         method: connected ? "DELETE" : "POST",
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (!response.ok) return;
-      setFollowing((current) => {
-        const next = new Set(current);
-        if (connected) next.delete(person.uid);
-        else next.add(person.uid);
-        return next;
-      });
-      if (connected && activeTab === "connections") setPeople((current) => current.filter((item) => item.uid !== person.uid));
+      if (!response.ok) throw new Error("connection_failed");
+    } catch {
+      setFollowing(previousFollowing);
+      setPeople(previousPeople);
+      updateFollowingUid(user.uid, person.uid, connected);
+      setError("That connection could not be updated. Please try again.");
     } finally {
       setBusyId(null);
     }
@@ -269,8 +277,13 @@ export default function SocietyNetworkPanel({ activeTab, onTabChange }: Props) {
 
   const changeInvite = async (invite: BusinessInviteListItem, action: "accept" | "decline" | "cancel") => {
     if (!user) return;
+    const box: InviteBox = activeTab === "sent" ? "sent" : "received";
+    const previousInvites = invites;
+    const nextInvites = invites.filter((item) => item.id !== invite.id);
     setBusyId(invite.id);
     setError(null);
+    setInvites(nextInvites);
+    setCachedBusinessInvites(user.uid, box, nextInvites);
     try {
       const token = await user.getIdToken();
       const url = action === "cancel"
@@ -282,12 +295,17 @@ export default function SocietyNetworkPanel({ activeTab, onTabChange }: Props) {
       });
       const data = (await response.json()) as { threadId?: string; projectId?: string; message?: string };
       if (!response.ok) {
+        setInvites(previousInvites);
+        setCachedBusinessInvites(user.uid, box, previousInvites);
         setError(data.message ?? "That action could not be completed.");
         return;
       }
-      await loadInvites();
       if (action === "accept" && data.projectId) router.push(`/projects/${data.projectId}`);
       else if (action === "accept" && data.threadId) router.push(`/messages/${data.threadId}`);
+    } catch {
+      setInvites(previousInvites);
+      setCachedBusinessInvites(user.uid, box, previousInvites);
+      setError("That invitation could not be updated. Please try again.");
     } finally {
       setBusyId(null);
     }

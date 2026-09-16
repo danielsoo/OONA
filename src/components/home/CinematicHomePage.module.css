@@ -154,14 +154,14 @@
 .mobileSearch { display: none; }
 
 .notificationSlot { color: #e6edf8; }
-.notificationSlot button {
+.notificationSlot > div > button {
   width: 36px;
   height: 36px;
   display: grid;
   place-items: center;
   padding: 0;
 }
-.notificationSlot svg { width: 19px; height: 19px; }
+.notificationSlot > div > button svg { width: 19px; height: 19px; }
 
 .accountRoot { position: relative; }
 .accountButton {
@@ -471,6 +471,25 @@
   transition: transform 220ms ease, border-color 220ms ease, box-shadow 220ms ease;
 }
 
+.filmCardSkeleton {
+  position: relative;
+  min-width: 0;
+  aspect-ratio: 1.42;
+  overflow: hidden;
+  border: 1px solid rgba(119, 174, 216, 0.12);
+  border-radius: 5px;
+  background:
+    linear-gradient(100deg, transparent 22%, rgba(94, 154, 198, 0.08) 48%, transparent 74%),
+    linear-gradient(145deg, #07121d, #030b13);
+  background-size: 220% 100%, 100% 100%;
+  animation: cardShimmer 1.6s ease-in-out infinite;
+}
+
+@keyframes cardShimmer {
+  from { background-position: 120% 0, 0 0; }
+  to { background-position: -120% 0, 0 0; }
+}
+
 .filmCard:hover {
   transform: translateY(-3px);
   border-color: rgba(114, 200, 255, 0.6);
@@ -744,7 +763,7 @@
   .iconButton,
   .mobileSearch { width: 32px; height: 32px; }
   .avatar { width: 32px; height: 32px; font-size: 12px; }
-  .notificationSlot button { width: 32px; height: 32px; }
+  .notificationSlot > div > button { width: 32px; height: 32px; }
   .signIn { width: 32px; height: 32px; overflow: hidden; padding: 0; border-radius: 50%; font-size: 0; }
   .signIn::after { content: "→"; font-size: 15px; }
   .menuButton { left: calc(var(--page-pad) + 150px); }
@@ -768,6 +787,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .heroImage { animation: none; }
+  .filmCardSkeleton { animation: none; }
   .filmCard,
   .cardImage,
   .primaryButton { transition: none; }
