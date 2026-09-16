@@ -311,8 +311,8 @@ export default function CinematicHomePage() {
       .map(promoToCard)
       .filter((item): item is DisplayCard => item !== null)
       .slice(0, 12);
-    if (promos.length > 0) return promos;
-    return fillCatalogItems(catalog, 12).map(catalogToCard);
+    const catalogFallbacks = fillCatalogItems(catalog, 12).map(catalogToCard);
+    return [...promos, ...catalogFallbacks].slice(0, 12);
   }, [catalog, promoItems]);
 
   const creators = useMemo(() => {
