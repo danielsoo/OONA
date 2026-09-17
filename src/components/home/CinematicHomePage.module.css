@@ -9,7 +9,6 @@
 .hero {
   --hero-height: clamp(548px, 57vh, 650px);
   --hero-tail-height: 112px;
-  --hero-edge-sample: 16px;
   position: relative;
   min-height: 548px;
   height: var(--hero-height);
@@ -41,65 +40,14 @@
 .heroTail {
   position: absolute;
   z-index: -1;
-  top: calc(100% - 1px);
+  top: 100%;
   right: 0;
   left: 0;
   height: var(--hero-tail-height);
-  overflow: hidden;
   pointer-events: none;
-}
-
-.heroTailStretch {
-  position: absolute;
-  top: 0;
-  right: 0;
-  left: 0;
-  height: var(--hero-edge-sample);
-  transform: scaleY(7);
-  transform-origin: top;
-}
-
-.heroTailReflection {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  transform: scaleY(-1);
-}
-
-.heroTailImage {
-  position: absolute !important;
-  top: calc(-1 * var(--hero-height) + var(--hero-edge-sample)) !important;
-  right: auto !important;
-  bottom: auto !important;
-  left: 0 !important;
-  width: 100% !important;
-  height: var(--hero-height) !important;
-  max-width: none !important;
-  object-fit: cover;
-  object-position: center 47%;
-}
-
-.heroTailSoftener {
-  position: absolute;
-  z-index: 0;
-  top: 4px;
-  right: -18px;
-  bottom: -18px;
-  left: -18px;
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0, rgba(0, 0, 0, 0.35) 12px, #000 30px);
-  mask-image: linear-gradient(to bottom, transparent 0, rgba(0, 0, 0, 0.35) 12px, #000 30px);
-}
-
-.heroTailShade {
-  position: absolute;
-  z-index: 1;
-  inset: 0;
   background:
-    linear-gradient(180deg, transparent 0%, rgba(2, 10, 18, 0.04) 8%, rgba(2, 10, 18, 0.16) 24%, rgba(2, 10, 18, 0.42) 46%, rgba(2, 10, 18, 0.72) 70%, #020a12 100%),
-    linear-gradient(90deg, rgba(1, 8, 14, 0.94) 0%, rgba(1, 8, 14, 0.6) 25%, rgba(1, 8, 14, 0.08) 58%, rgba(1, 8, 14, 0.45) 100%),
-    rgba(1, 7, 13, 0.12);
+    linear-gradient(180deg, transparent 0%, rgba(2, 10, 18, 0.22) 18%, rgba(2, 10, 18, 0.56) 48%, #020a12 100%),
+    linear-gradient(90deg, #030b12 0%, #0d151b 20%, #141a20 40%, #1a222d 58%, #111b26 70%, #0b141e 85%, #050e17 100%);
 }
 
 .header {
@@ -819,7 +767,6 @@
   .page { --page-pad: 20px; }
   .hero { --hero-height: max(590px, 82svh); min-height: 590px; height: var(--hero-height); }
   .heroImage { object-position: 64% center; }
-  .heroTailImage { object-position: 64% center; }
   .headerActions { gap: 6px; }
   .iconButton,
   .mobileSearch { width: 32px; height: 32px; }

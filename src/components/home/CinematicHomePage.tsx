@@ -351,23 +351,7 @@ export default function CinematicHomePage() {
           className={styles.heroImage}
         />
         <div className={styles.heroShade} aria-hidden="true" />
-        <div className={styles.heroTail} aria-hidden="true">
-          <div className={styles.heroTailStretch}>
-            <div className={styles.heroTailReflection}>
-              <Image
-                key={`${activeHero.image}-tail`}
-                src={activeHero.image}
-                alt=""
-                fill
-                quality={90}
-                sizes="100vw"
-                className={styles.heroTailImage}
-              />
-            </div>
-          </div>
-          <div className={styles.heroTailSoftener} />
-          <div className={styles.heroTailShade} />
-        </div>
+        <div className={styles.heroTail} aria-hidden="true" />
 
         <div className={styles.heroCopy}>
           <p className={styles.eyebrow}>{activeHero.eyebrow}</p>
