@@ -411,20 +411,27 @@
   top: calc(var(--content-overlap) - 2px);
   right: 0;
   left: 0;
-  height: calc(clamp(230px, 28vh, 330px) + 2px);
+  height: calc(clamp(320px, 36vh, 430px) + 2px);
   pointer-events: none;
-  background: linear-gradient(
-    180deg,
-    #020a12 0,
-    #020a12 2px,
-    rgba(2, 11, 19, 0.99) 12px,
-    rgba(3, 14, 24, 0.96) 40px,
-    rgba(3, 15, 25, 0.84) 76px,
-    rgba(3, 15, 25, 0.62) 118px,
-    rgba(2, 13, 22, 0.36) 166px,
-    rgba(2, 10, 18, 0.16) 78%,
-    rgba(2, 10, 18, 0) 100%
-  );
+  background-image:
+    url("/images/ui/gradient-dither.svg"),
+    radial-gradient(ellipse 82% 72% at 55% 0%, rgba(12, 37, 55, 0.055) 0%, rgba(7, 25, 39, 0.026) 46%, rgba(2, 10, 18, 0) 82%),
+    linear-gradient(
+      180deg in oklab,
+      #020a12 0%,
+      #020b13 6%,
+      rgba(3, 13, 22, 0.96) 14%,
+      rgba(3, 14, 24, 0.86) 24%,
+      rgba(3, 15, 25, 0.72) 36%,
+      rgba(3, 15, 25, 0.55) 49%,
+      rgba(3, 14, 24, 0.39) 62%,
+      rgba(2, 13, 22, 0.25) 74%,
+      rgba(2, 12, 20, 0.13) 86%,
+      rgba(2, 10, 18, 0) 100%
+    );
+  background-repeat: repeat, no-repeat, no-repeat;
+  background-size: 128px 128px, 100% 100%, 100% 100%;
+  background-blend-mode: soft-light, normal, normal;
 }
 
 .section { min-width: 0; }

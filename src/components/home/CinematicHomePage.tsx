@@ -310,8 +310,11 @@ export default function CinematicHomePage() {
     const promos = promoItems
       .map(promoToCard)
       .filter((item): item is DisplayCard => item !== null)
+      .map((item) => ({ ...item, id: `promo-${item.id}` }))
       .slice(0, 12);
-    const catalogFallbacks = fillCatalogItems(catalog, 12).map(catalogToCard);
+    const catalogFallbacks = fillCatalogItems(catalog, 12)
+      .map(catalogToCard)
+      .map((item) => ({ ...item, id: `catalog-${item.id}` }));
     return [...promos, ...catalogFallbacks].slice(0, 12);
   }, [catalog, promoItems]);
 
