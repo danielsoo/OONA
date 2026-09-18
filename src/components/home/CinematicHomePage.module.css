@@ -2,13 +2,12 @@
   --page-pad: clamp(24px, 4.9vw, 76px);
   min-height: 100svh;
   overflow-x: hidden;
-  background: #020a12;
+  background: #07111b;
   color: #f2f4fb;
 }
 
 .hero {
   --hero-height: clamp(548px, 57vh, 650px);
-  --hero-tail-height: 112px;
   position: relative;
   min-height: 548px;
   height: var(--hero-height);
@@ -35,19 +34,6 @@
   background:
     linear-gradient(90deg, rgba(1, 8, 14, 0.94) 0%, rgba(1, 8, 14, 0.6) 25%, rgba(1, 8, 14, 0.08) 58%, rgba(1, 8, 14, 0.45) 100%),
     linear-gradient(180deg, rgba(1, 7, 13, 0.18) 0%, rgba(1, 7, 13, 0.06) 54%, rgba(1, 7, 13, 0.12) 100%);
-}
-
-.heroTail {
-  position: absolute;
-  z-index: -1;
-  top: 100%;
-  right: 0;
-  left: 0;
-  height: var(--hero-tail-height);
-  pointer-events: none;
-  background:
-    linear-gradient(180deg, transparent 0%, rgba(2, 10, 18, 0.22) 18%, rgba(2, 10, 18, 0.56) 48%, #020a12 100%),
-    linear-gradient(90deg, #030b12 0%, #0d151b 20%, #141a20 40%, #1a222d 58%, #111b26 70%, #0b141e 85%, #050e17 100%);
 }
 
 .header {
