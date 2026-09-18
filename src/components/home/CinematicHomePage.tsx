@@ -26,6 +26,7 @@ import type { PromoShort } from "@/types/promoShort";
 import type { SchoolListItem } from "@/types/school";
 import type { CatalogFeedItem, WatchProgressItem } from "@/types/work";
 import styles from "./CinematicHomePage.module.css";
+import HeroBackgroundFade from "./HeroBackgroundFade";
 
 type HeroSlide = {
   eyebrow: string;
@@ -285,6 +286,7 @@ export default function CinematicHomePage() {
   const { items: continueWatchingItems } = useContinueWatching();
   const { items: schoolItems } = useSchoolsFeed(6);
   const [heroIndex, setHeroIndex] = useState(0);
+  const heroImageRef = useRef<HTMLImageElement>(null);
   const activeHero = heroSlides[heroIndex]!;
 
   const catalog = useMemo(() => {
@@ -340,6 +342,7 @@ export default function CinematicHomePage() {
     <main className={styles.page}>
       <section className={styles.hero}>
         <Image
+          ref={heroImageRef}
           key={activeHero.image}
           src={activeHero.image}
           alt=""
@@ -351,6 +354,7 @@ export default function CinematicHomePage() {
           className={styles.heroImage}
         />
         <div className={styles.heroShade} aria-hidden="true" />
+        <HeroBackgroundFade imageRef={heroImageRef} source={activeHero.image} />
 
         <div className={styles.heroCopy}>
           <p className={styles.eyebrow}>{activeHero.eyebrow}</p>
