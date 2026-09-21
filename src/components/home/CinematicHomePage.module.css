@@ -1,8 +1,9 @@
 .page {
   --page-pad: clamp(24px, 4.9vw, 76px);
+  --page-background-rgb: 7, 17, 27;
   min-height: 100svh;
   overflow-x: hidden;
-  background: #07111b;
+  background: rgb(var(--page-background-rgb));
   color: #f2f4fb;
 }
 
@@ -38,12 +39,28 @@
 
 .heroBackgroundFade {
   position: absolute;
-  top: 100%;
+  bottom: -1px;
   left: 0;
   width: 100%;
-  height: 112px;
+  height: clamp(160px, 30%, 200px);
   z-index: -1;
   pointer-events: none;
+  /* Fade only the lower edge (including both corners), without smearing
+     image pixels. The final color is shared with the following content. */
+  background: linear-gradient(
+    to bottom,
+    rgba(var(--page-background-rgb), 0) 0%,
+    rgba(var(--page-background-rgb), 0.028) 10%,
+    rgba(var(--page-background-rgb), 0.104) 20%,
+    rgba(var(--page-background-rgb), 0.216) 30%,
+    rgba(var(--page-background-rgb), 0.352) 40%,
+    rgba(var(--page-background-rgb), 0.5) 50%,
+    rgba(var(--page-background-rgb), 0.648) 60%,
+    rgba(var(--page-background-rgb), 0.784) 70%,
+    rgba(var(--page-background-rgb), 0.896) 80%,
+    rgba(var(--page-background-rgb), 0.972) 90%,
+    rgb(var(--page-background-rgb)) 100%
+  );
 }
 
 .header {
@@ -672,8 +689,8 @@
 .footerMotto { margin: 0; color: #8296b2; font-size: 9px; line-height: 2.1; }
 
 @keyframes reveal {
-  from { opacity: 0.25; transform: scale(1.025); }
-  to { opacity: 1; transform: scale(1); }
+  from { opacity: 0.25; }
+  to { opacity: 1; }
 }
 
 @keyframes pulse {
