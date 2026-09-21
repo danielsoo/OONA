@@ -30,37 +30,6 @@
   animation: reveal 700ms ease both;
 }
 
-/* The first photograph is a background layer, not a layout element.
-   Its complete frame and generated continuation can extend behind the
-   existing content without moving the hero, copy, pager, or card rows. */
-.originalHeroArtwork {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  aspect-ratio: 3966 / 1586;
-  z-index: -3;
-  pointer-events: none;
-}
-
-.originalHeroImage {
-  object-fit: contain;
-}
-
-.originalHeroExtension {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  width: 100%;
-  height: calc(100% * (1983 - 1586) / 1586);
-  background-image:
-    linear-gradient(to bottom, rgba(var(--page-background-rgb), 0) 35%, rgb(var(--page-background-rgb)) 100%),
-    url("/images/home/home-rocks-extension-v1.png");
-  background-size: 100% 100%, 100% auto;
-  background-position: bottom;
-  background-repeat: no-repeat;
-}
-
 .heroShade {
   z-index: -2;
   background:
@@ -73,11 +42,11 @@
   bottom: -1px;
   left: 0;
   width: 100%;
-  height: clamp(160px, 30%, 200px);
+  height: clamp(80px, 16%, 112px);
   z-index: -1;
   pointer-events: none;
-  /* Fade only the lower edge (including both corners), without smearing
-     image pixels. The final color is shared with the following content. */
+  /* Keep the fc65ade image frame and card overlap. Only the narrow bottom
+     edge fades, with eased stops and an exact match to the page background. */
   background: linear-gradient(
     to bottom,
     rgba(var(--page-background-rgb), 0) 0%,
