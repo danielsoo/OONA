@@ -8,59 +8,53 @@
 }
 
 .hero {
-  --hero-height: clamp(548px, 57vh, 650px);
+  --hero-transition-height: 96px;
   position: relative;
   min-height: 548px;
-  height: var(--hero-height);
-  max-height: 650px;
+  padding-bottom: max(96px, var(--hero-transition-height));
   overflow: visible;
   isolation: isolate;
 }
 
-.heroImage,
-.heroShade {
-  position: absolute;
-  inset: 0;
+.heroArtwork {
+  position: relative;
+  width: 100%;
+}
+
+.heroWithExtension {
+  /* Original photo: 3966 × 1586. Outpaint: 2:1; only its new bottom is shown. */
+  --hero-transition-height: calc(100vw * (0.5 - 1586 / 3966));
 }
 
 .heroImage {
-  z-index: -3;
-  object-fit: cover;
-  object-position: center 47%;
-  animation: reveal 700ms ease both;
-}
-
-.heroShade {
-  z-index: -2;
-  background:
-    linear-gradient(90deg, rgba(1, 8, 14, 0.94) 0%, rgba(1, 8, 14, 0.6) 25%, rgba(1, 8, 14, 0.08) 58%, rgba(1, 8, 14, 0.45) 100%),
-    linear-gradient(180deg, rgba(1, 7, 13, 0.18) 0%, rgba(1, 7, 13, 0.06) 54%, rgba(1, 7, 13, 0.12) 100%);
+  display: block;
+  width: 100%;
+  height: auto;
 }
 
 .heroBackgroundFade {
   position: absolute;
-  bottom: -1px;
+  top: 100%;
   left: 0;
   width: 100%;
-  height: clamp(160px, 30%, 200px);
-  z-index: -1;
+  height: var(--hero-transition-height);
   pointer-events: none;
-  /* Fade only the lower edge (including both corners), without smearing
-     image pixels. The final color is shared with the following content. */
+  /* This extension starts AFTER the complete image. Never cover its rocks. */
   background: linear-gradient(
     to bottom,
-    rgba(var(--page-background-rgb), 0) 0%,
-    rgba(var(--page-background-rgb), 0.028) 10%,
-    rgba(var(--page-background-rgb), 0.104) 20%,
-    rgba(var(--page-background-rgb), 0.216) 30%,
-    rgba(var(--page-background-rgb), 0.352) 40%,
-    rgba(var(--page-background-rgb), 0.5) 50%,
-    rgba(var(--page-background-rgb), 0.648) 60%,
-    rgba(var(--page-background-rgb), 0.784) 70%,
-    rgba(var(--page-background-rgb), 0.896) 80%,
-    rgba(var(--page-background-rgb), 0.972) 90%,
+    #040c14 0%,
+    #05101a 45%,
     rgb(var(--page-background-rgb)) 100%
   );
+}
+
+.heroWithExtension .heroBackgroundFade {
+  background-image:
+    linear-gradient(to bottom, rgba(var(--page-background-rgb), 0) 35%, rgb(var(--page-background-rgb)) 100%),
+    url("/images/home/home-rocks-extension-v1.png");
+  background-size: 100% 100%, 100% auto;
+  background-position: bottom;
+  background-repeat: no-repeat;
 }
 
 .header {
@@ -396,7 +390,7 @@
   position: absolute;
   z-index: 2;
   right: var(--page-pad);
-  bottom: 70px;
+  bottom: 32px;
   display: flex;
   align-items: center;
   gap: 14px;
@@ -420,13 +414,13 @@
 .heroPager i { width: 1px; height: 18px; background: rgba(156, 188, 218, 0.18); }
 
 .content {
-  --content-overlap: 64px;
+  --content-overlap: 0px;
   position: relative;
   z-index: 3;
   display: flex;
   flex-direction: column;
   gap: 31px;
-  margin-top: -64px;
+  margin-top: 0;
   padding: 0 var(--page-pad) 44px;
 }
 
@@ -688,11 +682,6 @@
 .footerLine { height: 1px; background: rgba(126, 171, 205, 0.26); }
 .footerMotto { margin: 0; color: #8296b2; font-size: 9px; line-height: 2.1; }
 
-@keyframes reveal {
-  from { opacity: 0.25; }
-  to { opacity: 1; }
-}
-
 @keyframes pulse {
   from { opacity: 0.45; }
   to { opacity: 0.85; }
@@ -712,7 +701,7 @@
 }
 
 @media (max-width: 1040px) {
-  .hero { --hero-height: 650px; height: var(--hero-height); max-height: none; }
+  .hero { min-height: 0; padding-top: 78px; }
   .header { height: 78px; grid-template-columns: 1fr auto; }
   .logo { width: 106px; }
   .menuButton {
@@ -764,7 +753,7 @@
   .mobileNavExtras .icon { width: 15px; height: 15px; }
   .search { display: none; }
   .mobileSearch { display: grid; }
-  .heroCopy { top: auto; bottom: 106px; }
+  .heroCopy { position: relative; top: auto; bottom: auto; left: auto; margin: calc(var(--hero-transition-height) + 24px) var(--page-pad) 0; }
   .heroAside { display: none; }
   .heroPager { bottom: 34px; }
   .content { --content-overlap: 0px; margin-top: 0; padding-top: 30px; }
@@ -778,8 +767,6 @@
 
 @media (max-width: 600px) {
   .page { --page-pad: 20px; }
-  .hero { --hero-height: max(590px, 82svh); min-height: 590px; height: var(--hero-height); }
-  .heroImage { object-position: 64% center; }
   .headerActions { gap: 6px; }
   .iconButton,
   .mobileSearch { width: 32px; height: 32px; }
@@ -788,7 +775,7 @@
   .signIn { width: 32px; height: 32px; overflow: hidden; padding: 0; border-radius: 50%; font-size: 0; }
   .signIn::after { content: "→"; font-size: 15px; }
   .menuButton { left: calc(var(--page-pad) + 150px); }
-  .heroCopy { right: var(--page-pad); bottom: 103px; }
+  .heroCopy { right: auto; bottom: auto; }
   .eyebrow { margin-bottom: 13px; font-size: 9px; }
   .heroCopy h1 { font-size: clamp(43px, 14vw, 58px); }
   .heroBody { max-width: 330px; margin: 13px 0 22px; font-size: 14px; }
@@ -807,7 +794,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .heroImage { animation: none; }
   .filmCardSkeleton { animation: none; }
   .cardVideo { animation: none; }
   .filmCard,

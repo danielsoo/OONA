@@ -1,0 +1,9 @@
+# Home hero foreground extension
+
+The original `public/images/home/home_main_wave6-2x.png` remains unchanged and is rendered at its intrinsic aspect ratio, without cropping, blur, or a fade over the photograph. Static image imports supply dimensions for all slides.
+
+`public/images/home/home-rocks-extension-v1.png` was generated with the built-in image generation tool. Only the new bottom portion of this 2:1 outpaint is displayed, below the original photograph; the generated version of the original photograph is never displayed. A CSS gradient fades the extension into the page background.
+
+## Generation prompt
+
+Use case: compositing / downward outpainting. Asset type: seamless website hero bottom extension. Input image 1 is the existing hero photo, an immutable reference. Create a wider landscape output with a 2:1 overall aspect ratio, ideally 3840x1920. Preserve the complete input composition in the TOP 80% of the output, at full width: do not crop, zoom, reposition, recolor, blur or repaint the sky, portal, ocean or existing foreground rocks. Add ONLY a new bottom 20% of canvas continuing the exact foreground rocks and water touching the original bottom boundary. At the join (80% height), continue the wet rock contours left and right and reflected water center-right, matching their texture, scale and light exactly, without a visible horizontal seam. In the new bottom strip ONLY, naturally diminish light and detail into solid dark navy #07111b by the final bottom edge. This strip will be placed below the unchanged original photo in a website; the original top 80% of your output will not be used. No extra horizon or portals, no text, logos, fog, gaussian blur, or smearing. New rocks/water texture should be sharp until lost in darkness. Preserve original framing so the new lower strip is pixel-position-aligned to the original.
