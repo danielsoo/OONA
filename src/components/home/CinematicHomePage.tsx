@@ -1,10 +1,6 @@
 "use client";
 
-import Image, { type StaticImageData } from "next/image";
-import mainHeroImage from "../../../public/images/home/home_main_wave6-2x.png";
-import waveHeroImage from "../../../public/images/hero/home-wave.png";
-import underwaterHeroImage from "../../../public/images/hero/home-under-water.png";
-import campusHeroImage from "../../../public/images/hero/campus-wave3.png";
+import Image from "next/image";
 import Link from "next/link";
 import {
   useMemo,
@@ -36,7 +32,7 @@ type HeroSlide = {
   eyebrow: string;
   title: string;
   body: string;
-  image: StaticImageData;
+  image: string;
   href: string;
   cta: string;
 };
@@ -58,7 +54,7 @@ const heroSlides: HeroSlide[] = [
     eyebrow: "Emerging creators",
     title: "Ideas\nin Motion.",
     body: "Watch. Share. Be part of what’s next.",
-    image: mainHeroImage,
+    image: "/images/home/home_main_wave6-2x.png",
     href: "/movies",
     cta: "Explore Films",
   },
@@ -66,7 +62,7 @@ const heroSlides: HeroSlide[] = [
     eyebrow: "Stories on the surface",
     title: "Find a new\npoint of view.",
     body: "Original work from the next generation of filmmakers.",
-    image: waveHeroImage,
+    image: "/images/hero/home-wave.png",
     href: "/discover",
     cta: "Start Discovering",
   },
@@ -74,7 +70,7 @@ const heroSlides: HeroSlide[] = [
     eyebrow: "A world in progress",
     title: "Meet the\nnext voices.",
     body: "Follow creators and connect with a global community.",
-    image: underwaterHeroImage,
+    image: "/images/hero/home-under-water.png",
     href: "/society",
     cta: "Meet Creators",
   },
@@ -82,7 +78,7 @@ const heroSlides: HeroSlide[] = [
     eyebrow: "Made everywhere",
     title: "Create.\nConnect. Grow.",
     body: "Explore work from schools around the world.",
-    image: campusHeroImage,
+    image: "/images/hero/campus-wave3.png",
     href: "/schools",
     cta: "Explore Schools",
   },
@@ -343,20 +339,36 @@ export default function CinematicHomePage() {
 
   return (
     <main className={styles.page}>
-      <section className={`${styles.hero} ${heroIndex === 0 ? styles.heroWithExtension : ""}`}>
-        <div className={styles.heroArtwork}>
-          <Image
-            key={activeHero.image.src}
-            src={activeHero.image}
-            alt=""
-            priority={heroIndex === 0}
-            fetchPriority={heroIndex === 0 ? "high" : "auto"}
-            quality={90}
-            sizes="100vw"
-            className={styles.heroImage}
-          />
-          <HeroBackgroundFade />
-        </div>
+      <section className={styles.hero}>
+        {heroIndex === 0 ? (
+          <div className={styles.originalHeroArtwork} aria-hidden="true">
+            <Image
+              src={activeHero.image}
+              alt=""
+              fill
+              priority
+              fetchPriority="high"
+              quality={90}
+              sizes="100vw"
+              className={styles.originalHeroImage}
+            />
+            <div className={styles.originalHeroExtension} />
+          </div>
+        ) : (
+          <>
+            <Image
+              key={activeHero.image}
+              src={activeHero.image}
+              alt=""
+              fill
+              quality={90}
+              sizes="100vw"
+              className={styles.heroImage}
+            />
+            <div className={styles.heroShade} aria-hidden="true" />
+            <HeroBackgroundFade />
+          </>
+        )}
 
         <div className={styles.heroCopy}>
           <p className={styles.eyebrow}>{activeHero.eyebrow}</p>

@@ -1,6 +1,6 @@
 # Home hero foreground extension
 
-The original `public/images/home/home_main_wave6-2x.png` remains unchanged and is rendered at its intrinsic aspect ratio, without cropping, blur, or a fade over the photograph. Static image imports supply dimensions for all slides.
+The original `public/images/home/home_main_wave6-2x.png` remains unchanged. Only the first slide uses an absolutely positioned photograph layer at its original 3966:1586 aspect ratio, without cropping, blur, or a fade over the photograph. The original hero height, copy, pager, content overlap, and mobile layout are retained. The background may continue behind the existing card rows; it must never size or reposition the UI. Other slides retain their prior rendering.
 
 `public/images/home/home-rocks-extension-v1.png` was generated with the built-in image generation tool. Only the new bottom portion of this 2:1 outpaint is displayed, below the original photograph; the generated version of the original photograph is never displayed. A CSS gradient fades the extension into the page background.
 
