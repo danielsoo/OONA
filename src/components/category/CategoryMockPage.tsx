@@ -21,6 +21,8 @@ import { formatDurationMinutes, gradientForTitle, watchHref } from "@/lib/works/
 import type { CatalogFeedItem, WorkSection } from "@/types/work";
 import type { SeriesDetail } from "@/types/series";
 import filmHeroImage from "../../../film_hero.webp";
+import UiText from "@/components/i18n/UiText";
+import { useUiCopy } from "@/components/i18n/UiText";
 
 type CategoryVariant = "films" | "series" | "entertainment";
 
@@ -50,7 +52,7 @@ function CriticsPicksSection({ items, t }: { items: CatalogFeedItem[]; t: (k: st
               href={watchHref(item.ownerUid, item.workId)}
               className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 hover:border-white/20 transition"
             >
-              <p className="font-serif italic text-[17px] leading-snug text-white mb-3">&ldquo;{quote}&rdquo;</p>
+              <p className="font-serif italic text-[17px] leading-snug text-white mb-3">“{quote}”</p>
               <p className="text-[11px] uppercase tracking-[0.12em] text-white/40">
                 {source} — {item.title}
               </p>
@@ -71,6 +73,7 @@ function NewEpisodesRow({
   t: (k: string) => string;
   loggedIn: boolean;
 }) {
+  const { locale: mediaLocale } = useTranslations();
   if (episodes.length === 0) return null;
   return (
     <section>
@@ -90,20 +93,16 @@ function NewEpisodesRow({
               ) : (
                 <div className={`absolute inset-0 ${gradientForTitle(ep.title)}`} />
               )}
-              <div className="absolute top-1.5 left-1.5 bg-xiio-accent text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">
-                NEW
-              </div>
+              <div className="absolute top-1.5 left-1.5 bg-xiio-accent text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full"><UiText text={"NEW"} /></div>
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-[13.5px] font-semibold text-white truncate">{ep.title}</p>
               <p className="text-[11.5px] text-white/45 mt-0.5">
-                S{ep.seasonNumber} · E{ep.episodeNumber} · {formatDurationMinutes(ep.durationSec)}
+                S{ep.seasonNumber} · E{ep.episodeNumber} · {formatDurationMinutes(ep.durationSec, mediaLocale)}
               </p>
             </div>
             <span className="shrink-0 inline-flex items-center gap-1.5 rounded-full border border-white/15 px-3 py-1.5 text-[12px] font-medium text-white/80 group-hover:text-white group-hover:border-white/30 transition">
-              <IconPlay className="w-2.5 h-2.5" />
-              Play
-            </span>
+              <IconPlay className="w-2.5 h-2.5" /><UiText text={"Play"} /></span>
           </Link>
         ))}
       </div>
@@ -160,8 +159,7 @@ function BingeCollectionsSection({
                 <div className="absolute bottom-2.5 left-3 right-3">
                   <p className="font-serif text-[16px] font-semibold text-white leading-tight">{series.title}</p>
                   <p className="text-[11px] text-white/55 mt-0.5">
-                    {series.seasons.length} Seasons · {episodeCount} Episodes
-                  </p>
+                    {series.seasons.length}{" "}<UiText text={"Seasons ·"} />{" "}{episodeCount}{" "}<UiText text={"Episodes"} /></p>
                 </div>
               </div>
               <div className="p-3.5">
@@ -176,6 +174,7 @@ function BingeCollectionsSection({
 }
 
 export default function CategoryMockPage({ variant }: { variant: CategoryVariant }) {
+  const _copy = useUiCopy();
   const { t } = useTranslations();
   const { user } = useAuth();
   const config = VARIANT_CONFIG[variant];
@@ -216,7 +215,7 @@ export default function CategoryMockPage({ variant }: { variant: CategoryVariant
         <section className="relative isolate min-h-[560px] overflow-hidden">
           <Image
             src={filmHeroImage}
-            alt="A young filmmaker looking across a city at night"
+            alt={_copy("A young filmmaker looking across a city at night")}
             fill
             priority
             unoptimized
@@ -232,19 +231,14 @@ export default function CategoryMockPage({ variant }: { variant: CategoryVariant
               eyebrowTone="gold"
               title="Undertow"
               description={
-                <>
-                  A dockworker&apos;s daughter searches the harbor town for the truth about her father&apos;s last voyage.
-                  Shot over eleven nights on the Oregon coast.
-                </>
+                <><UiText text={"A dockworker's daughter searches the harbor town for the truth about her father's last voyage. Shot over eleven nights on the Oregon coast."} /></>
               }
             >
               <Link
                 href={watchHrefPrimary}
                 className="inline-flex h-12 items-center gap-2.5 rounded-full bg-[#f5f4f2] px-7 text-[14px] font-semibold text-[#0b0b0d] transition hover:bg-white"
               >
-                <IconPlay className="w-3.5 h-3.5" />
-                Play Feature
-              </Link>
+                <IconPlay className="w-3.5 h-3.5" /><UiText text={"Play Feature"} /></Link>
             </HeroCopy>
           </div>
         </section>

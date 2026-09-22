@@ -6,6 +6,7 @@ import { useDmInbox } from "@/components/messages/DmInboxContext";
 import ProfileAvatar from "@/components/profile/ProfileAvatar";
 import { useAuth } from "@/context/AuthContext";
 import { useTranslations } from "@/context/LocaleContext";
+import { useUiCopy } from "@/components/i18n/UiText";
 
 type PersonHit = {
   uid: string;
@@ -18,6 +19,7 @@ type Props = {
 };
 
 export default function RoomComposerModal({ onClose }: Props) {
+  const _copy = useUiCopy();
   const { refreshRooms } = useDmInbox();
   const { user } = useAuth();
   const { t } = useTranslations();
@@ -114,13 +116,13 @@ export default function RoomComposerModal({ onClose }: Props) {
       aria-modal
       aria-labelledby="room-composer-title"
     >
-      <button type="button" className="absolute inset-0" aria-label="Close" onClick={onClose} />
+      <button type="button" className="absolute inset-0" aria-label={_copy("Close")} onClick={onClose} />
       <div className="relative w-full max-w-md rounded-2xl bg-xiio-surface border border-white/10 shadow-xl overflow-hidden max-h-[90vh] flex flex-col">
         <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 shrink-0">
           <h2 id="room-composer-title" className="text-lg font-semibold text-white">
             {t("dm.rooms.composerTitle")}
           </h2>
-          <button type="button" onClick={onClose} className="text-xiio-muted hover:text-white p-1" aria-label="Close">
+          <button type="button" onClick={onClose} className="text-xiio-muted hover:text-white p-1" aria-label={_copy("Close")}>
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>

@@ -27,6 +27,7 @@ import type { SchoolListItem } from "@/types/school";
 import type { CatalogFeedItem, WatchProgressItem } from "@/types/work";
 import styles from "./CinematicHomePage.module.css";
 import HeroBackgroundFade from "./HeroBackgroundFade";
+import UiText, { useUiCopy } from "@/components/i18n/UiText";
 
 type HeroSlide = {
   eyebrow: string;
@@ -123,12 +124,12 @@ function fallbackImage(index: number): string {
   return fallbackImages[index % fallbackImages.length]!;
 }
 
-function catalogToCard(item: CatalogFeedItem, index: number): DisplayCard {
+function catalogToCard(item: CatalogFeedItem, index: number, copy: ReturnType<typeof useUiCopy>): DisplayCard {
   const views = item.viewCount ?? 0;
   return {
     id: item.id,
     title: item.title,
-    meta: views > 0 ? `${formatCompactStat(views)} views` : item.director?.trim() || item.approvedCategory || "OONA",
+    meta: views > 0 ? copy(views === 1 ? "{count} view" : "{count} views", { count: formatCompactStat(views) }) : item.director?.trim() || (item.approvedCategory ? copy(item.approvedCategory) : "OONA"),
     image: item.thumbnailUrl || fallbackImage(index),
     href: watchHref(item.ownerUid, item.workId),
     videoUrl: SERIES_MOCK_VIDEO_URLS[index % SERIES_MOCK_VIDEO_URLS.length],
@@ -136,20 +137,20 @@ function catalogToCard(item: CatalogFeedItem, index: number): DisplayCard {
   };
 }
 
-function progressToCard(item: WatchProgressItem, index: number): DisplayCard {
+function progressToCard(item: WatchProgressItem, index: number, copy: ReturnType<typeof useUiCopy>): DisplayCard {
   return {
-    ...catalogToCard(item, index),
-    meta: `${Math.max(1, Math.round(item.progressPercent))}% watched`,
+    ...catalogToCard(item, index, copy),
+    meta: copy("{percent}% watched", { percent: Math.max(1, Math.round(item.progressPercent)) }),
     progressPercent: item.progressPercent,
   };
 }
 
-function promoToCard(item: PromoShort, index: number): DisplayCard | null {
+function promoToCard(item: PromoShort, index: number, copy: ReturnType<typeof useUiCopy>): DisplayCard | null {
   if (!item.ownerUid || !item.workId) return null;
   return {
     id: item.id,
     title: item.title,
-    meta: item.director?.trim() || "Short",
+    meta: item.director?.trim() || copy("Short"),
     image: item.thumbnailUrl || fallbackImage(index + 2),
     href: watchHref(item.ownerUid, item.workId),
     videoUrl: SERIES_MOCK_VIDEO_URLS[index % SERIES_MOCK_VIDEO_URLS.length],
@@ -177,6 +178,7 @@ function FilmSection({
   loading?: boolean;
 }) {
   const railRef = useRef<HTMLDivElement>(null);
+  const copy = useUiCopy();
   const scrollRail = () => {
     railRef.current?.scrollBy({
       left: Math.max(260, railRef.current.clientWidth * 0.72),
@@ -186,7 +188,7 @@ function FilmSection({
 
   return (
     <section className={styles.section}>
-      <SectionHeading href={href}>{title}</SectionHeading>
+      <SectionHeading href={href}>{copy(title)}</SectionHeading>
       <div className={styles.railWrap}>
         <div ref={railRef} className={styles.trendingRail}>
           {loading && items.length === 0
@@ -197,7 +199,7 @@ function FilmSection({
           {items.map((item) => <PreviewFilmCard key={item.id} item={item} />)}
         </div>
         {items.length > 5 ? (
-          <button type="button" className={styles.railButton} onClick={scrollRail} aria-label={`See more ${title}`}>
+          <button type="button" className={styles.railButton} onClick={scrollRail} aria-label={copy("See more {title}", { title: copy(title) })}>
             <ArrowIcon />
           </button>
         ) : null}
@@ -254,6 +256,7 @@ function PreviewFilmCard({ item }: { item: DisplayCard }) {
 }
 
 function SchoolCard({ school }: { school: SchoolListItem }) {
+  const copy = useUiCopy();
   return (
     <Link href={`/school/${school.id}`} className={styles.schoolCard}>
       {school.logoUrl ? (
@@ -270,7 +273,7 @@ function SchoolCard({ school }: { school: SchoolListItem }) {
       )}
       <span className={styles.schoolCopy}>
         <strong>{school.shortName || school.name}</strong>
-        <small>{formatCompactStat(school.workCount ?? 0)} works</small>
+        <small>{copy(school.workCount === 1 ? "{count} work" : "{count} works", { count: formatCompactStat(school.workCount ?? 0) })}</small>
       </span>
       <ArrowIcon />
     </Link>
@@ -278,6 +281,8 @@ function SchoolCard({ school }: { school: SchoolListItem }) {
 }
 
 export default function CinematicHomePage() {
+  const _copy = useUiCopy();
+  const copy = useUiCopy();
   const { user } = useAuth();
   const { items: movies, loading: moviesLoading } = useCatalogFeed("movies", 12);
   const { items: series, loading: seriesLoading } = useCatalogFeed("series", 12);
@@ -296,28 +301,28 @@ export default function CinematicHomePage() {
     const live = fillCatalogItems([...catalog]
       .sort((a, b) => (b.viewCount ?? 0) - (a.viewCount ?? 0))
       .slice(0, 12), 12)
-      .map(catalogToCard);
+      .map((item, index) => catalogToCard(item, index, copy));
     return live;
-  }, [catalog]);
+  }, [catalog, copy]);
 
   const catalogLoading = moviesLoading || seriesLoading || entertainmentLoading;
 
   const continueCards = useMemo(
-    () => continueWatchingItems.slice(0, 12).map(progressToCard),
-    [continueWatchingItems]
+    () => continueWatchingItems.slice(0, 12).map((item, index) => progressToCard(item, index, copy)),
+    [continueWatchingItems, copy]
   );
 
   const shortCards = useMemo(() => {
     const promos = promoItems
-      .map(promoToCard)
+      .map((item, index) => promoToCard(item, index, copy))
       .filter((item): item is DisplayCard => item !== null)
       .map((item) => ({ ...item, id: `promo-${item.id}` }))
       .slice(0, 12);
     const catalogFallbacks = fillCatalogItems(catalog, 12)
-      .map(catalogToCard)
+      .map((item, index) => catalogToCard(item, index, copy))
       .map((item) => ({ ...item, id: `catalog-${item.id}` }));
     return [...promos, ...catalogFallbacks].slice(0, 12);
-  }, [catalog, promoItems]);
+  }, [catalog, promoItems, copy]);
 
   const creators = useMemo(() => {
     const result = new Map<string, { uid: string; name: string; works: number }>();
@@ -355,33 +360,31 @@ export default function CinematicHomePage() {
         <HeroBackgroundFade />
 
         <div className={styles.heroCopy}>
-          <p className={styles.eyebrow}>{activeHero.eyebrow}</p>
-          <h1>{activeHero.title.split("\n").map((line) => <span key={line}>{line}</span>)}</h1>
-          <p className={styles.heroBody}>{activeHero.body}</p>
+          <p className={styles.eyebrow}>{copy(activeHero.eyebrow)}</p>
+          <h1>{copy(activeHero.title).split("\n").map((line) => <span key={line}>{line}</span>)}</h1>
+          <p className={styles.heroBody}>{copy(activeHero.body)}</p>
           <div className={styles.heroActions}>
             <Link href={activeHero.href} prefetch={false} className={styles.primaryButton}>
-              {activeHero.cta}
+              {copy(activeHero.cta)}
               <ArrowIcon />
             </Link>
             <Link href={authHref(UPLOAD_HREF)} prefetch={false} className={styles.uploadButton}>
-              <UploadIcon />
-              Upload
-            </Link>
+              <UploadIcon /><UiText text={"Upload"} /></Link>
           </div>
         </div>
 
         <aside className={styles.heroAside}>
-          <p>More voices.<br />A brighter<br />tomorrow.</p>
+          <p><UiText text={"More voices."} /><br /><UiText text={"A brighter"} /><br /><UiText text={"tomorrow."} /></p>
           <span />
         </aside>
 
         <div className={styles.heroPager}>
           <span>{String(heroIndex + 1).padStart(2, "0")} / {String(heroSlides.length).padStart(2, "0")}</span>
-          <button type="button" onClick={() => changeHero(-1)} aria-label="Previous hero">
+          <button type="button" onClick={() => changeHero(-1)} aria-label={_copy("Previous hero")}>
             <ArrowIcon direction="left" />
           </button>
           <i aria-hidden="true" />
-          <button type="button" onClick={() => changeHero(1)} aria-label="Next hero">
+          <button type="button" onClick={() => changeHero(1)} aria-label={_copy("Next hero")}>
             <ArrowIcon />
           </button>
         </div>
@@ -389,23 +392,23 @@ export default function CinematicHomePage() {
 
       <div className={styles.content}>
         {continueCards.length > 0 ? (
-          <FilmSection title="Continue Watching" href="/my-list" items={continueCards} />
+          <FilmSection title={_copy("Continue Watching")} href="/my-list" items={continueCards} />
         ) : null}
 
-        <FilmSection title="Trending on OONA" href="/discover" items={trendingCards} loading={catalogLoading} />
+        <FilmSection title={_copy("Trending on OONA")} href="/discover" items={trendingCards} loading={catalogLoading} />
 
         {shortCards.length > 0 ? (
-          <FilmSection title="Fresh Shorts" href="/shorts" items={shortCards} />
+          <FilmSection title={_copy("Fresh Shorts")} href="/shorts" items={shortCards} />
         ) : null}
 
         <section className={styles.section}>
-          <SectionHeading href="/discover">Explore by Category</SectionHeading>
+          <SectionHeading href="/discover"><UiText text={"Explore by Category"} /></SectionHeading>
           <div className={styles.categoryGrid}>
             {categories.map((category) => (
               <Link key={category.title} href={category.href} prefetch={false} className={styles.categoryCard}>
                 <Image src={category.image} alt="" fill sizes="(max-width: 760px) 50vw, 230px" className={styles.cardImage} />
                 <span className={styles.categoryShade} aria-hidden="true" />
-                <span>{category.title}</span>
+                <span>{copy(category.title)}</span>
               </Link>
             ))}
           </div>
@@ -413,7 +416,7 @@ export default function CinematicHomePage() {
 
         {creators.length > 0 ? (
           <section className={styles.section}>
-            <SectionHeading href="/society?tab=discover">Creators to Watch</SectionHeading>
+            <SectionHeading href="/society?tab=discover"><UiText text={"Creators to Watch"} /></SectionHeading>
             <div className={styles.creatorGrid}>
               {creators.map((creator) => {
                 const initials = creator.name.split(/\s+/).map((part) => part[0]).join("").slice(0, 2).toUpperCase();
@@ -422,7 +425,7 @@ export default function CinematicHomePage() {
                     <span className={styles.creatorAvatar}>{initials}</span>
                     <span>
                       <strong>{creator.name}</strong>
-                      <small>{creator.works} {creator.works === 1 ? "work" : "works"}</small>
+                      <small>{copy(creator.works === 1 ? "{count} work" : "{count} works", { count: creator.works })}</small>
                     </span>
                     <ArrowIcon />
                   </Link>
@@ -434,7 +437,7 @@ export default function CinematicHomePage() {
 
         {schoolItems.length > 0 ? (
           <section className={styles.section}>
-            <SectionHeading href="/schools">Schools Across OONA</SectionHeading>
+            <SectionHeading href="/schools"><UiText text={"Schools Across OONA"} /></SectionHeading>
             <div className={styles.schoolGrid}>
               {schoolItems.slice(0, 6).map((school) => <SchoolCard key={school.id} school={school} />)}
             </div>
@@ -442,9 +445,9 @@ export default function CinematicHomePage() {
         ) : null}
 
         <footer className={styles.footer}>
-          <p>A global community<br />of student creators.</p>
+          <p><UiText text={"A global community"} /><br /><UiText text={"of student creators."} /></p>
           <span className={styles.footerLine} aria-hidden="true" />
-          <p className={styles.footerMotto}>Different places.<br />Same creative tide.</p>
+          <p className={styles.footerMotto}><UiText text={"Different places."} /><br /><UiText text={"Same creative tide."} /></p>
         </footer>
       </div>
     </main>

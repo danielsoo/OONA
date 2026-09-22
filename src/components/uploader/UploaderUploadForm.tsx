@@ -1332,7 +1332,7 @@ export default function UploaderUploadForm({
           <p className="mt-1 text-[11px] leading-relaxed text-white/35">
             {draftSavedAt
               ? t("uploader.draftSavedAt", {
-                  time: new Intl.DateTimeFormat(locale === "ko" ? "ko-KR" : "en-US", {
+                  time: new Intl.DateTimeFormat(locale, {
                     hour: "numeric",
                     minute: "2-digit",
                   }).format(draftSavedAt),

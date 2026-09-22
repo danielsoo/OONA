@@ -159,7 +159,7 @@ export default function AdminUserProfile({ uid }: Props) {
                 ? data.birthDate
                 : data.age != null && data.age >= 1
                   ? `${data.age} (${t("admin.userProfile.age")})`
-                  : "—"
+                  : data.locale === "ja" ? "日本語" : "—"
             }
           />
           <Row

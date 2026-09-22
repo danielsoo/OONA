@@ -1,10 +1,15 @@
-export type Locale = "ko" | "en";
+import { jaMessages } from "./ja";
+import { koCopy, enCopy } from "./copy";
+
+export type Locale = "ko" | "en" | "ja";
 
 export const LOCALES: { code: Locale; label: string }[] = [
   { code: "en", label: "English" },
+  { code: "ko", label: "한국어" },
+  { code: "ja", label: "日本語" },
 ];
 
-export const messages = {
+const baseMessages = {
   ko: {
     common: {
       loading: "불러오는 중…",
@@ -52,7 +57,7 @@ export const messages = {
       series: "시리즈",
       shorts: "쇼츠폼",
       schools: "학교",
-      creators: "크리에이터",
+      creators: "창작자",
       upload: "업로드",
       aboutXiio: "XIIO 소개",
       discover: "Discover",
@@ -66,7 +71,7 @@ export const messages = {
     },
     topBar: {
       searchLabel: "검색",
-      searchPlaceholder: "작품, 크리에이터, 학교 검색",
+      searchPlaceholder: "작품, 창작자, 학교 검색",
       notifications: "알림",
     },
     search: {
@@ -441,8 +446,8 @@ export const messages = {
       },
     },
     society: {
-      title: "크리에이터",
-      lead: "크리에이터를 발견하고 연결해 아이디어를 현실로 만드세요.",
+      title: "창작자",
+      lead: "창작자를 발견하고 연결해 아이디어를 현실로 만드세요.",
       hero: {
         editProfile: "프로필 편집",
         changeBanner: "배너 변경",
@@ -472,11 +477,11 @@ export const messages = {
       connected: "연결됨",
       online: "접속 중",
       activeAgo: "{time}",
-      empty: "조건에 맞는 크리에이터가 없습니다.",
+      empty: "조건에 맞는 창작자가 없습니다.",
       emptyRequests: "대기 중인 연결 요청이 없습니다.",
       emptySent: "보낸 연결 요청이 없습니다.",
       loginRequired: "연결하려면 로그인이 필요합니다.",
-      loadError: "크리에이터 목록을 불러오지 못했습니다.",
+      loadError: "창작자 목록을 불러오지 못했습니다.",
       ctaTitle: "Build your circle.",
       ctaBody: "Meaningful connections lead to unforgettable collaborations.",
       ctaButton: "사람 찾기",
@@ -902,7 +907,7 @@ export const messages = {
         heroLine1: "이야기가",
         heroAccent: "가장 먼저",
         heroLine2: "흘러드는 곳.",
-        heroSubtitleLine1: "떠오르는 영화·시리즈·크리에이터를 위한",
+        heroSubtitleLine1: "떠오르는 영화·시리즈·창작자를 위한",
         heroSubtitleLine2: "무료 스트리밍 플랫폼입니다.",
         startWatching: "시청 시작",
         uploadStory: "내 작품 업로드",
@@ -1987,7 +1992,7 @@ export const messages = {
       },
       browse: {
         title: "둘러보기",
-        description: "OONA 크리에이터들이 올린 영화, 시리즈, 예능.",
+        description: "OONA 창작자들이 올린 영화, 시리즈, 예능.",
         tabFilms: "영화",
         tabSeries: "시리즈",
         tabEntertainment: "예능",
@@ -2009,7 +2014,7 @@ export const messages = {
         newOnXiio: "새로 올라온 작품",
         promos: "프로모·티저",
         mostWatched: "많이 본 작품",
-        creators: "주목할 크리에이터",
+        creators: "주목할 창작자",
         creatorsAction: "사람 찾기",
         creatorWorksOne: "XIIO 작품 1편",
         creatorWorksOther: "XIIO 작품 {count}편",
@@ -4091,4 +4096,18 @@ export const messages = {
   },
 } as const;
 
-export type MessageTree = typeof messages.ko;
+export type MessageTree = { readonly [key: string]: string | MessageTree };
+
+function flatten(tree: MessageTree, prefix = ""): Record<string, string> {
+  return Object.fromEntries(Object.entries(tree).flatMap(([key, value]) =>
+    typeof value === "string"
+      ? [[prefix + key, value.replace(/\bXIIO\b/g, "OONA")]]
+      : Object.entries(flatten(value, `${prefix}${key}.`))
+  ));
+}
+
+export const messages: Record<Locale, Record<string, string>> = {
+  en: { ...flatten(baseMessages.en), ...enCopy },
+  ko: { ...flatten(baseMessages.ko), ...koCopy },
+  ja: jaMessages,
+};

@@ -17,6 +17,8 @@ import { promoCropToVideoStyle } from "@/lib/works/promo-crop-interaction";
 import { watchHref } from "@/lib/works/catalog-ui";
 import type { CatalogFeedItem, WorkSection } from "@/types/work";
 import styles from "./BrowseCatalogPage.module.css";
+import UiText from "@/components/i18n/UiText";
+import { useUiCopy } from "@/components/i18n/UiText";
 
 type Section = Extract<WorkSection, "movies" | "series" | "entertainment">;
 
@@ -121,6 +123,7 @@ function SideFeature({ item, label }: { item: CatalogFeedItem; label: string }) 
 }
 
 function CrossCategoryFeatures() {
+  const _copy = useUiCopy();
   const { items: seriesItems } = useCatalogFeed("series", 1);
   const { items: showItems } = useCatalogFeed("entertainment", 1);
   const features = [
@@ -131,7 +134,7 @@ function CrossCategoryFeatures() {
   if (features.length === 0) return null;
 
   return (
-    <aside className={styles.sideStack} aria-label="Featured series and shows">
+    <aside className={styles.sideStack} aria-label={_copy("Featured series and shows")}>
       {features.map(({ item, label }) => (
         <SideFeature key={`${label}-${item.id}`} item={item} label={label} />
       ))}
@@ -140,6 +143,7 @@ function CrossCategoryFeatures() {
 }
 
 export default function BrowseCatalogPage({ section }: Props) {
+  const _copy = useUiCopy();
   const copy = COPY[section];
   const { user } = useAuth();
   const { items, loading } = useShowcaseCatalog(section, 19);
@@ -166,8 +170,8 @@ export default function BrowseCatalogPage({ section }: Props) {
           <span>{copy.description}</span>
         </header>
         <EmptyState
-          title="No published work yet"
-          body="The first approved work in this category will appear here."
+          title={_copy("No published work yet")}
+          body={_copy("The first approved work in this category will appear here.")}
           action={{ href: user ? UPLOAD_HREF : "/login", label: "Upload a work" }}
           className={styles.emptyState}
         />
@@ -209,8 +213,7 @@ export default function BrowseCatalogPage({ section }: Props) {
           <section className={styles.section}>
             <div className={styles.sectionHeader}>
               <h2>{copy.primarySection}</h2>
-              <Link href={`/${section === "movies" ? "movies" : section === "series" ? "series" : "entertainment"}`}>
-                View all <ArrowIcon />
+              <Link href={`/${section === "movies" ? "movies" : section === "series" ? "series" : "entertainment"}`}><UiText text={"View all"} />{" "}<ArrowIcon />
               </Link>
             </div>
             <ul className={styles.cardGrid}>
@@ -234,7 +237,7 @@ export default function BrowseCatalogPage({ section }: Props) {
 
         {continueWatching.length > 0 ? (
           <HomeContentRow
-            title="Continue watching"
+            title={_copy("Continue watching")}
             viewAllHref="/my-list"
             viewAllLabel="View all"
             items={continueWatching}

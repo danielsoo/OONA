@@ -12,6 +12,7 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import ReportContentModal from "@/components/report/ReportContentModal";
+import LoginPromptDialog from "@/components/auth/LoginPromptDialog";
 import StreamHlsVideo, { type StreamHlsVideoHandle } from "@/components/shorts/StreamHlsVideo";
 import type { PromoShortPeekDimLevel } from "@/components/shorts/PromoShortPeekPreview";
 import { useAuth } from "@/context/AuthContext";
@@ -291,7 +292,7 @@ function PlayerChrome({
     carouselAdjacentEmbed ||
     Boolean(transitionDimLevel);
   const { t } = useTranslations();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const videoRef = useRef<StreamHlsVideoHandle>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const metaMeasureRef = useRef<HTMLDivElement>(null);
@@ -310,9 +311,14 @@ function PlayerChrome({
   const [liked, setLiked] = useState(item.likedByMe ?? false);
   const [likeCount, setLikeCount] = useState(item.likeCount ?? 0);
   const [likeBusy, setLikeBusy] = useState(false);
-  const [likeHint, setLikeHint] = useState(false);
+  const [loginReturnTo, setLoginReturnTo] = useState<string | null>(null);
   const [shareHint, setShareHint] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
+  useEffect(() => { setLoginReturnTo(null); setReportOpen(false); }, [user?.uid, item.id, isActive]);
+
+  const requestLogin = useCallback(() => {
+    setLoginReturnTo(`${window.location.pathname}${window.location.search}`);
+  }, []);
   const [videoFailed, setVideoFailed] = useState(false);
   const [videoReady, setVideoReady] = useState(false);
   const [videoSourceSize, setVideoSourceSize] = useState({ width: 0, height: 0 });
@@ -343,7 +349,7 @@ function PlayerChrome({
     setVideoReady(true);
   }, []);
 
-  const shouldPlay = playbackEnabled ?? isActive;
+  const shouldPlay = (playbackEnabled ?? isActive) && loginReturnTo === null;
 
   useEffect(() => {
     const video = videoRef.current;
@@ -352,11 +358,11 @@ function PlayerChrome({
       void video.play().catch(() => {});
     } else {
       video.pause();
-      if (!preserveFrame) {
+      if (!preserveFrame && loginReturnTo === null) {
         video.currentTime = 0;
       }
     }
-  }, [shouldPlay, preserveFrame, item.videoUrl]);
+  }, [shouldPlay, preserveFrame, item.videoUrl, loginReturnTo]);
 
   const shareUrl = useCallback(() => {
     if (item.ownerUid && item.workId) {
@@ -368,12 +374,9 @@ function PlayerChrome({
   }, [item.id, item.ownerUid, item.workId]);
 
   const toggleLike = useCallback(async () => {
+    if (authLoading) return;
+    if (!user) { requestLogin(); return; }
     if (persisted) {
-      if (!user) {
-        setLikeHint(true);
-        window.setTimeout(() => setLikeHint(false), 3000);
-        return;
-      }
       if (likeBusy) return;
       const nextLiked = !liked;
       setLikeBusy(true);
@@ -407,7 +410,7 @@ function PlayerChrome({
       setLikeCount((c) => c + (prev ? -1 : 1));
       return !prev;
     });
-  }, [persisted, user, likeBusy, liked, item.ownerUid, item.workId]);
+  }, [authLoading, requestLogin, persisted, user, likeBusy, liked, item.ownerUid, item.workId]);
 
   const handleShare = useCallback(async () => {
     const url = shareUrl();
@@ -512,7 +515,7 @@ function PlayerChrome({
       <button
         type="button"
         onClick={() => void toggleLike()}
-        disabled={likeBusy}
+        disabled={authLoading || likeBusy}
         className="flex flex-col items-center gap-1 disabled:opacity-60 hover:opacity-80 transition-opacity"
         aria-pressed={liked}
         aria-label={t("home.promoLike")}
@@ -521,13 +524,6 @@ function PlayerChrome({
         <span className="text-xs font-semibold text-white tabular-nums drop-shadow-sm">
           {likeCount.toLocaleString()}
         </span>
-        {likeHint && (
-          <span className="text-[10px] text-amber-200 text-center max-w-[4.5rem] leading-tight drop-shadow-sm">
-            <Link href="/login" className="underline hover:text-white">
-              {t("engagement.loginToLike")}
-            </Link>
-          </span>
-        )}
       </button>
       <button
         type="button"
@@ -546,8 +542,9 @@ function PlayerChrome({
         <button
           type="button"
           onClick={() => {
+            if (authLoading) return;
             if (!user) {
-              setLikeHint(true);
+              requestLogin();
               return;
             }
             setReportOpen(true);
@@ -691,6 +688,7 @@ function PlayerChrome({
 
   return (
     <>
+      <LoginPromptDialog open={!authLoading && !user && loginReturnTo !== null} onClose={() => setLoginReturnTo(null)} returnTo={loginReturnTo ?? "/"} />
       {persisted && item.ownerUid && item.workId && (
         <ReportContentModal
           open={reportOpen}

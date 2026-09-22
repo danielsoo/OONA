@@ -3,6 +3,7 @@
 import type { RefObject } from "react";
 import { useTranslations } from "@/context/LocaleContext";
 import type { UploadPhase } from "@/lib/works/upload-progress";
+import UiText from "@/components/i18n/UiText";
 
 type Props = {
   footerRef?: RefObject<HTMLDivElement | null>;
@@ -55,20 +56,18 @@ export default function UploaderSubmitFooter({
           >
             <div className="min-w-0">
               <p className="whitespace-pre-wrap break-words text-sm text-red-300">{uploadError}</p>
-              {uploadErrorCode ? <p className="mt-1.5 text-[11px] font-medium uppercase tracking-[0.08em] text-red-200/45">Error code: {uploadErrorCode}</p> : null}
+              {uploadErrorCode ? <p className="mt-1.5 text-[11px] font-medium uppercase tracking-[0.08em] text-red-200/45"><UiText text={"Error code:"} />{" "}{uploadErrorCode}</p> : null}
             </div>
             <div className="flex shrink-0 flex-wrap items-center gap-2">
               {uploadErrorReportable && onRetry ? (
-                <button type="button" onClick={onRetry} className="inline-flex h-9 items-center justify-center rounded-full border border-white/20 px-4 text-xs font-semibold text-white/70 transition hover:border-white/40 hover:text-white">Try again</button>
+                <button type="button" onClick={onRetry} className="inline-flex h-9 items-center justify-center rounded-full border border-white/20 px-4 text-xs font-semibold text-white/70 transition hover:border-white/40 hover:text-white"><UiText text={"Try again"} /></button>
               ) : null}
               {uploadErrorReportable ? (
                 <button
                   type="button"
                   onClick={onReportError}
                   className="inline-flex h-9 items-center justify-center rounded-full border border-red-300/35 px-4 text-xs font-semibold text-red-200 transition hover:border-red-200/65 hover:bg-red-300/10 hover:text-white"
-                >
-                  Report system error
-                </button>
+                ><UiText text={"Report system error"} /></button>
               ) : null}
             </div>
           </div>

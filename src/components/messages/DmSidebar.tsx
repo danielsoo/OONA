@@ -11,6 +11,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useTranslations } from "@/context/LocaleContext";
 import { getUserProfile } from "@/lib/userProfile";
 import styles from "./MessagesEditorial.module.css";
+import UiText from "@/components/i18n/UiText";
 
 export default function DmSidebar() {
   const { mainTab, openNewMessage, openRoomComposer } = useDmInbox();
@@ -37,7 +38,7 @@ export default function DmSidebar() {
   return (
     <div className={styles.sidebarInner}>
       <div className={styles.inboxHeader}>
-        <div><h1>Messages</h1><p>{headerLabel}</p></div>
+        <div><h1><UiText text={"Messages"} /></h1><p>{headerLabel}</p></div>
         <button
           type="button"
           onClick={mainTab === "groups" ? openRoomComposer : openNewMessage}

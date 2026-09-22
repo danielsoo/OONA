@@ -33,6 +33,7 @@ import { gradientForTitle, watchHref } from "@/lib/works/catalog-ui";
 import type { CatalogFeedItem, PromoFeedItem } from "@/types/work";
 import type { SchoolListItem } from "@/types/school";
 import heroImage from "../../../discover_hero.webp";
+import { useUiCopy } from "@/components/i18n/UiText";
 
 type Props = {
   initialPromoItems?: PromoFeedItem[];
@@ -50,6 +51,7 @@ export default function HomeMockPage({
   initialSeries,
   schools,
 }: Props) {
+  const _copy = useUiCopy();
   const { t } = useTranslations();
   const { user } = useAuth();
   const { items: promoItems } = usePromoFeed({
@@ -133,7 +135,7 @@ export default function HomeMockPage({
         <section className={HERO_SECTION_CLASS}>
           <Image
             src={heroImage}
-            alt="A film crew shooting a stormy ocean scene at dusk"
+            alt={_copy("A film crew shooting a stormy ocean scene at dusk")}
             fill
             priority
             unoptimized

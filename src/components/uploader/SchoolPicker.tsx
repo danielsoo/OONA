@@ -6,6 +6,7 @@ import { useTranslations } from "@/context/LocaleContext";
 import { useSchoolSuggestions } from "@/hooks/useSchoolSuggestions";
 import type { SchoolSuggestion } from "@/types/school";
 import type { User } from "firebase/auth";
+import { useUiCopy } from "@/components/i18n/UiText";
 
 export type SchoolPickerValue = { id: string; name: string } | null;
 
@@ -31,6 +32,7 @@ export default function SchoolPicker({
   user: userProp,
   initialQuery = "",
 }: Props) {
+  const _copy = useUiCopy();
   const { user: authUser } = useAuth();
   const user = userProp ?? authUser;
   const { t } = useTranslations();
@@ -184,7 +186,7 @@ export default function SchoolPicker({
                   <span className="truncate">{s.name}</span>
                   {suggestionLocation(s) ? (
                     <span className="mt-0.5 truncate text-[10px] text-white/45">
-                      {suggestionLocation(s)}{s.source === "ror" ? " · verified directory" : ""}
+                      {suggestionLocation(s)}{s.source === "ror" ? _copy(" · verified directory") : ""}
                     </span>
                   ) : null}
                 </span>

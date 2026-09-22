@@ -8,6 +8,7 @@ import { useTranslations } from "@/context/LocaleContext";
 import type { AdminUserListItem, AdminUsersListResponse } from "@/types/admin";
 import type { PlatformPurpose, UserRole } from "@/types/user";
 import { formatApiError, formatClientError, readResponseJson } from "@/lib/clientErrors";
+import UiText from "@/components/i18n/UiText";
 
 type PurposeFilter = "" | PlatformPurpose;
 type RoleFilter = "" | UserRole;
@@ -121,9 +122,9 @@ export default function AdminUsersList() {
             className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white disabled:opacity-40"
           >
             <option value="">{t("admin.usersFilterRoleAll")}</option>
-            <option value="member">member</option>
-            <option value="admin">admin</option>
-            <option value="super_admin">super_admin</option>
+            <option value="member"><UiText text={"member"} /></option>
+            <option value="admin"><UiText text={"admin"} /></option>
+            <option value="super_admin"><UiText text={"super_admin"} /></option>
           </select>
           <input
             type="text"

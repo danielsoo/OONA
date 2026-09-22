@@ -14,7 +14,7 @@ import { formatApiError, formatClientError, readResponseJson } from "@/lib/clien
 export default function AdminPaymentEventsList() {
   const { user } = useAuth();
   const { t, locale, formatDateTime } = useTranslations();
-  const loc = locale === "en" ? "en-US" : "ko-KR";
+  const loc = locale;
 
   const [provider, setProvider] = useState("");
   const [uidInput, setUidInput] = useState("");

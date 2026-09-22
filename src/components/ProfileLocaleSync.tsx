@@ -6,6 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useLocale } from "@/context/LocaleContext";
 import { getUserProfile } from "@/lib/userProfile";
 import { isUploaderAppRoute } from "@/lib/uploader-routes";
+import { hasStoredLocale } from "@/i18n";
 
 /** 로그인 후 Firestore 프로필의 locale을 앱 언어에 반영 */
 export default function ProfileLocaleSync() {
@@ -27,7 +28,7 @@ export default function ProfileLocaleSync() {
       const profile = await getUserProfile(user.uid);
       if (cancelled || !profile?.locale) return;
       syncedUidRef.current = user.uid;
-      setLocale(profile.locale);
+      if (!hasStoredLocale()) setLocale(profile.locale);
     })();
 
     return () => {

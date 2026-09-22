@@ -14,8 +14,11 @@ import { useAuth } from "@/context/AuthContext";
 import { useTranslations } from "@/context/LocaleContext";
 import { useDepositStatus } from "@/hooks/useDepositStatus";
 import styles from "./uploaderUpload.module.css";
+import UiText from "@/components/i18n/UiText";
+import { useUiCopy } from "@/components/i18n/UiText";
 
 export default function UploaderUploadInner() {
+  const _copy = useUiCopy();
   const router = useRouter();
   const searchParams = useSearchParams();
   const requestedDraftId = searchParams.get("draft")?.trim() || null;
@@ -111,15 +114,13 @@ export default function UploaderUploadInner() {
           <div className="min-w-0">
             <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
               <h1 className="font-serif text-[44px] font-normal leading-none tracking-[-0.045em] text-[#f5f4f2] md:text-[64px]">
-                {requestedDraftId ? "Refine your work." : "Bring your work to OONA."}
+                {requestedDraftId ? _copy("Refine your work.") : _copy("Bring your work to OONA.")}
               </h1>
               {requestedDraftId ? (
                 <span className="text-[13px] text-white/40">{t("uploader.draftLabel")}</span>
               ) : null}
             </div>
-            <p className="mt-3 max-w-2xl text-[15px] font-light leading-relaxed text-white/55 md:text-[19px]">
-              Upload the highest-quality master available.
-            </p>
+            <p className="mt-3 max-w-2xl text-[15px] font-light leading-relaxed text-white/55 md:text-[19px]"><UiText text={"Upload the highest-quality master available."} /></p>
           </div>
           <UploaderHeaderActions area="upload-studio" />
         </div>

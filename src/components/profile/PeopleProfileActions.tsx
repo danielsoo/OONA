@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import BusinessInviteComposerModal from "@/components/messages/BusinessInviteComposerModal";
 import { useAuth } from "@/context/AuthContext";
 import { useTranslations } from "@/context/LocaleContext";
+import SocietyLoginDialog from "@/components/society/SocietyLoginDialog";
 
 type Props = {
   profileUid: string;
@@ -22,26 +22,40 @@ export default function PeopleProfileActions({
   isSelf,
   initialFollowing,
 }: Props) {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { t } = useTranslations();
   const router = useRouter();
   const [following, setFollowing] = useState(initialFollowing);
   const [busy, setBusy] = useState(false);
   const [inviteComposerOpen, setInviteComposerOpen] = useState(false);
+  const [loginOpen, setLoginOpen] = useState(false);
+
+  useEffect(() => {
+    setLoginOpen(false);
+    setInviteComposerOpen(false);
+  }, [user?.uid]);
 
   if (isSelf) {
     return null;
   }
 
-  if (!user) {
+  if (!user || authLoading) {
     return (
-      <Link href="/login" className="text-sm text-xiio-accent hover:underline">
-        {t("common.loginRequired")}
-      </Link>
+      <div>
+        <div className="flex flex-wrap gap-2">
+          {["follow.follow", "dm.message", "dm.invites.composerTitle"].map((key) => (
+            <button key={key} type="button" disabled={authLoading} onClick={() => setLoginOpen(true)} title={t("society.guest.actionHint")} className="rounded-lg border border-white/20 px-4 py-2 text-sm text-white hover:bg-white/5 disabled:opacity-40">
+              {t(key)}
+            </button>
+          ))}
+        </div>
+        <SocietyLoginDialog open={!authLoading && loginOpen} onClose={() => setLoginOpen(false)} returnTo={`/people/${encodeURIComponent(handle)}`} />
+      </div>
     );
   }
 
   const toggleFollow = async () => {
+    if (!user || authLoading) return;
     setBusy(true);
     try {
       const token = await user.getIdToken();
@@ -57,6 +71,7 @@ export default function PeopleProfileActions({
   };
 
   const startDm = async () => {
+    if (!user || authLoading) return;
     setBusy(true);
     try {
       const token = await user.getIdToken();

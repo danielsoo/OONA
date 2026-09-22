@@ -15,6 +15,8 @@ import { UPLOAD_HREF } from "@/lib/appNav";
 import { getUserProfile } from "@/lib/userProfile";
 import type { UserProfileDoc } from "@/types/user";
 import styles from "./CinematicAppHeader.module.css";
+import UiText, { useUiCopy } from "@/components/i18n/UiText";
+import LanguageSwitcher from "@/components/i18n/LanguageSwitcher";
 
 const navItems = [
   { label: "Home", href: "/", match: ["/"] },
@@ -55,6 +57,8 @@ function UploadIcon() {
 }
 
 export default function CinematicAppHeader() {
+  const _copy = useUiCopy();
+  const copy = useUiCopy();
   const pathname = usePathname();
   const router = useRouter();
   const { t } = useTranslations();
@@ -103,14 +107,14 @@ export default function CinematicAppHeader() {
 
   return (
     <header className={`${styles.header} ${overlayPage ? styles.overlayHeader : ""} ${schoolPage ? styles.schoolHeader : ""}`}>
-      <Link href="/" className={styles.logoLink} aria-label="OONA home">
+      <Link href="/" className={styles.logoLink} aria-label={_copy("OONA home")}>
         <XiioWordmark className={styles.logo} />
       </Link>
 
       <button
         type="button"
         className={styles.menuButton}
-        aria-label="Toggle navigation"
+        aria-label={_copy("Toggle navigation")}
         aria-expanded={menuOpen}
         onClick={() => setMenuOpen((value) => !value)}
       >
@@ -118,7 +122,7 @@ export default function CinematicAppHeader() {
         <span />
       </button>
 
-      <nav className={`${styles.nav} ${menuOpen ? styles.navOpen : ""}`} aria-label="Main navigation">
+      <nav className={`${styles.nav} ${menuOpen ? styles.navOpen : ""}`} aria-label={_copy("Main navigation")}>
         {navItems.map((item) => (
           <Link
             key={item.href}
@@ -126,25 +130,26 @@ export default function CinematicAppHeader() {
             className={isActive(pathname, item.match) ? styles.activeNav : undefined}
             aria-current={isActive(pathname, item.match) ? "page" : undefined}
           >
-            {item.label}
+            {copy(item.label)}
           </Link>
         ))}
         <div className={styles.mobileExtras}>
           {mobileExtras.map((item) => (
             <Link key={item.href} href={"auth" in item && item.auth ? authHref(item.href) : item.href}>
-              {item.label}
+              {copy(item.label)}
               {item.href === "/messages" && unreadMessages > 0 ? (
                 <span className={styles.badge}>{unreadMessages > 99 ? "99+" : unreadMessages}</span>
               ) : null}
             </Link>
           ))}
-          <Link href={authHref(UPLOAD_HREF)}>Upload a Work <UploadIcon /></Link>
+          <Link href={authHref(UPLOAD_HREF)}><UiText text={"Upload a Work"} />{" "}<UploadIcon /></Link>
         </div>
       </nav>
 
       <div className={styles.actions}>
+        <LanguageSwitcher />
         <TopBarSearch className={styles.search} />
-        <Link href="/search" className={styles.mobileSearch} aria-label="Search"><SearchIcon /></Link>
+        <Link href="/search" className={styles.mobileSearch} aria-label={_copy("Search")}><SearchIcon /></Link>
         <div className={styles.notification}><NotificationBell /></div>
         {authLoading ? (
           <span className={styles.avatarSkeleton} aria-hidden="true" />
@@ -169,25 +174,23 @@ export default function CinematicAppHeader() {
                   <strong>{displayName}</strong>
                   {user.email ? <span>{user.email}</span> : null}
                 </div>
-                {profile?.handle ? <Link href={`/people/${profile.handle}`}>My profile</Link> : null}
-                <Link href="/account">Account settings</Link>
-                <Link href="/my-list">My List</Link>
-                <Link href="/messages">Messages {unreadMessages > 0 ? <span>{unreadMessages > 99 ? "99+" : unreadMessages}</span> : null}</Link>
-                <Link href={UPLOAD_HREF}>Upload a Work</Link>
-                <Link href="/settings">Settings</Link>
-                <Link href="/about">About OONA</Link>
-                {adminChecked && isAdmin ? <Link href="/admin">Admin Panel</Link> : null}
+                {profile?.handle ? <Link href={`/people/${profile.handle}`}><UiText text={"My profile"} /></Link> : null}
+                <Link href="/account"><UiText text={"Account settings"} /></Link>
+                <Link href="/my-list"><UiText text={"My List"} /></Link>
+                <Link href="/messages"><UiText text={"Messages"} />{" "}{unreadMessages > 0 ? <span>{unreadMessages > 99 ? "99+" : unreadMessages}</span> : null}</Link>
+                <Link href={UPLOAD_HREF}><UiText text={"Upload a Work"} /></Link>
+                <Link href="/settings"><UiText text={"Settings"} /></Link>
+                <Link href="/about"><UiText text={"About OONA"} /></Link>
+                {adminChecked && isAdmin ? <Link href="/admin"><UiText text={"Admin Panel"} /></Link> : null}
                 <button
                   type="button"
                   onClick={() => void logout().then(() => router.push("/"))}
-                >
-                  Log out
-                </button>
+                ><UiText text={"Log out"} /></button>
               </div>
             ) : null}
           </div>
         ) : (
-          <Link href="/login" className={styles.signIn}>Sign in</Link>
+          <Link href="/login" className={styles.signIn}><UiText text={"Sign in"} /></Link>
         )}
       </div>
     </header>

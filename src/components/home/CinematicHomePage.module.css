@@ -791,6 +791,14 @@
   .heroCopy { right: var(--page-pad); bottom: 103px; }
   .eyebrow { margin-bottom: 13px; font-size: 9px; }
   .heroCopy h1 { font-size: clamp(43px, 14vw, 58px); }
+  /* CJK headlines need fewer characters per line than the Latin display face. */
+  .heroCopy:lang(ko) h1,
+  .heroCopy:lang(ja) h1 {
+    font-size: clamp(36px, 10vw, 48px);
+    line-height: 1.16;
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+  }
   .heroBody { max-width: 330px; margin: 13px 0 22px; font-size: 14px; }
   .primaryButton { width: 174px; height: 44px; font-size: 13px; }
   .uploadButton { height: 44px; padding: 0 14px; font-size: 12px; }

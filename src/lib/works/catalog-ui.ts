@@ -32,8 +32,10 @@ export function watchHref(ownerUid: string, workId: string): string {
   return `/watch/${ownerUid}/${workId}`;
 }
 
-export function formatDurationMinutes(durationSec: number): string {
+export function formatDurationMinutes(durationSec: number, locale: string = "en"): string {
   const minutes = Math.max(0, Math.round(durationSec / 60));
+  if (locale.startsWith("ko")) return `${minutes}분`;
+  if (locale.startsWith("ja")) return `${minutes}分`;
   return `${minutes} min`;
 }
 
@@ -55,5 +57,5 @@ export function formatRuntime(
 ): string {
   const sec = Math.max(0, Math.round(durationSec));
   if (sec < 60) return t ? t("ui.watch.seconds", { count: sec }) : `${sec} sec`;
-  return formatDurationMinutes(sec);
+  return t ? t("ui.watch.minutes", { count: Math.max(0, Math.round(sec / 60)) }) : formatDurationMinutes(sec);
 }

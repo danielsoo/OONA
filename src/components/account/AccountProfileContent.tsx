@@ -25,6 +25,7 @@ import AccountUploadsList from "@/components/account/AccountUploadsList";
 import AccountWorkActivityList from "@/components/account/AccountWorkActivityList";
 import ProfileAvatar from "@/components/profile/ProfileAvatar";
 import styles from "./AccountProfileContent.module.css";
+import UiText from "@/components/i18n/UiText";
 
 function parseMainTab(raw: string | null): MainTabId {
   if (raw === "profile") return raw;
@@ -194,12 +195,7 @@ export default function AccountProfileContent() {
   const showAge = !showBirthDate && profile.age != null && profile.age >= 1;
   const showGender = Boolean(profile.gender);
   const showJoined = profile.createdAt != null;
-  const localeLabel =
-    profile.locale === "en"
-      ? LOCALES.find((l) => l.code === "en")?.label ?? "English"
-      : profile.locale === "ko"
-        ? LOCALES.find((l) => l.code === "ko")?.label ?? "한국어"
-        : null;
+  const localeLabel = LOCALES.find((language) => language.code === profile.locale)?.label ?? null;
 
   const heroMetaItems: AccountProfileMetaItem[] = [];
   if (showBirthDate && profile.birthDate) {
@@ -314,9 +310,9 @@ export default function AccountProfileContent() {
         <section className={styles.profileEditor}>
           <div className={styles.mobileNav}><AccountProfileNav variant="mobile" {...navProps} /></div>
           <header className={styles.profileHeading}>
-            <p>ACCOUNT &amp; SETTINGS</p>
-            <h1>Profile</h1>
-            <span>Shape how collaborators see you.</span>
+            <p><UiText text={"ACCOUNT & SETTINGS"} /></p>
+            <h1><UiText text={"Profile"} /></h1>
+            <span><UiText text={"Shape how collaborators see you."} /></span>
           </header>
           <AccountProfileHero
             profile={profile}
@@ -328,7 +324,7 @@ export default function AccountProfileContent() {
         </section>
 
         <aside className={styles.publicPreview}>
-          <div className={styles.previewLabel}>PUBLIC PREVIEW <span aria-hidden="true">↗</span></div>
+          <div className={styles.previewLabel}><UiText text={"PUBLIC PREVIEW"} />{" "}<span aria-hidden="true">↗</span></div>
           <div className={styles.previewBanner} aria-hidden="true" />
           <ProfileAvatar
             displayName={profile.displayName || "?"}

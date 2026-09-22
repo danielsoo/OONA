@@ -9,11 +9,14 @@ import SectionLabel from "@/components/layout/SectionLabel";
 import { MOCKUP_HOME } from "@/lib/mockupHomeSpec";
 import { seriesThumbnailClassName } from "@/lib/series/thumbnailPresentation";
 import { buildShowCatalog } from "@/lib/show/showAdapter";
+import UiText from "@/components/i18n/UiText";
+import { useUiCopy } from "@/components/i18n/UiText";
 
 type ShowItem = {
   id: string;
   title: string;
-  metadata: string;
+  seasonCount: number;
+  episodeCount: number;
   format: string;
   thumbnailUrl: string;
   videoUrl?: string;
@@ -38,7 +41,8 @@ const SHOWS: ShowItem[] = buildShowCatalog().map((show) => {
   return {
     id: show.id,
     title: show.title,
-    metadata: `${show.seasons.length} Season${show.seasons.length === 1 ? "" : "s"} · ${episodeCount} Episodes`,
+    seasonCount: show.seasons.length,
+    episodeCount,
     format: show.genre,
     thumbnailUrl: firstEpisode?.thumbnailUrl ?? "/images/hero/show-catalog-v1.png",
     videoUrl: firstEpisode?.videoUrl,
@@ -66,6 +70,7 @@ function ShowCard({
   item: ShowItem;
   rank?: number;
 }) {
+  const copy = useUiCopy();
   const [previewing, setPreviewing] = useState(false);
 
   return (
@@ -102,7 +107,7 @@ function ShowCard({
         ) : null}
         {item.badge ? (
           <span className="absolute left-2.5 top-2.5 rounded-full bg-xiio-accent px-2 py-1 text-[9px] font-bold tracking-[0.06em] text-white">
-            {item.badge}
+            {copy(item.badge)}
           </span>
         ) : null}
         <span className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full border border-white/20 bg-black/45 text-white opacity-0 backdrop-blur-sm transition group-hover:opacity-100">
@@ -112,8 +117,8 @@ function ShowCard({
       <div className="min-h-[50px] pt-2">
         <p className="truncate text-[13.5px] font-semibold text-white">{item.title}</p>
         <div className="mt-1 flex items-center justify-between gap-3 text-[11px] text-white/42">
-          <span className="truncate">{item.metadata}</span>
-          <span className="shrink-0">{item.format}</span>
+          <span className="truncate">{copy(item.seasonCount === 1 ? "{count} season" : "{count} seasons", { count: item.seasonCount })} · {copy(item.episodeCount === 1 ? "{count} episode" : "{count} episodes", { count: item.episodeCount })}</span>
+          <span className="shrink-0">{copy(item.format)}</span>
         </div>
       </div>
     </Link>
@@ -133,7 +138,7 @@ function ShowSection({
     <section>
       <div className="mb-4 flex items-center justify-between gap-4">
         <SectionLabel>{title}</SectionLabel>
-        <span className="text-[11px] text-white/35">View all</span>
+        <span className="text-[11px] text-white/35"><UiText text={"View all"} /></span>
       </div>
       <div className="grid grid-cols-2 gap-x-3.5 gap-y-5 md:grid-cols-3 xl:grid-cols-5">
         {items.map((item, index) => (
@@ -149,6 +154,7 @@ function ShowSection({
 }
 
 export default function ShowCatalogPage() {
+  const _copy = useUiCopy();
   const featured = SHOWS[0];
 
   return (
@@ -156,7 +162,7 @@ export default function ShowCatalogPage() {
       <section className="relative isolate min-h-[560px] overflow-hidden">
         <Image
           src="/images/hero/show-catalog-v1.png"
-          alt="A young cast playing a team challenge in a studio show"
+          alt={_copy("A young cast playing a team challenge in a studio show")}
           fill
           priority
           unoptimized
@@ -168,12 +174,10 @@ export default function ShowCatalogPage() {
 
         <div className={HERO_COPY_STAGE_CLASS}>
           <HeroCopy
-            eyebrow="Featured Show"
+            eyebrow={_copy("Featured Show")}
             title="Off Script"
             description={
-              <>
-                Five creators. One unpredictable challenge. No rehearsals, no second takes — just the moment as it happens.
-              </>
+              <><UiText text={"Five creators. One unpredictable challenge. No rehearsals, no second takes — just the moment as it happens."} /></>
             }
           >
             <div className="flex flex-wrap items-center gap-3">
@@ -181,25 +185,21 @@ export default function ShowCatalogPage() {
                 href={`/entertainment/${featured.id}`}
                 className="inline-flex h-12 items-center gap-2.5 rounded-full bg-[#f5f4f2] px-7 text-[14px] font-semibold text-[#0b0b0d] transition hover:bg-white"
               >
-                <IconPlay className="h-3.5 w-3.5" />
-                View Show
-              </Link>
+                <IconPlay className="h-3.5 w-3.5" /><UiText text={"View Show"} /></Link>
               <Link
                 href="/my-list"
                 className="inline-flex h-12 items-center rounded-full border border-white/25 px-7 text-[14px] font-semibold text-white/85 transition hover:border-white/45 hover:bg-white/[0.05]"
-              >
-                + My List
-              </Link>
+              ><UiText text={"+ My List"} /></Link>
             </div>
           </HeroCopy>
         </div>
       </section>
 
       <div className="relative z-10 flex min-w-0 flex-col gap-10 overflow-x-clip bg-xiio-bg px-4 pb-16 pt-10 lg:px-12">
-        <ShowSection title="Trending Shows" items={SHOWS.slice(0, 5)} ranked />
-        <ShowSection title="New & Returning Shows" items={SHOWS.slice(5, 10)} />
+        <ShowSection title={_copy("Trending Shows")} items={SHOWS.slice(0, 5)} ranked />
+        <ShowSection title={_copy("New & Returning Shows")} items={SHOWS.slice(5, 10)} />
         <ShowSection
-          title="Campus Favorites"
+          title={_copy("Campus Favorites")}
           items={[SHOWS[2], SHOWS[5], SHOWS[1], SHOWS[8], SHOWS[3]]}
         />
       </div>

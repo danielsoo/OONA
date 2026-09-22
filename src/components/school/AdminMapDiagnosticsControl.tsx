@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useAdminAccess } from "@/hooks/useAdminAccess";
+import UiText from "@/components/i18n/UiText";
 
 type AdminMapDiagnosticsControlProps = {
   enabled: boolean;
@@ -27,8 +28,6 @@ export default function AdminMapDiagnosticsControl({
       aria-pressed={enabled}
       onClick={() => onChange(!enabled)}
     >
-      <span className="coordinate-toggle-dot" aria-hidden="true" />
-      Map diagnostics
-    </button>
+      <span className="coordinate-toggle-dot" aria-hidden="true" /><UiText text={"Map diagnostics"} /></button>
   );
 }

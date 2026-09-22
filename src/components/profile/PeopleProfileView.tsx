@@ -97,7 +97,7 @@ export default function PeopleProfileView({ handle }: Props) {
     return <p className="px-4 text-red-400 lg:px-12">{err ?? t("network.people.notFound")}</p>;
   }
 
-  const isSelf = !!data.viewer?.isSelf;
+  const isSelf = !!user && data.viewer?.uid === user.uid && data.profile.uid === user.uid;
   const works = [...data.directed, ...data.credited];
 
   return (
@@ -118,7 +118,7 @@ export default function PeopleProfileView({ handle }: Props) {
         isOnline={data.isOnline}
         profileUid={data.profile.uid}
         isSelf={isSelf}
-        isFollowing={!!data.viewer?.isFollowing}
+        isFollowing={!!user && data.viewer?.uid === user.uid && !!data.viewer.isFollowing}
       />
         <SocietyProfileBody works={works} isSelf={isSelf} />
       </div>

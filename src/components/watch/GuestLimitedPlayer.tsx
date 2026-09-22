@@ -10,7 +10,6 @@ type Props = {
   durationSec?: number;
   className?: string;
   loginHref?: string;
-  signupHref?: string;
 };
 
 export default function GuestLimitedPlayer({
@@ -18,7 +17,6 @@ export default function GuestLimitedPlayer({
   durationSec,
   className = "absolute inset-0 w-full h-full object-contain bg-black",
   loginHref,
-  signupHref,
 }: Props) {
   const limitRef = useRef(0);
   const [limitReached, setLimitReached] = useState(false);
@@ -107,7 +105,7 @@ export default function GuestLimitedPlayer({
         onSeeking={handleSeeking}
         onSeeked={handleSeeked}
       />
-      {limitReached && <GuestPreviewOverlay loginHref={loginHref} signupHref={signupHref} />}
+      {limitReached && <GuestPreviewOverlay loginHref={loginHref} />}
     </div>
   );
 }

@@ -5,6 +5,8 @@ import { useAuth } from "@/context/AuthContext";
 import { useTranslations } from "@/context/LocaleContext";
 import { invalidateCache } from "@/lib/feedCache";
 import { buttonClass } from "@/components/ui/Button";
+import LoginPromptDialog from "@/components/auth/LoginPromptDialog";
+import { watchHref } from "@/lib/works/catalog-ui";
 
 type Props = {
   ownerUid: string;
@@ -33,6 +35,9 @@ export default function WatchlistButton({ ownerUid, workId, variant = "compact" 
   const [saved, setSaved] = useState(false);
   const [busy, setBusy] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [loginOpen, setLoginOpen] = useState(false);
+
+  useEffect(() => { setLoginOpen(false); }, [user?.uid]);
 
   useEffect(() => {
     if (authLoading || !user) {
@@ -64,8 +69,9 @@ export default function WatchlistButton({ ownerUid, workId, variant = "compact" 
   }, [authLoading, user, ownerUid, workId]);
 
   const toggle = useCallback(async () => {
+    if (authLoading) return;
     if (!user) {
-      window.location.href = "/login";
+      setLoginOpen(true);
       return;
     }
     if (busy) return;
@@ -90,17 +96,18 @@ export default function WatchlistButton({ ownerUid, workId, variant = "compact" 
     } finally {
       setBusy(false);
     }
-  }, [busy, ownerUid, saved, user, workId]);
+  }, [authLoading, busy, ownerUid, saved, user, workId]);
 
   const label = saved ? t("watchlist.inList") : t("watchlist.add");
   const title = !user && !authLoading ? t("watchlist.loginRequired") : label;
   const isHero = variant === "hero";
 
   return (
+    <>
     <button
       type="button"
       onClick={() => void toggle()}
-      disabled={busy || (Boolean(user) && !loaded)}
+      disabled={authLoading || busy || (Boolean(user) && !loaded)}
       title={title}
       aria-label={title}
       className={
@@ -120,5 +127,7 @@ export default function WatchlistButton({ ownerUid, workId, variant = "compact" 
       <ListIcon filled={saved} />
       <span className={isHero ? "inline" : "hidden sm:inline"}>{label}</span>
     </button>
+    <LoginPromptDialog open={!authLoading && !user && loginOpen} onClose={() => setLoginOpen(false)} returnTo={watchHref(ownerUid, workId)} />
+    </>
   );
 }

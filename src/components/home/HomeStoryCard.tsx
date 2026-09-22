@@ -9,6 +9,7 @@ import { useSequentialVideoLoad } from "@/components/video/SequentialVideoLoadPr
 import type { HomeStoryItem } from "@/lib/homeMockData";
 import { MOCKUP_HOME } from "@/lib/mockupHomeSpec";
 import { gradientForTitle } from "@/lib/works/catalog-ui";
+import { useUiCopy } from "@/components/i18n/UiText";
 
 const StreamHlsVideo = dynamic(() => import("@/components/shorts/StreamHlsVideo"), {
   ssr: false,
@@ -132,6 +133,7 @@ export default function HomeStoryCard({
   videoQueueKey = `card:${item.id}`,
   videoEnabled = false,
 }: Props) {
+  const _copy = useUiCopy();
   const isFeatured = variant === "featured";
   const href = item.href ?? "/movies";
   const widthClass = isFeatured ? MOCKUP_HOME.featuredCardWidth : MOCKUP_HOME.surfaceCardWidth;
@@ -154,7 +156,7 @@ export default function HomeStoryCard({
           <button
             type="button"
             className="absolute bottom-2.5 right-2.5 w-7 h-7 rounded-full bg-black/50 border border-white/20 flex items-center justify-center text-white/90 hover:bg-black/70"
-            aria-label="Add to list"
+            aria-label={_copy("Add to list")}
             onClick={(e) => e.preventDefault()}
           >
             <IconPlus />

@@ -100,7 +100,7 @@ export async function POST(request: Request, { params }: Params) {
     );
   }
 
-  const locale = body.locale === "en" ? "en" : "ko";
+  const locale = body.locale === "ja" ? "ja" : body.locale === "en" ? "en" : "ko";
   const emailResult = await sendCollabInviteEmail(created.invite, { locale });
   const inviteUrl = buildCollabInviteUrl(
     created.invite.token,

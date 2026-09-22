@@ -9,6 +9,7 @@ import { useTranslations } from "@/context/LocaleContext";
 import { formatDmTime } from "@/lib/dm/formatDmTime";
 import type { BusinessInviteListItem } from "@/types/business-invite";
 import type { PublicPortfolioPayload } from "@/types/portfolio";
+import UiText from "@/components/i18n/UiText";
 
 type Props = {
   invite: BusinessInviteListItem;
@@ -133,7 +134,7 @@ export default function BusinessInviteCard({ invite, box, onChanged }: Props) {
           </div>
           {invite.projectTitle && (
             <p className="mt-2 text-xs text-white/70">
-              <span className="text-white/35">Project</span> · {invite.projectTitle}
+              <span className="text-white/35"><UiText text={"Project"} /></span> · {invite.projectTitle}
               {invite.role ? <span className="text-white/35"> · {invite.role}</span> : null}
             </p>
           )}
@@ -211,7 +212,7 @@ export default function BusinessInviteCard({ invite, box, onChanged }: Props) {
           {invite.status === "accepted" && invite.threadId && (
             <div className="mt-2 flex gap-3">
               <button type="button" onClick={() => router.push(`/messages/${invite.threadId}`)} className="text-xs text-xiio-accent hover:underline">{t("dm.invites.goToChat")}</button>
-              {invite.projectId ? <button type="button" onClick={() => router.push(`/projects/${invite.projectId}`)} className="text-xs text-xiio-accent hover:underline">Open project →</button> : null}
+              {invite.projectId ? <button type="button" onClick={() => router.push(`/projects/${invite.projectId}`)} className="text-xs text-xiio-accent hover:underline"><UiText text={"Open project →"} /></button> : null}
             </div>
           )}
         </div>

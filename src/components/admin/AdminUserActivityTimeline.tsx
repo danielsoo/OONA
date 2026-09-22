@@ -60,7 +60,7 @@ function payloadStrings(
 export default function AdminUserActivityTimeline({ uid }: Props) {
   const { user } = useAuth();
   const { t, locale, formatDateTime } = useTranslations();
-  const loc = locale === "en" ? "en-US" : "ko-KR";
+  const loc = locale;
 
   const [category, setCategory] = useState<AdminUserActivityCategory>("all");
   const [items, setItems] = useState<AdminUserActivityItem[]>([]);

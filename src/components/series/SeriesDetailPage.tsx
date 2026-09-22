@@ -16,6 +16,9 @@ import {
 import { formatDurationMinutes, formatReleaseDate, gradientForTitle } from "@/lib/works/catalog-ui";
 import type { SeriesEpisode } from "@/types/series";
 import filmHeroImage from "../../../film_hero.webp";
+import UiText from "@/components/i18n/UiText";
+import { useUiCopy } from "@/components/i18n/UiText";
+import { useTranslations } from "@/context/LocaleContext";
 
 const VIDEO_RATIO = { aspectRatio: "16 / 9" } as const;
 
@@ -45,6 +48,7 @@ function ContinueEpisodeCard({
   active: boolean;
   onSelect: () => void;
 }) {
+  const copy = useUiCopy();
   const remainingMinutes = Math.max(
     1,
     Math.round((episode.durationSec / 60) * (1 - progress / 100))
@@ -66,7 +70,7 @@ function ContinueEpisodeCard({
           </p>
           <div className="mt-0.5 flex items-end justify-between gap-3">
             <p className="truncate text-[13px] font-semibold text-white">{episode.title}</p>
-            <span className="shrink-0 text-[10px] text-white/55">{remainingMinutes}m left</span>
+            <span className="shrink-0 text-[10px] text-white/55">{copy("{count} min left", { count: remainingMinutes })}</span>
           </div>
         </div>
         <div className="absolute inset-x-0 bottom-0 h-[3px] bg-white/20">
@@ -86,6 +90,7 @@ function EpisodeListRow({
   selected: boolean;
   onSelect: () => void;
 }) {
+  const { locale: mediaLocale } = useTranslations();
   return (
     <button
       type="button"
@@ -108,7 +113,7 @@ function EpisodeListRow({
           {episode.title}
         </strong>
         <small className="mt-0.5 block text-[10px] text-white/40">
-          {formatDurationMinutes(episode.durationSec)}
+          {formatDurationMinutes(episode.durationSec, mediaLocale)}
         </small>
       </span>
       <span
@@ -133,6 +138,7 @@ function EpisodeScrollList({
   selectedIndex: number;
   onSelect: (index: number) => void;
 }) {
+  const _copy = useUiCopy();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollDown, setCanScrollDown] = useState(false);
 
@@ -152,7 +158,7 @@ function EpisodeScrollList({
     <div className="relative min-h-0">
       <div
         ref={scrollRef}
-        aria-label="Episode list"
+        aria-label={_copy("Episode list")}
         className="grid max-h-[330px] content-start gap-1.5 overflow-y-auto pb-12 pr-2 [scrollbar-color:rgba(255,255,255,0.22)_transparent] [scrollbar-width:thin]"
         onScroll={(event) => {
           const node = event.currentTarget;
@@ -175,9 +181,7 @@ function EpisodeScrollList({
           canScrollDown ? "opacity-100" : "opacity-0"
         }`}
       >
-        <span className="rounded-full border border-white/12 bg-black/65 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-white/65 shadow-lg backdrop-blur-sm">
-          More episodes ↓
-        </span>
+        <span className="rounded-full border border-white/12 bg-black/65 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-white/65 shadow-lg backdrop-blur-sm"><UiText text={"More episodes ↓"} /></span>
       </div>
     </div>
   );
@@ -192,6 +196,8 @@ export default function SeriesDetailPage({
   seriesId,
   variant = "series",
 }: SeriesDetailPageProps) {
+  const { locale: mediaLocale } = useTranslations();
+  const _copy = useUiCopy();
   const isShow = variant === "show";
   const { items } = useCatalogFeed(isShow ? "entertainment" : "series", 24);
   const catalog = useMemo(
@@ -234,7 +240,7 @@ export default function SeriesDetailPage({
       <section className="relative isolate min-h-[650px] overflow-hidden">
         <Image
           src={heroImage}
-          alt={isShow ? `${series.title} cast` : "A drama character looking over a city at night"}
+          alt={isShow ? `${series.title} cast` : _copy("A drama character looking over a city at night")}
           fill
           priority
           placeholder={isShow ? "empty" : "blur"}
@@ -247,14 +253,12 @@ export default function SeriesDetailPage({
 
         <div className="relative z-10 min-h-[650px] px-4 pt-[54px] lg:px-12">
           <HeroCopy
-            eyebrow={isShow ? "Featured Show" : "Featured Series"}
+            eyebrow={isShow ? _copy("Featured Show") : _copy("Featured Series")}
             title={series.title}
             description={
               <>
                 <span className="mb-3 block text-[12px] tracking-[0.04em] text-white/55">
-                  {isShow ? "2026" : "2024"} · {series.genre} · {series.seasons.length} Season
-                  {series.seasons.length === 1 ? "" : "s"} · {allEpisodes.length} Episodes · ★ 4.8
-                </span>
+                  {isShow ? "2026" : "2024"} · {_copy(series.genre)} · {_copy(series.seasons.length === 1 ? "{count} season" : "{count} seasons", { count: series.seasons.length })} · {_copy(allEpisodes.length === 1 ? "{count} episode" : "{count} episodes", { count: allEpisodes.length })} · ★ 4.8</span>
                 {series.synopsis}
               </>
             }
@@ -265,22 +269,16 @@ export default function SeriesDetailPage({
                 onClick={() => selectedEpisode && setPlayingEpisode(selectedEpisode)}
                 className="inline-flex h-12 items-center gap-2.5 rounded-full bg-[#f5f4f2] px-7 text-[14px] font-semibold text-[#0b0b0d] transition hover:bg-white"
               >
-                <IconPlay className="h-3.5 w-3.5" />
-                Continue Watching
-              </button>
+                <IconPlay className="h-3.5 w-3.5" /><UiText text={"Resume watching"} /></button>
               <Link
                 href="/my-list"
                 className="inline-flex h-12 items-center rounded-full border border-white/25 px-7 text-[14px] font-semibold text-white/85 transition hover:border-white/45 hover:bg-white/[0.05]"
-              >
-                + My List
-              </Link>
+              ><UiText text={"+ My List"} /></Link>
             </div>
           </HeroCopy>
 
           <div className="absolute inset-x-4 bottom-5 lg:inset-x-12">
-            <h2 className="mb-3 text-[13px] font-bold uppercase tracking-[0.12em] text-white">
-              Continue Watching
-            </h2>
+            <h2 className="mb-3 text-[13px] font-bold uppercase tracking-[0.12em] text-white"><UiText text={"Continue Watching"} /></h2>
             <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
               {continueEpisodes.map((episode, index) => {
                 const actualIndex = continueStart + index;
@@ -302,11 +300,9 @@ export default function SeriesDetailPage({
       <div className="relative z-10 bg-xiio-bg px-4 pb-16 pt-4 lg:px-12">
         <section className="rounded-2xl border border-white/[0.08] bg-white/[0.025] p-4 lg:p-5">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-            <h2 className="text-[13px] font-bold uppercase tracking-[0.12em] text-white">
-              Seasons &amp; Episodes
-            </h2>
+            <h2 className="text-[13px] font-bold uppercase tracking-[0.12em] text-white"><UiText text={"Seasons & Episodes"} /></h2>
             <label className="relative">
-              <span className="sr-only">Select season</span>
+              <span className="sr-only"><UiText text={"Select season"} /></span>
               <select
                 value={seasonIndex}
                 onChange={(event) => {
@@ -343,7 +339,7 @@ export default function SeriesDetailPage({
                   {selectedEpisode.title}
                 </h3>
                 <p className="mt-2 text-[11px] text-white/45">
-                  {formatDurationMinutes(selectedEpisode.durationSec)} · Released {formatReleaseDate(selectedEpisode.releaseDate)}
+                  {formatDurationMinutes(selectedEpisode.durationSec, mediaLocale)}{" "}<UiText text={"· Released"} />{" "}{formatReleaseDate(selectedEpisode.releaseDate, mediaLocale)}
                 </p>
                 <p className="mt-3 max-w-[520px] text-[12.5px] leading-relaxed text-white/58">
                   {selectedEpisode.synopsis}
@@ -353,9 +349,7 @@ export default function SeriesDetailPage({
                   onClick={() => setPlayingEpisode(selectedEpisode)}
                   className="mt-4 inline-flex h-10 items-center gap-2 rounded-full bg-white px-5 text-[12.5px] font-semibold text-black transition hover:bg-white/90"
                 >
-                  <IconPlay className="h-3 w-3" />
-                  Watch Episode
-                </button>
+                  <IconPlay className="h-3 w-3" /><UiText text={"Watch Episode"} /></button>
               </div>
             </div>
 
@@ -370,9 +364,7 @@ export default function SeriesDetailPage({
         <section className="mt-7">
           <div className="mb-4 flex items-center gap-2">
             <span className="h-1.5 w-1.5 rounded-full bg-xiio-accent" />
-            <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-white">
-              New Episodes This Week
-            </h2>
+            <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-white"><UiText text={"New Episodes This Week"} /></h2>
           </div>
           <div className="grid grid-cols-2 gap-3.5 md:grid-cols-4">
             {latestEpisodes.map((episode) => (
@@ -387,13 +379,11 @@ export default function SeriesDetailPage({
                   style={VIDEO_RATIO}
                 >
                   <EpisodeImage episode={episode} sizes="25vw" />
-                  <span className="absolute left-2.5 top-2.5 rounded-full bg-xiio-accent px-2 py-1 text-[9px] font-bold text-white">
-                    NEW
-                  </span>
+                  <span className="absolute left-2.5 top-2.5 rounded-full bg-xiio-accent px-2 py-1 text-[9px] font-bold text-white"><UiText text={"NEW"} /></span>
                 </div>
                 <p className="mt-2 truncate text-[13px] font-semibold text-white">{episode.title}</p>
                 <p className="mt-1 text-[10.5px] text-white/40">
-                  S{episode.seasonNumber} E{episode.episodeNumber} · {formatDurationMinutes(episode.durationSec)}
+                  S{episode.seasonNumber} E{episode.episodeNumber} · {formatDurationMinutes(episode.durationSec, mediaLocale)}
                 </p>
               </button>
             ))}
@@ -421,7 +411,7 @@ export default function SeriesDetailPage({
                 type="button"
                 onClick={() => setPlayingEpisode(null)}
                 className="grid h-10 w-10 place-items-center rounded-full border border-white/20 text-xl text-white/75 transition hover:bg-white/10 hover:text-white"
-                aria-label="Close player"
+                aria-label={_copy("Close player")}
               >
                 ×
               </button>

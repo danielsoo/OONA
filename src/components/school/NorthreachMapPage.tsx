@@ -24,6 +24,8 @@ import { promoCropToVideoStyle } from "@/lib/works/promo-crop-interaction";
 import { watchHref } from "@/lib/works/catalog-ui";
 import type { SchoolListItem } from "@/types/school";
 import "@/components/school/northreach-map.css";
+import UiText from "@/components/i18n/UiText";
+import { useUiCopy } from "@/components/i18n/UiText";
 
 type SchoolRegion = "North America" | "Europe" | "Asia-Pacific";
 type Region = "All Regions" | "United States" | SchoolRegion;
@@ -239,6 +241,7 @@ function SchoolCrest({ school }: { school: MapSchool }) {
 }
 
 export default function NorthreachMapPage() {
+  const _copy = useUiCopy();
   const [region, setRegion] = useState<Region>("All Regions");
   const [regionOpen, setRegionOpen] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -351,9 +354,9 @@ export default function NorthreachMapPage() {
   return (
     <div className="nr">
       <main className={`atlas-shell${ACTIVE_MAP_MODE === "fictional" ? " fictional-atlas" : ""}`}>
-        <section className="map-panel" aria-label="Interactive school map">
+        <section className="map-panel" aria-label={_copy("Interactive school map")}>
           <div className="schools-intro">
-            <h1 className="map-heading-visually-hidden">Schools on OONA</h1>
+            <h1 className="map-heading-visually-hidden"><UiText text={"Schools on OONA"} /></h1>
 
             {ACTIVE_MAP_MODE === "geographic" ? (
               <div className="map-controls">
@@ -365,11 +368,11 @@ export default function NorthreachMapPage() {
                     aria-expanded={regionOpen}
                     onClick={() => setRegionOpen((open) => !open)}
                   >
-                    <span>{region}</span>
+                    <span>{_copy(region)}</span>
                     <Chevron direction="down" />
                   </button>
                   {regionOpen ? (
-                    <div className="region-menu" role="listbox" aria-label="Filter schools by region">
+                    <div className="region-menu" role="listbox" aria-label={_copy("Filter schools by region")}>
                       {REGIONS.map((item) => (
                         <button
                           key={item}
@@ -379,7 +382,7 @@ export default function NorthreachMapPage() {
                           className={item === region ? "selected" : undefined}
                           onClick={() => chooseRegion(item)}
                         >
-                          {item}
+                          {_copy(item)}
                           {item === region ? <span aria-hidden="true">✓</span> : null}
                         </button>
                       ))}
@@ -415,7 +418,7 @@ export default function NorthreachMapPage() {
               <div
                 className="coordinate-frame"
               >
-                <span>Geographic map · exact coordinates</span>
+                <span><UiText text={"Geographic map · exact coordinates"} /></span>
               </div>
 
               {mapGuides.longitudes.map((longitude) => (
@@ -457,11 +460,11 @@ export default function NorthreachMapPage() {
                   <output className="coordinate-readout">
                     <span>{formatLatitude(cursorCoordinate.latitude)}</span>
                     <span>{formatLongitude(cursorCoordinate.longitude)}</span>
-                    <small>map {cursorCoordinate.x.toFixed(2)}%, {cursorCoordinate.y.toFixed(2)}%</small>
+                    <small><UiText text={"map"} />{" "}{cursorCoordinate.x.toFixed(2)}%, {cursorCoordinate.y.toFixed(2)}%</small>
                   </output>
                 </>
               ) : (
-                <div className="coordinate-hint">Pins and land use the same geographic projection</div>
+                <div className="coordinate-hint"><UiText text={"Pins and land use the same geographic projection"} /></div>
               )}
               </div>
             ) : null}
@@ -498,8 +501,8 @@ export default function NorthreachMapPage() {
             </div>
           </div>
 
-          <aside className="legend" aria-label="Student creator legend">
-            <p>Student creators</p>
+          <aside className="legend" aria-label={_copy("Student creator legend")}>
+            <p><UiText text={"Student creators"} /></p>
             <div className="legend-line"><i className="legend-orb orb-xl" /><span>2.0K+</span></div>
             <div className="legend-line"><i className="legend-orb orb-lg" /><span>1.0K – 2.0K</span></div>
             <div className="legend-line"><i className="legend-orb orb-md" /><span>500 – 1.0K</span></div>
@@ -507,8 +510,8 @@ export default function NorthreachMapPage() {
           </aside>
         </section>
 
-        <aside className="ranking-rail" aria-label="Schools on OONA">
-          <div className="ranking-head"><h2>Schools on OONA</h2></div>
+        <aside className="ranking-rail" aria-label={_copy("Schools on OONA")}>
+          <div className="ranking-head"><h2><UiText text={"Schools on OONA"} /></h2></div>
 
           <ol className="ranking-list">
             {rankedSchools.map((school, index) => {
@@ -545,7 +548,7 @@ export default function NorthreachMapPage() {
               aria-expanded={showAll}
               onClick={() => setShowAll((expanded) => !expanded)}
             >
-              <span>{showAll ? "Show top 10" : "View all schools"}</span>
+              <span>{showAll ? _copy("Show top 10") : _copy("View all schools")}</span>
               <span className={showAll ? "view-arrow up" : "view-arrow"} aria-hidden="true">→</span>
             </button>
           ) : null}
@@ -572,10 +575,10 @@ export default function NorthreachMapPage() {
         <section className="campus-screenings" aria-labelledby="campus-screenings-title">
           <div className="campus-screenings-head">
             <div>
-              <p>Now screening</p>
-              <h2 id="campus-screenings-title">Stories from across OONA</h2>
+              <p><UiText text={"Now screening"} /></p>
+              <h2 id="campus-screenings-title"><UiText text={"Stories from across OONA"} /></h2>
             </div>
-            <span>Hover a film to preview</span>
+            <span><UiText text={"Hover a film to preview"} /></span>
           </div>
           <div className="campus-screenings-grid">
             {campusStories.map((item, index) => (

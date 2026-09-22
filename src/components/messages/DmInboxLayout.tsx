@@ -8,6 +8,7 @@ import { useDmInbox } from "@/components/messages/DmInboxContext";
 import DmNewMessageModal from "@/components/messages/DmNewMessageModal";
 import RoomComposerModal from "@/components/messages/RoomComposerModal";
 import styles from "./MessagesEditorial.module.css";
+import UiText from "@/components/i18n/UiText";
 
 type Props = {
   children: ReactNode;
@@ -23,7 +24,7 @@ export default function DmInboxLayout({ children }: Props) {
   return (
     <>
       <div className={styles.messagesPage}>
-        <div className={styles.sectionLabel}><span>02</span> MESSAGES &amp; PROJECT CHAT <small>Ideas. Notes. Progress.</small></div>
+        <div className={styles.sectionLabel}><span>02</span>{" "}<UiText text={"MESSAGES & PROJECT CHAT"} />{" "}<small><UiText text={"Ideas. Notes. Progress."} /></small></div>
       <div className={styles.frame}>
         <aside
           className={`${styles.sidebar} ${

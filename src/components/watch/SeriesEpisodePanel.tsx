@@ -17,6 +17,7 @@ import { seriesThumbnailClassName } from "@/lib/series/thumbnailPresentation";
 import type { SeriesDetail, SeriesEpisode } from "@/types/series";
 import type { PublicWorkCredit } from "@/types/watch";
 import type { VideoAspectRatio } from "@/types/work";
+import UiText from "@/components/i18n/UiText";
 
 type Props = {
   series: SeriesDetail;
@@ -61,6 +62,7 @@ export default function SeriesEpisodePanel({
   credits,
   onPlayEpisode,
 }: Props) {
+  const { locale: mediaLocale } = useTranslations();
   const { t } = useTranslations();
   const [seasonIndex, setSeasonIndex] = useState(initialSeasonIndex);
   const [episodeIndex, setEpisodeIndex] = useState(initialEpisodeIndex);
@@ -88,7 +90,7 @@ export default function SeriesEpisodePanel({
   return (
     <section className="mt-10">
       <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
-        <h2 className="font-serif text-xl md:text-2xl font-semibold text-white">Episodes</h2>
+        <h2 className="font-serif text-xl md:text-2xl font-semibold text-white"><UiText text={"Episodes"} /></h2>
         {series.seasons.length > 1 ? (
           <div className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] p-1">
             {series.seasons.map((s, i) => (
@@ -132,11 +134,11 @@ export default function SeriesEpisodePanel({
                 />
                 <div className="min-w-0 flex-1 pt-0.5">
                   <div className="flex items-center gap-2 text-[11px] text-white/40 mb-0.5">
-                    <span>Episode {ep.episodeNumber}</span>
+                    <span><UiText text={"Episode"} />{" "}{ep.episodeNumber}</span>
                     <span aria-hidden>·</span>
-                    <span>{formatDurationMinutes(ep.durationSec)}</span>
+                    <span>{formatDurationMinutes(ep.durationSec, mediaLocale)}</span>
                     {epIsNowPlaying ? (
-                      <span className="text-xiio-accent font-semibold">NOW PLAYING</span>
+                      <span className="text-xiio-accent font-semibold"><UiText text={"NOW PLAYING"} /></span>
                     ) : null}
                   </div>
                   <p className="text-[14px] font-semibold text-white leading-tight truncate">{ep.title}</p>
@@ -152,12 +154,12 @@ export default function SeriesEpisodePanel({
             <EpisodeThumb episode={episode} className="absolute inset-0" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
             <div className="absolute bottom-3 left-3 right-3 text-[11px] text-white/60">
-              S{episode.seasonNumber} · E{episode.episodeNumber} · {formatDurationMinutes(episode.durationSec)}
+              S{episode.seasonNumber} · E{episode.episodeNumber} · {formatDurationMinutes(episode.durationSec, mediaLocale)}
             </div>
           </div>
           <div className="p-4">
             <p className="font-serif text-lg font-semibold text-white leading-snug">{episode.title}</p>
-            <p className="text-[11px] text-white/40 mt-1">{formatReleaseDate(episode.releaseDate)}</p>
+            <p className="text-[11px] text-white/40 mt-1">{formatReleaseDate(episode.releaseDate, mediaLocale)}</p>
             <p className="text-[13px] text-white/60 mt-2.5 leading-relaxed">{episode.synopsis}</p>
 
             <div className="flex items-center gap-2 mt-4">
@@ -167,26 +169,18 @@ export default function SeriesEpisodePanel({
                   onClick={() => onPlayEpisode(episode)}
                   className="inline-flex items-center gap-2 bg-white text-black font-semibold text-[13px] rounded-full px-4 py-2 hover:bg-white/90 transition"
                 >
-                  <IconPlay className="w-3 h-3" />
-                  Watch Episode
-                </button>
+                  <IconPlay className="w-3 h-3" /><UiText text={"Watch Episode"} /></button>
               ) : !episode.workId ? (
-                <span className="inline-flex items-center gap-2 bg-white/10 text-white/60 font-semibold text-[13px] rounded-full px-4 py-2 cursor-default">
-                  Coming Soon
-                </span>
+                <span className="inline-flex items-center gap-2 bg-white/10 text-white/60 font-semibold text-[13px] rounded-full px-4 py-2 cursor-default"><UiText text={"Coming Soon"} /></span>
               ) : isNowPlaying ? (
                 <span className="inline-flex items-center gap-2 bg-white/10 text-white/60 font-semibold text-[13px] rounded-full px-4 py-2 cursor-default">
-                  <IconPlay className="w-3 h-3" />
-                  Now Playing
-                </span>
+                  <IconPlay className="w-3 h-3" /><UiText text={"Now Playing"} /></span>
               ) : (
                 <Link
                   href={watchHref(episode.ownerUid, episode.workId)}
                   className="inline-flex items-center gap-2 bg-white text-black font-semibold text-[13px] rounded-full px-4 py-2 hover:bg-white/90 transition"
                 >
-                  <IconPlay className="w-3 h-3" />
-                  Play
-                </Link>
+                  <IconPlay className="w-3 h-3" /><UiText text={"Play"} /></Link>
               )}
             </div>
 
@@ -196,17 +190,13 @@ export default function SeriesEpisodePanel({
                 disabled={!prevFlat}
                 onClick={() => goToFlat(prevFlat)}
                 className="flex-1 text-center text-[12.5px] font-medium text-white/60 hover:text-white disabled:opacity-30 disabled:hover:text-white/60 rounded-lg py-1.5 border border-white/10 hover:bg-white/[0.04] transition"
-              >
-                ← Previous
-              </button>
+              ><UiText text={"← Previous"} /></button>
               <button
                 type="button"
                 disabled={!nextFlat}
                 onClick={() => goToFlat(nextFlat)}
                 className="flex-1 text-center text-[12.5px] font-medium text-white/60 hover:text-white disabled:opacity-30 disabled:hover:text-white/60 rounded-lg py-1.5 border border-white/10 hover:bg-white/[0.04] transition"
-              >
-                Next →
-              </button>
+              ><UiText text={"Next →"} /></button>
             </div>
           </div>
         </div>

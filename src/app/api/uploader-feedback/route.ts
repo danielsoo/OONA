@@ -32,7 +32,7 @@ export async function POST(request: Request) {
     message,
     area: clean(body.area, 100) || null,
     pagePath: clean(body.pagePath, 500),
-    locale: "en",
+    locale: body.locale === "ja" ? "ja" : body.locale === "ko" ? "ko" : "en",
     userAgent: clean(body.userAgent, 600) || null,
     status: "pending",
     createdAt: FieldValue.serverTimestamp(),

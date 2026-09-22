@@ -3,6 +3,7 @@
 import { useDmInbox } from "@/components/messages/DmInboxContext";
 import { useTranslations } from "@/context/LocaleContext";
 import styles from "./MessagesSupplement.module.css";
+import UiText from "@/components/i18n/UiText";
 
 export default function DmEmptyPane() {
   const { openNewMessage } = useDmInbox();
@@ -26,7 +27,7 @@ export default function DmEmptyPane() {
           />
         </svg>
       </div>
-      <p>OONA MESSAGES</p>
+      <p><UiText text={"OONA MESSAGES"} /></p>
       <h2>{t("dm.inbox.emptyTitle")}</h2>
       <span>{t("dm.inbox.emptyLead")}</span>
       <button

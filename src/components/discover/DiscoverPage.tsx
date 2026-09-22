@@ -22,6 +22,8 @@ import type { CatalogFeedItem, PromoFeedItem } from "@/types/work";
 import type { PromoShort } from "@/types/promoShort";
 import type { SchoolListItem } from "@/types/school";
 import discoverHeroImage from "../../../discover_hero.webp";
+import UiText from "@/components/i18n/UiText";
+import { useUiCopy } from "@/components/i18n/UiText";
 
 function FeaturedPromosRow({ items, t }: { items: PromoShort[]; t: (k: string) => string }) {
   if (items.length === 0) return null;
@@ -106,7 +108,7 @@ function TrendingRow({ items, t }: { items: CatalogFeedItem[]; t: (k: string) =>
               <p className="text-[11.5px] text-white/45 mt-0.5">{item.approvedCategory ?? item.section}</p>
             </div>
             {item.viewCount != null ? (
-              <span className="text-[11px] text-white/35 shrink-0 tabular-nums">{item.viewCount.toLocaleString()} views</span>
+              <span className="text-[11px] text-white/35 shrink-0 tabular-nums">{item.viewCount.toLocaleString()}{" "}<UiText text={"views"} /></span>
             ) : null}
           </Link>
         ))}
@@ -128,8 +130,7 @@ function FeaturedCreatorSection({ item, t }: { item: CatalogFeedItem | undefined
         <div className="min-w-0 flex-1">
           <p className="font-serif text-xl font-semibold text-white">{item.director}</p>
           <p className="text-[13px] text-white/50 mt-1">
-            {item.approvedCategory ?? item.section} · &ldquo;{item.title}&rdquo;
-          </p>
+            {item.approvedCategory ?? item.section} · “{item.title}”</p>
         </div>
         {href ? (
           <Link
@@ -145,6 +146,7 @@ function FeaturedCreatorSection({ item, t }: { item: CatalogFeedItem | undefined
 }
 
 export default function DiscoverPage({ initialPromoItems, initialMovies, initialSeries, schools }: Props) {
+  const _copy = useUiCopy();
   const { t } = useTranslations();
   const { items: promoItems } = usePromoFeed({ fallbackToDemo: false, initialItems: initialPromoItems });
   const { items: movies } = useCatalogFeed("movies", 8, initialMovies);
@@ -165,7 +167,7 @@ export default function DiscoverPage({ initialPromoItems, initialMovies, initial
       <section className="relative isolate min-h-[560px] overflow-hidden">
         <Image
           src={discoverHeroImage}
-          alt="A film crew shooting a stormy ocean scene at dusk"
+          alt={_copy("A film crew shooting a stormy ocean scene at dusk")}
           fill
           priority
           unoptimized

@@ -5,6 +5,8 @@ import { usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { useAdminAccess } from "@/hooks/useAdminAccess";
 import { useAdminWorkStats } from "@/hooks/useAdminWorkStats";
+import UiText from "@/components/i18n/UiText";
+import { useUiCopy } from "@/components/i18n/UiText";
 
 const ADMIN_NAV = [
   { href: "/admin", label: "Overview", exact: true },
@@ -16,6 +18,7 @@ const ADMIN_NAV = [
 ];
 
 export default function AdminPanelLayout({ children }: { children: React.ReactNode }) {
+  const _copy = useUiCopy();
   const pathname = usePathname();
   const { user, loading } = useAuth();
   const { isAdmin, isSuperAdmin, checked, reason } = useAdminAccess();
@@ -24,7 +27,7 @@ export default function AdminPanelLayout({ children }: { children: React.ReactNo
   if (loading || !checked) {
     return (
       <div className="min-h-[calc(100vh-64px)] flex items-center justify-center text-white">
-        <p className="text-xiio-muted">Loading admin console…</p>
+        <p className="text-xiio-muted"><UiText text={"Loading admin console…"} /></p>
       </div>
     );
   }
@@ -32,16 +35,12 @@ export default function AdminPanelLayout({ children }: { children: React.ReactNo
   if (!user) {
     return (
       <div className="min-h-[calc(100vh-64px)] flex flex-col items-center justify-center gap-6 px-4 text-center">
-        <p className="text-white text-lg">Sign in to access the admin console.</p>
+        <p className="text-white text-lg"><UiText text={"Sign in to access the admin console."} /></p>
         <Link
           href="/login"
           className="px-6 py-3 rounded-lg bg-xiio-accent hover:bg-xiio-accent-hover text-white font-medium transition"
-        >
-          Sign in
-        </Link>
-        <Link href="/" className="text-sm text-xiio-muted hover:text-white transition">
-          Back to home
-        </Link>
+        ><UiText text={"Sign in"} /></Link>
+        <Link href="/" className="text-sm text-xiio-muted hover:text-white transition"><UiText text={"Back to home"} /></Link>
       </div>
     );
   }
@@ -49,11 +48,9 @@ export default function AdminPanelLayout({ children }: { children: React.ReactNo
   if (reason === "admin_sdk_missing") {
     return (
       <div className="min-h-[calc(100vh-64px)] flex flex-col items-center justify-center gap-4 px-4 max-w-lg mx-auto text-center">
-        <p className="text-amber-400 font-medium">Admin services are not configured.</p>
-        <p className="text-xiio-muted text-sm">Configure the Firebase Admin SDK before opening this console.</p>
-        <Link href="/" className="text-sm text-xiio-accent hover:underline">
-          Home
-        </Link>
+        <p className="text-amber-400 font-medium"><UiText text={"Admin services are not configured."} /></p>
+        <p className="text-xiio-muted text-sm"><UiText text={"Configure the Firebase Admin SDK before opening this console."} /></p>
+        <Link href="/" className="text-sm text-xiio-accent hover:underline"><UiText text={"Home"} /></Link>
       </div>
     );
   }
@@ -61,10 +58,8 @@ export default function AdminPanelLayout({ children }: { children: React.ReactNo
   if (!isAdmin) {
     return (
       <div className="min-h-[calc(100vh-64px)] flex flex-col items-center justify-center gap-4 px-4 text-center">
-        <p className="text-red-400">You do not have permission to access this page.</p>
-        <Link href="/" className="text-sm text-xiio-muted hover:text-white transition">
-          Back to home
-        </Link>
+        <p className="text-red-400"><UiText text={"You do not have permission to access this page."} /></p>
+        <Link href="/" className="text-sm text-xiio-muted hover:text-white transition"><UiText text={"Back to home"} /></Link>
       </div>
     );
   }
@@ -76,19 +71,15 @@ export default function AdminPanelLayout({ children }: { children: React.ReactNo
           <div className="flex flex-wrap items-end justify-between gap-4 pb-6">
             <div>
               <p className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.24em] text-xiio-accent">
-                <span className="h-1.5 w-1.5 rounded-full bg-xiio-accent" aria-hidden />
-                Admin workspace
-              </p>
-              <h1 className="mt-2 text-2xl font-semibold tracking-tight text-white sm:text-3xl">
-                Platform operations
-              </h1>
+                <span className="h-1.5 w-1.5 rounded-full bg-xiio-accent" aria-hidden /><UiText text={"Admin workspace"} /></p>
+              <h1 className="mt-2 text-2xl font-semibold tracking-tight text-white sm:text-3xl"><UiText text={"Platform operations"} /></h1>
             </div>
             <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-medium text-white/55">
-              {isSuperAdmin ? "Super admin" : "Admin"}
+              {isSuperAdmin ? _copy("Super admin") : _copy("Admin")}
             </span>
           </div>
 
-          <nav className="flex gap-7 overflow-x-auto" aria-label="Admin sections">
+          <nav className="flex gap-7 overflow-x-auto" aria-label={_copy("Admin sections")}>
             {ADMIN_NAV.map(({ href, label, exact }) => {
               const active = exact ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
               return (
@@ -100,7 +91,7 @@ export default function AdminPanelLayout({ children }: { children: React.ReactNo
                     active ? "text-white" : "text-white/40 hover:text-white/75"
                   }`}
                 >
-                  <span>{label}</span>
+                  <span>{_copy(label)}</span>
                   {href === "/admin/content" && pendingTotal > 0 && (
                     <span className="flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-amber-400 px-1.5 text-[10px] font-bold text-black">
                       {pendingTotal > 99 ? "99+" : pendingTotal}

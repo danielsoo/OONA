@@ -5,6 +5,7 @@ import Link from "next/link";
 import XiioWordmark from "@/components/layout/XiioWordmark";
 import { useTranslations } from "@/context/LocaleContext";
 import homeHeroImage from "../../../home_hero.webp";
+import { useUiCopy } from "@/components/i18n/UiText";
 
 const FEATURES = [
   {
@@ -29,6 +30,7 @@ const FEATURES = [
 ] as const;
 
 export default function LandingPage() {
+  const _copy = useUiCopy();
   const { t } = useTranslations();
 
   return (
@@ -59,7 +61,7 @@ export default function LandingPage() {
       <section className="relative isolate flex min-h-[92vh] sm:min-h-[680px] w-full flex-col overflow-hidden -mt-[76px] pt-[76px]">
         <Image
           src={homeHeroImage}
-          alt="A lighthouse standing in a stormy sea"
+          alt={_copy("A lighthouse standing in a stormy sea")}
           fill
           priority
           unoptimized

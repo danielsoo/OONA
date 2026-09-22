@@ -8,6 +8,7 @@ import { IconPlayOutline } from "@/components/icons/MockupIcons";
 import { useSequentialVideoLoad } from "@/components/video/SequentialVideoLoadProvider";
 import { useDesktopViewport } from "@/hooks/useDesktopViewport";
 import { gradientForTitle } from "@/lib/works/catalog-ui";
+import { useUiCopy } from "@/components/i18n/UiText";
 
 const StreamHlsVideo = dynamic(() => import("@/components/shorts/StreamHlsVideo"), {
   ssr: false,
@@ -94,6 +95,7 @@ function StoryMedia({
 }
 
 export default function HomeStoriesPanel({ label, stories }: Props) {
+  const _copy = useUiCopy();
   const router = useRouter();
   const [activeIndex, setActiveIndex] = useState(0);
   const [elapsedMs, setElapsedMs] = useState(0);
@@ -219,7 +221,7 @@ export default function HomeStoriesPanel({ label, stories }: Props) {
         <button
           type="button"
           className="absolute top-6 right-2.5 w-7 h-7 rounded-full bg-black/50 border border-white/20 flex items-center justify-center text-white/90 hover:bg-black/70"
-          aria-label="Play"
+          aria-label={_copy("Play")}
           onClick={(e) => {
             e.stopPropagation();
             router.push(active.href);

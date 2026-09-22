@@ -11,6 +11,7 @@ import {
   type Ref,
 } from "react";
 import { isHlsSource } from "@/lib/video/isHlsSource";
+import UiText from "@/components/i18n/UiText";
 
 export type StreamHlsVideoHandle = {
   play: () => Promise<void>;
@@ -557,13 +558,13 @@ const StreamHlsVideo = forwardRef(function StreamHlsVideo(
                   <span className="hidden sm:inline">{currentLabel}</span>
                 </summary>
                 <div className="absolute bottom-full right-0 mb-3 min-w-[150px] overflow-hidden rounded-lg border border-white/15 bg-[#111214]/95 py-1.5 shadow-2xl backdrop-blur-xl">
-                  <p className="border-b border-white/10 px-3 py-2 text-[11px] font-semibold text-white/50">Quality</p>
+                  <p className="border-b border-white/10 px-3 py-2 text-[11px] font-semibold text-white/50"><UiText text={"Quality"} /></p>
                   <button
                     type="button"
                     onClick={() => selectQuality(-1)}
                     className={`flex w-full items-center justify-between px-3 py-2 text-left transition hover:bg-white/10 ${selectedQuality < 0 ? "text-white" : "text-white/60"}`}
                   >
-                    <span>Auto</span>
+                    <span><UiText text={"Auto"} /></span>
                     {selectedQuality < 0 ? <span>✓</span> : null}
                   </button>
                   {qualityLevels.map((level, index) => (

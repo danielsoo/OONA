@@ -1,6 +1,7 @@
 "use client";
 
 import { Children, isValidElement, useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { useUiCopy } from "@/components/i18n/UiText";
 
 export type RailSize = "landscape" | "poster" | "vertical" | "wide";
 
@@ -29,13 +30,14 @@ function ArrowButton({
   onClick: () => void;
   visible: boolean;
 }) {
+  const _copy = useUiCopy();
   return (
     <button
       type="button"
       onClick={onClick}
       tabIndex={visible ? 0 : -1}
       aria-hidden={!visible}
-      aria-label={direction === "prev" ? "Scroll back" : "Scroll forward"}
+      aria-label={direction === "prev" ? _copy("Scroll back") : _copy("Scroll forward")}
       className={`absolute top-[calc(50%-24px)] z-10 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-line-strong bg-xiio-bg/85 text-ink backdrop-blur transition-opacity duration-150 hover:bg-xiio-card lg:flex ${
         direction === "prev" ? "left-2" : "right-2"
       } ${visible ? "opacity-0 group-hover/rail:opacity-100 focus-visible:opacity-100" : "pointer-events-none opacity-0"}`}

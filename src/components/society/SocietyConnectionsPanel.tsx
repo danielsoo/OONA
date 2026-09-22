@@ -25,6 +25,7 @@ import {
 import type { SocietyPerson } from "@/lib/societyTypes";
 import type { ProfileRoleTag } from "@/types/portfolio";
 import { buttonClass } from "@/components/ui/Button";
+import { useUiCopy } from "@/components/i18n/UiText";
 
 export type SocietyTabId = "discover" | "connections" | "requests" | "sent" | "works";
 
@@ -79,6 +80,7 @@ type Props = {
 };
 
 export default function SocietyConnectionsPanel({ activeTab, onTabChange, hideTabs = false }: Props) {
+  const _copy = useUiCopy();
   const { user } = useAuth();
   const { t } = useTranslations();
   const tab = activeTab;
@@ -253,7 +255,7 @@ export default function SocietyConnectionsPanel({ activeTab, onTabChange, hideTa
 
   return (
     <div className="min-w-0 flex-1">
-      {!hideTabs ? <nav className="scrollbar-none flex gap-7 overflow-x-auto border-b border-line" aria-label="Connections tabs">
+      {!hideTabs ? <nav className="scrollbar-none flex gap-7 overflow-x-auto border-b border-line" aria-label={_copy("Connections tabs")}>
         {tabs.map((item) => (
           <button
             key={item.id}

@@ -17,7 +17,7 @@ import {
   setStoredTimezone,
   type XiioTimezoneId,
 } from "@/lib/timezone";
-import { setStoredLocale, translate, type Locale } from "@/i18n";
+import { getStoredLocale, isLocale, setStoredLocale, translate, type Locale } from "@/i18n";
 
 type LocaleContextValue = {
   locale: Locale;
@@ -37,15 +37,23 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    setLocaleState("en");
-    setStoredLocale("en");
+    setLocaleState(getStoredLocale());
     setTimezoneState(getStoredTimezone());
     setReady(true);
   }, []);
 
-  const setLocale = useCallback((_next: Locale) => {
-    setLocaleState("en");
-    setStoredLocale("en");
+  const setLocale = useCallback((next: Locale) => {
+    if (!isLocale(next)) return;
+    setLocaleState(next);
+    setStoredLocale(next);
+  }, []);
+
+  useEffect(() => {
+    const sync = (event: StorageEvent) => {
+      if (event.key === "xiio_locale" && isLocale(event.newValue)) setLocaleState(event.newValue);
+    };
+    window.addEventListener("storage", sync);
+    return () => window.removeEventListener("storage", sync);
   }, []);
 
   const setTimezone = useCallback((next: XiioTimezoneId) => {

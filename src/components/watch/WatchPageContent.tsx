@@ -17,7 +17,7 @@ import { useTranslations } from "@/context/LocaleContext";
 import { formatApiError, formatClientError } from "@/lib/clientErrors";
 import { requestPublicWatch } from "@/lib/watchDataCache";
 import { aspectRatioMessageKey, aspectRatioNumeric } from "@/lib/works/aspect-ratio";
-import { formatRuntime, sectionCatalogHref } from "@/lib/works/catalog-ui";
+import { formatRuntime, sectionCatalogHref, watchHref } from "@/lib/works/catalog-ui";
 import { DEMO_MODE } from "@/lib/demoMode";
 import Chip from "@/components/ui/Chip";
 import { Button } from "@/components/ui/Button";
@@ -314,6 +314,7 @@ export default function WatchPageContent({ ownerUid, workId }: Props) {
                     key={showingPrologue ? "prologue" : "main"}
                     src={activePlayback.playbackUrl!}
                     durationSec={activePlayback.durationSec}
+                    loginHref={`/login?returnTo=${encodeURIComponent(watchHref(ownerUid, workId))}`}
                   />
                 ) : showingPrologue ? (
                   <StreamHlsVideo

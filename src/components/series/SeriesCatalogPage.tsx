@@ -17,6 +17,9 @@ import { formatDurationMinutes, gradientForTitle, watchHref } from "@/lib/works/
 import type { HomeStoryItem } from "@/lib/homeMockData";
 import type { SeriesDetail, SeriesEpisode } from "@/types/series";
 import filmHeroImage from "../../../film_hero.webp";
+import UiText from "@/components/i18n/UiText";
+import { useUiCopy } from "@/components/i18n/UiText";
+import { useTranslations } from "@/context/LocaleContext";
 
 const VIDEO_RATIO_STYLE: CSSProperties = { aspectRatio: "16 / 9" };
 
@@ -132,6 +135,7 @@ function LandscapeCard({
 }
 
 function SeriesCard({ series }: { series: SeriesDetail }) {
+  const copy = useUiCopy();
   const firstEpisode = series.seasons.flatMap((season) => season.episodes)[0];
   const episodeCount = series.seasons.reduce((total, season) => total + season.episodes.length, 0);
 
@@ -139,7 +143,7 @@ function SeriesCard({ series }: { series: SeriesDetail }) {
     <LandscapeCard
       href={`/series/${series.id}`}
       title={series.title}
-      subtitle={`${series.seasons.length} Season${series.seasons.length === 1 ? "" : "s"} · ${episodeCount} Episodes · ${series.genre}`}
+      subtitle={`${copy(series.seasons.length === 1 ? "{count} season" : "{count} seasons", { count: series.seasons.length })} · ${copy(episodeCount === 1 ? "{count} episode" : "{count} episodes", { count: episodeCount })} · ${copy(series.genre)}`}
       thumbnailUrl={firstEpisode?.thumbnailUrl}
       videoUrl={firstEpisode?.videoUrl}
     />
@@ -147,6 +151,7 @@ function SeriesCard({ series }: { series: SeriesDetail }) {
 }
 
 function EpisodeCard({ episode, loggedIn }: { episode: SeriesEpisode; loggedIn: boolean }) {
+  const { locale: mediaLocale } = useTranslations();
   const href = episode.workId
     ? loggedIn
       ? watchHref(episode.ownerUid, episode.workId)
@@ -157,7 +162,7 @@ function EpisodeCard({ episode, loggedIn }: { episode: SeriesEpisode; loggedIn: 
     <LandscapeCard
       href={href}
       title={episode.title}
-      subtitle={`S${episode.seasonNumber} E${episode.episodeNumber} · ${formatDurationMinutes(episode.durationSec)}`}
+      subtitle={`S${episode.seasonNumber} E${episode.episodeNumber} · ${formatDurationMinutes(episode.durationSec, mediaLocale)}`}
       thumbnailUrl={episode.thumbnailUrl}
       videoUrl={episode.videoUrl}
       badge="NEW"
@@ -204,6 +209,7 @@ function CatalogSection({
 }
 
 export default function SeriesCatalogPage() {
+  const _copy = useUiCopy();
   const { user } = useAuth();
   const { items } = useCatalogFeed("series", 24);
   const { items: continueWatchingAll } = useContinueWatching();
@@ -228,7 +234,7 @@ export default function SeriesCatalogPage() {
       <section className="relative isolate min-h-[560px] overflow-hidden">
         <Image
           src={filmHeroImage}
-          alt="A drama character looking over a city at night"
+          alt={_copy("A drama character looking over a city at night")}
           fill
           priority
           placeholder="blur"
@@ -240,14 +246,12 @@ export default function SeriesCatalogPage() {
 
         <div className={HERO_COPY_STAGE_CLASS}>
           <HeroCopy
-            eyebrow="Featured Series"
+            eyebrow={_copy("Featured Series")}
             title={featured.title}
             description={
               <>
                 <span className="mb-3 block text-[12px] tracking-[0.04em] text-white/55">
-                  2024 · {featured.genre} · {featured.seasons.length} Season
-                  {featured.seasons.length === 1 ? "" : "s"} · {episodeCount} Episodes · ★ 4.8
-                </span>
+                  2024 · {_copy(featured.genre)} · {_copy(featured.seasons.length === 1 ? "{count} season" : "{count} seasons", { count: featured.seasons.length })} · {_copy(episodeCount === 1 ? "{count} episode" : "{count} episodes", { count: episodeCount })} · ★ 4.8</span>
                 {featured.synopsis}
               </>
             }
@@ -257,15 +261,11 @@ export default function SeriesCatalogPage() {
                 href={`/series/${featured.id}`}
                 className="inline-flex h-12 items-center gap-2.5 rounded-full bg-[#f5f4f2] px-7 text-[14px] font-semibold text-[#0b0b0d] transition hover:bg-white"
               >
-                <IconPlay className="h-3.5 w-3.5" />
-                View Series
-              </Link>
+                <IconPlay className="h-3.5 w-3.5" /><UiText text={"View Series"} /></Link>
               <Link
                 href="/my-list"
                 className="inline-flex h-12 items-center rounded-full border border-white/25 px-7 text-[14px] font-semibold text-white/85 transition hover:border-white/45 hover:bg-white/[0.05]"
-              >
-                + My List
-              </Link>
+              ><UiText text={"+ My List"} /></Link>
             </div>
           </HeroCopy>
         </div>
@@ -281,28 +281,28 @@ export default function SeriesCatalogPage() {
 
       <div className="relative z-10 flex min-w-0 max-w-full flex-col gap-10 overflow-x-clip bg-xiio-bg px-4 pb-16 pt-10 lg:px-12">
         {continueWatching.length > 0 ? (
-          <CatalogSection title="Continue Watching" columns={4}>
+          <CatalogSection title={_copy("Continue Watching")} columns={4}>
             {continueWatching.map((item) => (
               <ContinueCard key={item.id} item={item} />
             ))}
           </CatalogSection>
         ) : null}
 
-        <CatalogSection title="Featured Dramas">
+        <CatalogSection title={_copy("Featured Dramas")}>
           {seriesCatalog.slice(0, 5).map((series) => (
             <SeriesCard key={series.id} series={series} />
           ))}
         </CatalogSection>
 
         {newEpisodes.length > 0 ? (
-          <CatalogSection title="New Episodes This Week">
+          <CatalogSection title={_copy("New Episodes This Week")}>
             {newEpisodes.map((episode) => (
               <EpisodeCard key={episode.id} episode={episode} loggedIn={Boolean(user)} />
             ))}
           </CatalogSection>
         ) : null}
 
-        <CatalogSection title="All Series">
+        <CatalogSection title={_copy("All Series")}>
           {seriesCatalog.slice(1, 6).map((series) => (
             <SeriesCard key={series.id} series={series} />
           ))}

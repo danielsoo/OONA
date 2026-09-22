@@ -6,7 +6,7 @@ export function formatDmTime(iso: string | null | undefined, locale: string): st
 
   const diffSec = Math.round((ms - Date.now()) / 1000);
   const abs = Math.abs(diffSec);
-  const rtf = new Intl.RelativeTimeFormat(locale.startsWith("ko") ? "ko" : "en", {
+  const rtf = new Intl.RelativeTimeFormat(locale, {
     numeric: "auto",
   });
 
@@ -17,7 +17,7 @@ export function formatDmTime(iso: string | null | undefined, locale: string): st
   if (abs < 2592000) return rtf.format(Math.round(diffSec / 604800), "week");
 
   try {
-    return new Date(ms).toLocaleDateString(locale.startsWith("ko") ? "ko-KR" : "en-US", {
+    return new Date(ms).toLocaleDateString(locale, {
       month: "short",
       day: "numeric",
     });
@@ -33,7 +33,7 @@ export function formatClockTime(iso: string | null | undefined, locale: string):
   if (Number.isNaN(ms)) return "";
 
   try {
-    return new Date(ms).toLocaleTimeString(locale.startsWith("ko") ? "ko-KR" : "en-US", {
+    return new Date(ms).toLocaleTimeString(locale, {
       hour: "numeric",
       minute: "2-digit",
     });
@@ -75,7 +75,7 @@ export function formatDateDivider(iso: string | null | undefined, locale: string
   if (Number.isNaN(ms)) return "";
 
   try {
-    return new Date(ms).toLocaleString(locale.startsWith("ko") ? "ko-KR" : "en-US", {
+    return new Date(ms).toLocaleString(locale, {
       year: "numeric",
       month: "short",
       day: "numeric",

@@ -8,6 +8,8 @@ import { useTranslations } from "@/context/LocaleContext";
 import { useNotifications } from "@/context/NotificationContext";
 import type { NotificationListItem as NotificationListItemType, NotificationType } from "@/types/notification";
 import styles from "./notifications.module.css";
+import UiText from "@/components/i18n/UiText";
+import { useUiCopy } from "@/components/i18n/UiText";
 
 type FilterId = "all" | "collaborations" | "connections" | "works" | "system";
 
@@ -35,6 +37,7 @@ function isRecent(createdAt: string | null): boolean {
 }
 
 export default function NotificationsPage() {
+  const _copy = useUiCopy();
   const { user } = useAuth();
   const { t } = useTranslations();
   const { clearNotifications } = useNotifications();
@@ -100,7 +103,7 @@ export default function NotificationsPage() {
       <header className={styles.pageHeader}>
         <div>
           <h1>{t("notifications.title")}</h1>
-          <p>Stay close to your work and collaborators.</p>
+          <p><UiText text={"Stay close to your work and collaborators."} /></p>
         </div>
         {notifications.length > 0 ? (
           <button type="button" onClick={() => void markAllRead()} disabled={marking}>
@@ -110,7 +113,7 @@ export default function NotificationsPage() {
         ) : null}
       </header>
 
-      <nav className={styles.filters} aria-label="Notification categories">
+      <nav className={styles.filters} aria-label={_copy("Notification categories")}>
         {FILTERS.map((item) => (
           <button
             key={item.id}
@@ -131,7 +134,7 @@ export default function NotificationsPage() {
           ) : null}
           {today.length > 0 ? (
             <div className={styles.group}>
-              <h2>Today</h2>
+              <h2><UiText text={"Today"} /></h2>
               <div className={styles.timeline}>
                 {today.map((notification) => (
                   <NotificationListItem key={notification.id} notification={notification} />
@@ -141,7 +144,7 @@ export default function NotificationsPage() {
           ) : null}
           {earlier.length > 0 ? (
             <div className={styles.group}>
-              <h2>Earlier this week</h2>
+              <h2><UiText text={"Earlier this week"} /></h2>
               <div className={styles.timeline}>
                 {earlier.map((notification) => (
                   <NotificationListItem key={notification.id} notification={notification} />
@@ -153,17 +156,17 @@ export default function NotificationsPage() {
 
         <aside className={styles.activity}>
           <div className={styles.activityTitle}>
-            <h2>Your activity</h2>
-            <Link href="/settings">Notification settings <span aria-hidden>→</span></Link>
+            <h2><UiText text={"Your activity"} /></h2>
+            <Link href="/settings"><UiText text={"Notification settings"} />{" "}<span aria-hidden>→</span></Link>
           </div>
           <div className={styles.stats}>
-            <div><strong>{unreadCount}</strong><span>Unread</span></div>
-            <div><strong>{collaborationCount}</strong><span>Collaborations</span></div>
-            <div><strong>{workCount}</strong><span>Work updates</span></div>
+            <div><strong>{unreadCount}</strong><span><UiText text={"Unread"} /></span></div>
+            <div><strong>{collaborationCount}</strong><span><UiText text={"Collaborations"} /></span></div>
+            <div><strong>{workCount}</strong><span><UiText text={"Work updates"} /></span></div>
           </div>
           <div className={styles.activityNote}>
-            <p>Every response, connection, and milestone stays in one quiet place.</p>
-            <span>More voices. A brighter tomorrow.</span>
+            <p><UiText text={"Every response, connection, and milestone stays in one quiet place."} /></p>
+            <span><UiText text={"More voices. A brighter tomorrow."} /></span>
           </div>
         </aside>
       </div>

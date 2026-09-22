@@ -6,23 +6,31 @@ export { messages, LOCALES } from "./messages";
 const STORAGE_KEY = "xiio_locale";
 
 export function getStoredLocale(): Locale {
-  if (typeof window !== "undefined") localStorage.setItem(STORAGE_KEY, "en");
+  if (typeof window === "undefined") return "en";
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (isLocale(saved)) return saved;
+  } catch { /* Language selection still works when storage is unavailable. */ }
+  for (const language of navigator.languages ?? [navigator.language]) {
+    const code = language.toLowerCase().split("-")[0];
+    if (isLocale(code)) return code;
+  }
   return "en";
 }
 
-export function setStoredLocale(_locale: Locale): void {
-  if (typeof window === "undefined") return;
-  localStorage.setItem(STORAGE_KEY, "en");
+export function isLocale(value: unknown): value is Locale {
+  return value === "en" || value === "ko" || value === "ja";
 }
 
-function getByPath(tree: MessageTree, path: string): string | undefined {
-  const parts = path.split(".");
-  let node: unknown = tree;
-  for (const part of parts) {
-    if (node == null || typeof node !== "object") return undefined;
-    node = (node as Record<string, unknown>)[part];
-  }
-  return typeof node === "string" ? node : undefined;
+export function hasStoredLocale(): boolean {
+  try { return typeof window !== "undefined" && isLocale(localStorage.getItem(STORAGE_KEY)); }
+  catch { return false; }
+}
+
+export function setStoredLocale(locale: Locale): void {
+  if (typeof window === "undefined") return;
+  try { localStorage.setItem(STORAGE_KEY, locale); }
+  catch { /* Private browsing and storage policies must not block switching. */ }
 }
 
 export function interpolate(
@@ -40,9 +48,7 @@ export function translate(
   key: string,
   vars?: Record<string, string | number>
 ): string {
-  const tree = messages[locale] as MessageTree;
-  const value =
-    getByPath(tree, key) ?? getByPath(messages.en as unknown as MessageTree, key);
-  if (!value) return key;
+  const value = messages[locale]?.[key] ?? messages.en[key];
+  if (value === undefined) return key;
   return interpolate(value, vars);
 }

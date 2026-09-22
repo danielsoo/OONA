@@ -6,6 +6,7 @@ import { useDmInbox } from "@/components/messages/DmInboxContext";
 import ProfileAvatar from "@/components/profile/ProfileAvatar";
 import { useAuth } from "@/context/AuthContext";
 import { useTranslations } from "@/context/LocaleContext";
+import { useUiCopy } from "@/components/i18n/UiText";
 
 type PersonHit = {
   uid: string;
@@ -14,6 +15,7 @@ type PersonHit = {
 };
 
 export default function DmNewMessageModal() {
+  const _copy = useUiCopy();
   const { newMessageOpen, closeNewMessage, refresh } = useDmInbox();
   const { user } = useAuth();
   const { t } = useTranslations();
@@ -101,7 +103,7 @@ export default function DmNewMessageModal() {
       <button
         type="button"
         className="absolute inset-0"
-        aria-label="Close"
+        aria-label={_copy("Close")}
         onClick={closeNewMessage}
       />
       <div className="relative w-full max-w-md rounded-2xl bg-xiio-surface border border-white/10 shadow-xl overflow-hidden">
@@ -113,7 +115,7 @@ export default function DmNewMessageModal() {
             type="button"
             onClick={closeNewMessage}
             className="text-xiio-muted hover:text-white p-1"
-            aria-label="Close"
+            aria-label={_copy("Close")}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

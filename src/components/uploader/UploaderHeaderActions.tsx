@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import UploaderFeedbackModal from "@/components/uploader/UploaderFeedbackModal";
+import UiText from "@/components/i18n/UiText";
 
 type Props = {
   area?: string;
@@ -19,16 +20,12 @@ export default function UploaderHeaderActions({ area, showMyWorks = true }: Prop
           <Link href="/uploader/works" className={buttonClass}>
             <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 18l-6-6 6-6" />
-            </svg>
-            My works
-          </Link>
+            </svg><UiText text={"My works"} /></Link>
         ) : null}
         <button type="button" onClick={() => setFeedbackOpen(true)} className={buttonClass}>
           <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden>
             <path strokeLinecap="round" strokeLinejoin="round" d="M7 18.5 3.5 21v-4.8A8 8 0 0 1 2 11.5C2 6.8 6.5 3 12 3s10 3.8 10 8.5S17.5 20 12 20c-1.8 0-3.5-.4-5-1.1Z" />
-          </svg>
-          Send feedback
-        </button>
+          </svg><UiText text={"Send feedback"} /></button>
       </div>
       <UploaderFeedbackModal open={feedbackOpen} onClose={() => setFeedbackOpen(false)} area={area} />
     </>

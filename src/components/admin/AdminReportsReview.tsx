@@ -10,11 +10,13 @@ import { useAuth } from "@/context/AuthContext";
 import { useTranslations } from "@/context/LocaleContext";
 import type { AdminReportListItem, AdminReportsListResponse } from "@/types/admin";
 import { formatApiError, formatClientError, readResponseJson } from "@/lib/clientErrors";
+import { useUiCopy } from "@/components/i18n/UiText";
 
 type Tab = "pending" | "resolved";
 type ReportMode = "content" | "errors" | "feedback";
 
 export default function AdminReportsReview() {
+  const _copy = useUiCopy();
   const { user } = useAuth();
   const { t, formatDateTime } = useTranslations();
 
@@ -117,7 +119,7 @@ export default function AdminReportsReview() {
                 : "border-transparent text-white/40 hover:text-white/70"
             }`}
           >
-            {value === "feedback" ? "Uploader feedback" : t(value === "content" ? "admin.reportsReview.modeContent" : "admin.reportsReview.modeErrors")}
+            {value === "feedback" ? _copy("Uploader feedback") : t(value === "content" ? "admin.reportsReview.modeContent" : "admin.reportsReview.modeErrors")}
           </button>
         ))}
       </div>

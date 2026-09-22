@@ -16,7 +16,7 @@ import type {
 const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 function parseLocale(value: unknown): Locale | undefined {
-  return value === "en" ? "en" : value === "ko" ? "ko" : undefined;
+  return value === "en" || value === "ko" || value === "ja" ? value : undefined;
 }
 
 function parseBirthDate(value: unknown): string | undefined {

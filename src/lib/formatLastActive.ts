@@ -8,5 +8,6 @@ export function formatLastActive(
   const relative = formatDmTime(iso, locale);
   if (!relative) return "";
   if (locale.startsWith("ko")) return relative;
+  if (locale.startsWith("ja")) return `最終アクセス：${relative}`;
   return `Active ${relative}`;
 }

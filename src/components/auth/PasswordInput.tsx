@@ -10,6 +10,7 @@ type Props = {
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   placeholder?: string;
+  ariaLabel?: string;
   autoComplete?: string;
   id?: string;
   required?: boolean;
@@ -46,6 +47,7 @@ export function PasswordInput({
   value,
   onChange,
   placeholder,
+  ariaLabel,
   autoComplete,
   id,
   required,
@@ -63,6 +65,7 @@ export function PasswordInput({
         value={value}
         onChange={onChange}
         placeholder={placeholder}
+        aria-label={ariaLabel}
         autoComplete={autoComplete}
         required={required}
         disabled={disabled}

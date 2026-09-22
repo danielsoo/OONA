@@ -17,14 +17,16 @@ export function isXiioTimezoneId(value: string): value is XiioTimezoneId {
 
 export function getStoredTimezone(): XiioTimezoneId {
   if (typeof window === "undefined") return "korea";
-  const raw = localStorage.getItem(STORAGE_KEY);
-  if (raw && isXiioTimezoneId(raw)) return raw;
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw && isXiioTimezoneId(raw)) return raw;
+  } catch { /* Storage may be disabled. */ }
   return "korea";
 }
 
 export function setStoredTimezone(id: XiioTimezoneId): void {
   if (typeof window === "undefined") return;
-  localStorage.setItem(STORAGE_KEY, id);
+  try { localStorage.setItem(STORAGE_KEY, id); } catch { /* Keep the in-memory preference. */ }
 }
 
 export function resolveTimezoneIana(id: XiioTimezoneId): string {
@@ -38,8 +40,8 @@ export function resolveTimezoneIana(id: XiioTimezoneId): string {
   return IANA_BY_ID[id];
 }
 
-export function dateLocaleForAppLocale(locale: "ko" | "en"): string {
-  return locale === "en" ? "en-US" : "ko-KR";
+export function dateLocaleForAppLocale(locale: string): string {
+  return locale.startsWith("ja") ? "ja-JP" : locale.startsWith("ko") ? "ko-KR" : "en-US";
 }
 
 /** Short label shown after formatted date-times (e.g. KST, EST, PDT). */

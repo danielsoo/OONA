@@ -19,6 +19,9 @@ import { formatLoginErrorMessage } from "@/lib/authErrors";
 import type { SocialProviderKey } from "@/lib/authProviders";
 import { formatSocialAuthError } from "@/lib/socialAuthClient";
 import styles from "./login.module.css";
+import UiText from "@/components/i18n/UiText";
+import { useUiCopy } from "@/components/i18n/UiText";
+import LanguageSwitcher from "@/components/i18n/LanguageSwitcher";
 
 function ArrowLeftIcon() {
   return (
@@ -46,6 +49,7 @@ function MailIcon() {
 }
 
 function LoginForm() {
+  const _copy = useUiCopy();
   const { loginWithEmail, loginWithGoogle, loginWithKakao } = useAuth();
   const { t } = useTranslations();
   const router = useRouter();
@@ -169,11 +173,12 @@ function LoginForm() {
       <div className={styles.artworkShade} aria-hidden="true" />
 
       <header className={styles.header}>
-        <Link href="/" className={styles.logo} aria-label="OONA home">
+        <Link href="/" className={styles.logo} aria-label={_copy("OONA home")}>
           <XiioWordmark />
         </Link>
-        <Link href="/" className={styles.backLink}>
-          <span>Back to home</span>
+        <LanguageSwitcher />
+        <Link href="/" className={styles.backLink} aria-label={_copy("Back to home")}>
+          <span><UiText text={"Back to home"} /></span>
           <ArrowLeftIcon />
         </Link>
       </header>
@@ -181,8 +186,8 @@ function LoginForm() {
       <section className={styles.formPane} aria-labelledby="login-title">
         <div className={styles.formContent}>
           <div className={styles.intro}>
-            <h1 id="login-title">Welcome back.</h1>
-            <p>Continue your story.</p>
+            <h1 id="login-title"><UiText text={"Welcome back."} /></h1>
+            <p><UiText text={"Continue your story."} /></p>
           </div>
 
           {error && (
@@ -208,6 +213,7 @@ function LoginForm() {
                   required
                   autoComplete="email"
                   aria-label={t("auth.login.emailLabel")}
+                  placeholder={t("auth.login.emailLabel")}
                 />
                 <span className={styles.fieldIcon}>
                   <MailIcon />
@@ -219,6 +225,8 @@ function LoginForm() {
               <span>{t("auth.login.passwordLabel")}</span>
               <PasswordInput
                 id="login-password"
+                ariaLabel={t("auth.login.passwordLabel")}
+                placeholder={t("auth.login.passwordLabel")}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -241,9 +249,7 @@ function LoginForm() {
                 onClick={() => void handleForgotPassword()}
                 disabled={loading}
                 className={styles.forgotButton}
-              >
-                Forgot password?
-              </button>
+              ><UiText text={"Forgot password?"} /></button>
             </div>
 
             <button type="submit" disabled={loading} className={styles.submitButton}>
@@ -254,7 +260,7 @@ function LoginForm() {
 
           <div className={styles.divider} aria-hidden="true">
             <span />
-            <p>Or continue with</p>
+            <p><UiText text={"Or continue with"} /></p>
             <span />
           </div>
 
@@ -263,27 +269,27 @@ function LoginForm() {
               type="button"
               disabled={loading}
               onClick={() => void runSocial("google", () => loginWithGoogle(rememberMe))}
+              aria-label={_copy("Continue with Google")}
             >
               <GoogleIcon />
-              <span>Continue with Google</span>
+              <span><UiText text={"Continue with Google"} /></span>
             </button>
             <button
               type="button"
               disabled={loading}
               onClick={() => void runSocial("kakao", () => loginWithKakao(rememberMe))}
+              aria-label={_copy("Continue with Kakao")}
             >
               <span className={styles.kakaoIcon}>
                 <KakaoIcon />
               </span>
-              <span>Continue with Kakao</span>
+              <span><UiText text={"Continue with Kakao"} /></span>
             </button>
           </div>
 
           <p className={styles.signupPrompt}>
-            <span>New to OONA?</span>
-            <Link href="/signup">
-              Create an account
-              <ArrowRightIcon />
+            <span><UiText text={"New to OONA?"} /></span>
+            <Link href="/signup"><UiText text={"Create an account"} /><ArrowRightIcon />
             </Link>
           </p>
         </div>
@@ -294,7 +300,7 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<main className={styles.loadingScreen}>Loading…</main>}>
+    <Suspense fallback={<main className={styles.loadingScreen}><UiText text={"Loading…"} /></main>}>
       <LoginForm />
     </Suspense>
   );

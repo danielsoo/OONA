@@ -9,6 +9,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "test:i18n": "node scripts/check-localization.cjs",
+    "test:society": "node scripts/check-society-access.cjs",
     "test": "node --experimental-strip-types --test src/lib/collab-invite-pure.test.ts src/lib/works/promo-crop-interaction-pure.test.ts src/lib/credit-display-name-pure.test.ts src/lib/works/promo-file-validation.test.ts src/lib/homeHeroColors.test.ts",
     "firebase:deploy": "firebase deploy --only firestore",
     "process:campus-logos": "node scripts/process-campus-logos.mjs"

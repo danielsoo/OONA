@@ -26,7 +26,7 @@ function isOnboardingResendFrom(from: string): boolean {
 
 export async function sendCollabInviteEmail(
   invite: CollabInviteDoc,
-  options?: { locale?: "ko" | "en" }
+  options?: { locale?: "ko" | "en" | "ja" }
 ): Promise<SendInviteEmailResult> {
   const inviteUrl = buildCollabInviteUrl(invite.token, appOrigin());
   const apiKey = process.env.RESEND_API_KEY?.trim();
@@ -53,11 +53,11 @@ export async function sendCollabInviteEmail(
   const subject =
     locale === "en"
       ? `You're invited to collaborate on "${invite.workTitle}"`
-      : `"${invite.workTitle}" 작품 크레딧 초대`;
+      : locale === "ja" ? `「${invite.workTitle}」のクレジット登録への招待` : `"${invite.workTitle}" 작품 크레딧 초대`;
   const html =
     locale === "en"
       ? buildEnHtml(invite, inviteUrl)
-      : buildKoHtml(invite, inviteUrl);
+      : locale === "ja" ? buildJaHtml(invite, inviteUrl) : buildKoHtml(invite, inviteUrl);
 
   try {
     const res = await fetch("https://api.resend.com/emails", {
@@ -142,6 +142,17 @@ function buildEnHtml(invite: CollabInviteDoc, inviteUrl: string): string {
       </p>
     </div>
   `;
+}
+
+function buildJaHtml(invite: CollabInviteDoc, inviteUrl: string): string {
+  const inviter = escapeHtml(invite.inviterDisplayName || "OONAのメンバー");
+  return `<div lang="ja" style="font-family:sans-serif;background:#0a0a0a;color:#fff;padding:24px;">
+    <h1 style="font-size:20px;">クレジット登録への招待</h1>
+    <p>${inviter}さんから、「${escapeHtml(invite.workTitle)}」のクレジット登録への招待が届きました。</p>
+    ${invite.message ? `<p>${escapeHtml(invite.message)}</p>` : ""}
+    <p><a href="${escapeHtml(inviteUrl)}" style="color:#80caff;">招待を確認する</a></p>
+    <p>招待を承諾するには、${escapeHtml(invite.invitedEmail)}でOONAに登録するか、ログインしてください。</p>
+  </div>`;
 }
 
 function escapeHtml(value: string): string {
