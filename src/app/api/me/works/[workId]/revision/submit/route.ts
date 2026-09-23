@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { requireSchoolUploadEligibility } from "@/lib/server/school-verification";
 import { jsonError, requireUser } from "@/lib/server/api-auth";
 import { FieldValue, getDbOrNull, parseWorkDoc, worksCol } from "@/lib/server/works";
 
@@ -29,6 +30,10 @@ export async function POST(request: Request, { params }: Params) {
 
   if (rev.streamUid && rev.streamStatus !== "ready") {
     return jsonError("not_ready", "새 영상 인코딩이 끝난 후 제출할 수 있습니다.", 400);
+  }
+  if (rev.streamUid) {
+    const schoolBlock = await requireSchoolUploadEligibility(db, session.uid, work.approvedSchoolId);
+    if (schoolBlock) return schoolBlock;
   }
 
   const { rejectReason: _ignored, rejectReasonCode: _code, ...revRest } = rev;

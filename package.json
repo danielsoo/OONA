@@ -11,6 +11,10 @@
     "lint": "next lint",
     "test:i18n": "node scripts/check-localization.cjs",
     "test:society": "node scripts/check-society-access.cjs",
+    "test:school-verification": "node scripts/check-school-verification.cjs",
+    "test:school-registry": "node scripts/check-school-domain-registry.cjs",
+    "schools:validate": "node scripts/import-school-email-domains.cjs --validate",
+    "schools:import": "node scripts/import-school-email-domains.cjs",
     "test": "node --experimental-strip-types --test src/lib/collab-invite-pure.test.ts src/lib/works/promo-crop-interaction-pure.test.ts src/lib/credit-display-name-pure.test.ts src/lib/works/promo-file-validation.test.ts src/lib/homeHeroColors.test.ts",
     "firebase:deploy": "firebase deploy --only firestore",
     "process:campus-logos": "node scripts/process-campus-logos.mjs"

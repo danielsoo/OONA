@@ -1,5 +1,7 @@
 /** Japanese UI copy. See docs/localization.md for terminology and references. */
+import { schoolVerificationCopy } from "./school-verification-copy";
 export const jaMessages: Record<string, string> = {
+  ...schoolVerificationCopy.ja,
   "society.guest.browseHint": "ログインせずにご覧いただけます。フォロー、メッセージ、いいね、プロジェクトへの参加にはログインが必要です。",
   "society.guest.actionHint": "ログインすると利用できます。",
   "society.guest.dialogTitle": "作品との出会いから、つながりへ。",

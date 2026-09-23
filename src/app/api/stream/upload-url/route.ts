@@ -25,6 +25,8 @@ import {
 import { parseUploadLength } from "@/lib/server/parse-upload-length";
 import { normalizeContentCategory, normalizeTags } from "@/lib/works/label-utils";
 import { getSchoolById } from "@/lib/server/schools";
+import { requireSchoolUploadEligibility } from "@/lib/server/school-verification";
+import { validSchoolId } from "@/lib/school-verification";
 import type { WorkCreditInput } from "@/types/credits";
 import type { PrologueDraft, PromoDraft, VideoAspectRatio } from "@/types/work";
 
@@ -139,10 +141,13 @@ export async function POST(request: Request) {
 
   const workId = crypto.randomUUID();
 
+  if (body.schoolId != null && body.schoolId !== "" && !validSchoolId(body.schoolId)) return jsonError("school_unavailable", "학교를 다시 선택해 주세요.", 400);
   const schoolIdRaw = body.schoolId?.trim();
   let proposedSchoolId: string | null = null;
   let proposedSchoolName: string | null = null;
   if (schoolIdRaw) {
+    const schoolBlock = await requireSchoolUploadEligibility(db, session.uid, schoolIdRaw);
+    if (schoolBlock) return schoolBlock;
     const school = await getSchoolById(db, schoolIdRaw);
     if (school) {
       proposedSchoolId = school.id;

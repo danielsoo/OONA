@@ -1,5 +1,6 @@
 # dependencies
 /node_modules
+/.npm-cache/
 /.pnp
 .pnp.js
 .yarn/install-state.gz
@@ -11,6 +12,7 @@
 /.next/
 /.next-dev/
 /.next-turbo/
+/.next-rocks/
 /out/
 
 # production

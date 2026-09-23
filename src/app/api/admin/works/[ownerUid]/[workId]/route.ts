@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { requireSchoolUploadEligibility } from "@/lib/server/school-verification";
 import { deleteStreamVideo, resolveReviewPlaybackUrl } from "@/lib/cloudflare/stream";
 import { listWorkAuditLog, recordAdminAudit } from "@/lib/server/admin-audit";
 import { jsonError, requireAdmin } from "@/lib/server/api-auth";
@@ -159,6 +160,10 @@ export async function PATCH(request: Request, { params }: Params) {
 
   if (action === "approve") {
     if (isRevision) {
+      if (work.pendingRevision?.streamUid) {
+        const schoolBlock = await requireSchoolUploadEligibility(db, ownerUid, work.approvedSchoolId);
+        if (schoolBlock) return schoolBlock;
+      }
       const aspectBody = body.approvedAspectRatio?.trim();
       let approvedAspectRatio: VideoAspectRatio | undefined;
       if (aspectBody) {
@@ -228,6 +233,9 @@ export async function PATCH(request: Request, { params }: Params) {
     const approvedSchoolName = approvedSchoolId
       ? body.approvedSchoolName?.trim() || work.proposedSchoolName?.trim() || null
       : null;
+
+    const schoolBlock = await requireSchoolUploadEligibility(db, ownerUid, approvedSchoolId);
+    if (schoolBlock) return schoolBlock;
 
     await ref.update({
       platformStatus: "published",

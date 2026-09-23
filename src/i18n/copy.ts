@@ -1,5 +1,7 @@
 /** Editorial overrides shared by existing and newly localized screens. */
+import { schoolVerificationCopy } from "./school-verification-copy";
 export const enCopy: Record<string, string> = {
+  ...schoolVerificationCopy.en,
   "society.guest.browseHint": "Feel free to browse. Sign in to follow creators, send messages, like work, or join a project.",
   "society.guest.actionHint": "Sign in to use this feature.",
   "society.guest.dialogTitle": "Take the conversation further.",
@@ -35,6 +37,7 @@ export const enCopy: Record<string, string> = {
   "uploader.errorAdminNotConfigured": "We couldn't connect to the storage service. Please contact support."
 };
 export const koCopy: Record<string, string> = {
+  ...schoolVerificationCopy.ko,
   "society.guest.browseHint": "로그인 없이 자유롭게 둘러보세요. 팔로우, 메시지, 좋아요, 프로젝트 참여는 로그인 후 이용할 수 있어요.",
   "society.guest.actionHint": "로그인 후 이용할 수 있어요.",
   "society.guest.dialogTitle": "이야기를 이어가 볼까요?",
