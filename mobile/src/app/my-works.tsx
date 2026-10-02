@@ -69,7 +69,11 @@ export default function MyWorksScreen() {
           return (
             <Pressable
               onPress={() => published && router.push(`/watch/${user.uid}/${item.id}`)}
-              onLongPress={() => (item.platformStatus === "draft" || item.platformStatus === "rejected") && remove(item)}
+              delayLongPress={350}
+              onLongPress={() => {
+                if (item.platformStatus === "draft" || item.platformStatus === "rejected") remove(item);
+                else if (published) router.push(`/edit-work/${item.id}`);
+              }}
               style={({ pressed }) => [styles.row, pressed && { opacity: 0.8 }]}
             >
               {thumb ? <Image source={{ uri: thumb }} style={styles.thumb} contentFit="cover" /> : <View style={styles.thumb} />}
@@ -83,6 +87,11 @@ export default function MyWorksScreen() {
                 </Text>
                 {published && item.viewCount != null ? (
                   <Text style={styles.meta}>{t("myWorks.statsFullViews", { count: item.viewCount })}</Text>
+                ) : null}
+                {published ? (
+                  <Text style={styles.edit} onPress={() => router.push(`/edit-work/${item.id}`)}>
+                    {t("myWorks.editVideo")}
+                  </Text>
                 ) : null}
               </View>
             </Pressable>
@@ -99,4 +108,5 @@ const styles = StyleSheet.create({
   title: { ...type.body, color: colors.ink, fontWeight: "500" },
   status: { ...type.small, color: colors.ink3 },
   meta: { ...type.small, color: colors.ink4 },
+  edit: { ...type.small, color: colors.accentHover, marginTop: space(1) },
 });

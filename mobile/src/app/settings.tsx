@@ -28,7 +28,7 @@ type ProfessionalProfile = {
  * photo, headline, bio, visibility, language, account deletion.
  */
 export default function SettingsScreen() {
-  const { user, refreshGate } = useAuth();
+  const { user, profile, refreshGate } = useAuth();
   const { t, locale, setLocale } = useLocale();
   const loaded = useApi(user ? `pro-profile:${user.uid}` : null, () =>
     apiFetch<ProfessionalProfile>("/api/me/professional-profile", { auth: "required" })
@@ -40,6 +40,9 @@ export default function SettingsScreen() {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ text: string; ok: boolean } | null>(null);
+  const [directorRequest, setDirectorRequest] = useState("");
+  const [directorReason, setDirectorReason] = useState("");
+  const [directorMsg, setDirectorMsg] = useState<{ text: string; ok: boolean } | null>(null);
 
   useEffect(() => {
     if (!loaded.data) return;
@@ -92,6 +95,26 @@ export default function SettingsScreen() {
     }
   }
 
+  const currentDirector = profile?.defaultDirectorName?.trim();
+  const pendingDirector = profile?.directorNameChangeRequest?.status === "pending" ? profile.directorNameChangeRequest : null;
+
+  async function requestDirectorChange() {
+    setDirectorMsg(null);
+    try {
+      await apiFetch("/api/me/director-name-change-request", {
+        method: "POST",
+        auth: "required",
+        json: { requestedName: directorRequest.trim(), reason: directorReason.trim() || undefined },
+      });
+      await refreshGate();
+      setDirectorRequest("");
+      setDirectorReason("");
+      setDirectorMsg({ text: t("settings.directorNameSuccess"), ok: true });
+    } catch (err) {
+      setDirectorMsg({ text: (err as Error).message, ok: false });
+    }
+  }
+
   return (
     <ScrollView style={{ backgroundColor: colors.bg }} contentContainerStyle={{ padding: space(4), gap: space(3), paddingBottom: space(12) }} keyboardShouldPersistTaps="handled">
       <Stack.Screen options={{ title: t("settings.title") }} />
@@ -139,6 +162,37 @@ export default function SettingsScreen() {
           </Pressable>
         ))}
       </View>
+
+      {currentDirector ? (
+        <>
+          <Text style={[styles.section, { marginTop: space(6) }]}>{t("settings.directorNameSection")}</Text>
+          <Text style={styles.hint}>
+            {t("settings.directorNameCurrent")}: {currentDirector}
+          </Text>
+          <Text style={styles.hint}>{t("settings.directorNameLockedHint")}</Text>
+          {pendingDirector ? (
+            <Text style={styles.hint}>
+              {t("settings.directorNamePending")} {pendingDirector.requestedName}
+              {pendingDirector.reason ? ` — ${pendingDirector.reason}` : ""}
+            </Text>
+          ) : (
+            <>
+              <Text style={styles.label}>{t("settings.directorNameRequestLabel")}</Text>
+              <TextInput value={directorRequest} onChangeText={setDirectorRequest} maxLength={120} style={styles.input} />
+              <Text style={styles.label}>{t("settings.directorNameReasonLabel")}</Text>
+              <TextInput
+                value={directorReason}
+                onChangeText={setDirectorReason}
+                placeholder={t("settings.directorNameReasonPlaceholder")}
+                placeholderTextColor={colors.ink4}
+                style={styles.input}
+              />
+              <Button variant="secondary" label={t("settings.directorNameSubmit")} disabled={!directorRequest.trim()} onPress={requestDirectorChange} />
+            </>
+          )}
+          {directorMsg ? <Text style={[styles.hint, { color: directorMsg.ok ? colors.success : colors.destructive }]}>{directorMsg.text}</Text> : null}
+        </>
+      ) : null}
 
       <Text style={[styles.section, { marginTop: space(6) }]}>{t("settings.accountSection")}</Text>
       <Text style={styles.hint}>{t("settings.deleteAccount.hint")}</Text>

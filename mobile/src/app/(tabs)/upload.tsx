@@ -2,19 +2,21 @@ import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import { activateKeepAwakeAsync, deactivateKeepAwake } from "expo-keep-awake";
 import { router } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { closestVideoAspectRatio } from "@/lib/works/aspect-ratio";
 import { validatePromoClipRange, type PromoTrimRange } from "@/lib/works/promo-clip";
 import { defaultPromoFrameCrop } from "@/lib/works/promo-crop";
 import { PROMO_MAX_DURATION_SEC, validatePromoVideoDimensions, validatePromoVideoDuration } from "@/lib/works/promo-video";
 import { uploadPercentForPhase, uploadPercentForSubmitPhase, type UploadPhase } from "@/lib/works/upload-progress";
+import type { SchoolSuggestion } from "@/types/school";
 import type { WorkSection } from "@/types/work";
 import { CreditTagger } from "~/components/CreditTagger";
 import { SignInPrompt } from "~/components/SignInPrompt";
 import { Button } from "~/components/ui";
 import { appText } from "~/lib/appCopy";
 import { useAuth } from "~/lib/auth";
+import { apiFetch } from "~/lib/api";
 import { useLocale } from "~/lib/locale";
 import {
   createWork,
@@ -75,6 +77,9 @@ export default function UploadScreen() {
   const [contentCategory, setContentCategory] = useState("");
   const [tags, setTags] = useState("");
   const [thumbnail, setThumbnail] = useState<PickedMedia | null>(null);
+  const [school, setSchool] = useState<SchoolSuggestion | null>(null);
+  const [schoolQuery, setSchoolQuery] = useState("");
+  const [schoolResults, setSchoolResults] = useState<SchoolSuggestion[]>([]);
   const [credits, setCredits] = useState<CreditDraft[]>([]);
   const [invites, setInvites] = useState<InviteDraft[]>([]);
   const [prologueChoice, setPrologueChoice] = useState<"upload" | "skip" | "">("");
@@ -88,6 +93,25 @@ export default function UploadScreen() {
   const [phase, setPhase] = useState<UploadPhase | null>(null);
   const [percent, setPercent] = useState(0);
   const [notes, setNotes] = useState<string[]>([]);
+
+  // School tagging (website SchoolPicker, GET /api/schools/suggest).
+  useEffect(() => {
+    const q = schoolQuery.trim();
+    if (q.length < 2 || !user) {
+      setSchoolResults([]);
+      return;
+    }
+    let cancelled = false;
+    const timer = setTimeout(() => {
+      apiFetch<{ items?: SchoolSuggestion[] }>(`/api/schools/suggest?q=${encodeURIComponent(q)}`, { auth: "required" })
+        .then((d) => !cancelled && setSchoolResults(d.items ?? []))
+        .catch(() => !cancelled && setSchoolResults([]));
+    }, 300);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [schoolQuery, user]);
 
   if (!user) return <SignInPrompt />;
 
@@ -168,6 +192,8 @@ export default function UploadScreen() {
         director: (lockedDirector || director.trim()) || undefined,
         contentCategory: contentCategory.trim() || undefined,
         tags: tagList.length > 0 ? tagList : undefined,
+        schoolId: school?.id || undefined,
+        schoolName: school?.name || undefined,
         promoDraft: { title: promoTitle.trim(), description: promoDescription.trim() || undefined },
         prologueDraft: withPrologue ? { title: prologueTitle.trim() || title.trim() || undefined } : undefined,
         credits: credits.map((c, i) => ({ userId: c.userId, role: c.role, sortOrder: i })),
@@ -308,6 +334,29 @@ export default function UploadScreen() {
             {input(contentCategory, setContentCategory, t("uploader.uploadContentCategoryPlaceholder"))}
             <Text style={styles.label}>{t("uploader.uploadTagsLabel")}</Text>
             {input(tags, setTags, "#")}
+            <Text style={styles.label}>{t("uploader.schoolPickerLabel")}</Text>
+            {school ? (
+              <Pressable onPress={() => setSchool(null)} style={[styles.chip, styles.chipActive, { alignSelf: "flex-start" }]}>
+                <Text style={[styles.chipText, { color: colors.ink }]}>{school.name} ✕</Text>
+              </Pressable>
+            ) : (
+              <>
+                {input(schoolQuery, setSchoolQuery, t("uploader.schoolPickerPlaceholder"))}
+                <Text style={styles.hint}>{t("uploader.schoolPickerHint")}</Text>
+                {schoolResults.slice(0, 6).map((s) => (
+                  <Pressable
+                    key={s.id}
+                    onPress={() => {
+                      setSchool(s);
+                      setSchoolQuery("");
+                    }}
+                    style={{ paddingVertical: space(2) }}
+                  >
+                    <Text style={{ ...type.body, color: colors.ink }}>{s.name}</Text>
+                  </Pressable>
+                ))}
+              </>
+            )}
             <Text style={styles.label}>{t("uploader.catalogThumbnailPreviewTitle")}</Text>
             {thumbnail ? <Image source={{ uri: thumbnail.uri }} style={styles.thumbPreview} contentFit="cover" /> : null}
             {pickButton(t("uploader.catalogThumbnailPreviewTitle"), thumbnail, async () => setThumbnail((await pick("images")) ?? thumbnail))}

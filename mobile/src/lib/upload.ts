@@ -71,6 +71,8 @@ export async function createWork(body: {
   director?: string;
   contentCategory?: string;
   tags?: string[];
+  schoolId?: string;
+  schoolName?: string;
   promoDraft: { title: string; description?: string };
   prologueDraft?: { title?: string; description?: string };
   credits: { userId: string; role: WorkCreditRole; sortOrder: number }[];
