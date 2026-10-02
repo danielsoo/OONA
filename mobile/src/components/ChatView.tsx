@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import {
   FlatList,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   Pressable,
   StyleSheet,
@@ -11,6 +12,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { formatDmTime } from "@/lib/dm/formatDmTime";
+import { MESSAGE_REACTION_EMOJIS } from "@/lib/dm/messageReactions";
 import { useLocale } from "~/lib/locale";
 import type { ChatMessage, ReplyTarget } from "~/lib/messages";
 import { colors, radius, space, type } from "~/theme";
@@ -24,12 +26,16 @@ export function ChatView({
   messages,
   senderName,
   onSend,
+  onReact,
+  onDelete,
 }: {
   myUid: string;
   messages: ChatMessage[];
   /** Group rooms show who sent each message; 1:1 threads pass undefined. */
   senderName?: (uid: string) => string;
   onSend: (text: string, replyTo?: ReplyTarget) => Promise<void>;
+  onReact: (messageId: string, emoji: string) => Promise<void>;
+  onDelete: (messageId: string) => Promise<void>;
 }) {
   const { t, locale } = useLocale();
   const insets = useSafeAreaInsets();
@@ -38,6 +44,16 @@ export function ChatView({
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const listRef = useRef<FlatList<ChatMessage>>(null);
+  const [selected, setSelected] = useState<ChatMessage | null>(null);
+
+  async function act(action: () => Promise<void>) {
+    setSelected(null);
+    try {
+      await action();
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  }
 
   async function send() {
     const body = text.trim();
@@ -75,7 +91,7 @@ export function ChatView({
           const mine = item.senderUid === myUid;
           return (
             <Pressable
-              onLongPress={() => setReplyTo({ messageId: item.id, senderUid: item.senderUid, text: item.text })}
+              onLongPress={() => setSelected(item)}
               style={[styles.bubbleWrap, mine ? { alignItems: "flex-end" } : { alignItems: "flex-start" }]}
             >
               {!mine && senderName ? <Text style={styles.sender}>{senderName(item.senderUid)}</Text> : null}
@@ -95,6 +111,34 @@ export function ChatView({
           );
         }}
       />
+
+      <Modal visible={selected !== null} transparent animationType="fade" onRequestClose={() => setSelected(null)}>
+        <Pressable style={styles.backdrop} onPress={() => setSelected(null)}>
+          <View style={styles.sheet}>
+            <View style={styles.emojiRow}>
+              {MESSAGE_REACTION_EMOJIS.map((emoji) => (
+                <Pressable key={emoji} onPress={() => selected && act(() => onReact(selected.id, emoji))} hitSlop={6}>
+                  <Text style={styles.emoji}>{emoji}</Text>
+                </Pressable>
+              ))}
+            </View>
+            <Text
+              style={styles.sheetAction}
+              onPress={() => {
+                if (selected) setReplyTo({ messageId: selected.id, senderUid: selected.senderUid, text: selected.text });
+                setSelected(null);
+              }}
+            >
+              {t("dm.actions.reply")}
+            </Text>
+            {selected?.senderUid === myUid ? (
+              <Text style={[styles.sheetAction, { color: colors.destructive }]} onPress={() => selected && act(() => onDelete(selected.id))}>
+                {t("dm.actions.delete")}
+              </Text>
+            ) : null}
+          </View>
+        </Pressable>
+      </Modal>
 
       {replyTo ? (
         <View style={styles.replyBar}>
@@ -126,6 +170,11 @@ export function ChatView({
 }
 
 const styles = StyleSheet.create({
+  backdrop: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" },
+  sheet: { backgroundColor: colors.surface, padding: space(5), paddingBottom: space(10), gap: space(2), borderTopLeftRadius: 16, borderTopRightRadius: 16 },
+  emojiRow: { flexDirection: "row", justifyContent: "space-around", paddingBottom: space(3) },
+  emoji: { fontSize: 28 },
+  sheetAction: { ...type.body, color: colors.ink, paddingVertical: space(3) },
   empty: { ...type.small, color: colors.ink3, textAlign: "center", padding: space(8), transform: [{ scaleY: -1 }] },
   bubbleWrap: { gap: 2 },
   sender: { ...type.small, color: colors.ink3, marginLeft: space(1) },

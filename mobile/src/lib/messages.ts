@@ -100,3 +100,19 @@ export function createRoom(name: string, memberUids: string[]) {
 export function leaveRoom(roomId: string) {
   return apiFetch(`/api/me/rooms/${encodeURIComponent(roomId)}/leave`, { method: "POST", auth: "required" });
 }
+
+export type ConversationRef = { kind: "thread"; id: string } | { kind: "room"; id: string };
+
+function messagePath(conv: ConversationRef, messageId: string): string {
+  const base = conv.kind === "thread" ? `/api/me/dm/threads/${encodeURIComponent(conv.id)}` : `/api/me/rooms/${encodeURIComponent(conv.id)}`;
+  return `${base}/messages/${encodeURIComponent(messageId)}`;
+}
+
+/** Toggles the viewer's reaction (one per person); same emoji set as the website. */
+export function reactToMessage(conv: ConversationRef, messageId: string, emoji: string) {
+  return apiFetch(`${messagePath(conv, messageId)}/react`, { method: "POST", auth: "required", json: { emoji } });
+}
+
+export function deleteMessage(conv: ConversationRef, messageId: string) {
+  return apiFetch(messagePath(conv, messageId), { method: "DELETE", auth: "required" });
+}

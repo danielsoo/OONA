@@ -11,7 +11,11 @@ import { useApi } from "~/lib/useApi";
 import { colors, space, type } from "~/theme";
 
 /** Routes that already exist in the app; anything else stays on this screen for now. */
-function openTarget(path: string) {
+function openTarget(path: string, type?: string) {
+  if (type?.startsWith("business_invite")) {
+    router.push("/invites");
+    return;
+  }
   if (["/watch/", "/people/", "/messages", "/collab-invite/"].some((prefix) => path.startsWith(prefix))) {
     router.push(path as never);
   }
@@ -40,7 +44,7 @@ export default function NotificationsScreen() {
       refreshControl={<RefreshControl refreshing={list.loading} onRefresh={list.refresh} tintColor={colors.ink2} />}
       ListEmptyComponent={<Message title={t("notifications.empty")} />}
       renderItem={({ item }) => (
-        <Pressable onPress={() => openTarget(item.targetPath)} style={({ pressed }) => [styles.row, pressed && { opacity: 0.7 }]}>
+        <Pressable onPress={() => openTarget(item.targetPath, item.type)} style={({ pressed }) => [styles.row, pressed && { opacity: 0.7 }]}>
           <Avatar uri={item.actorAvatarUrl} name={item.actorDisplayName} size={40} />
           <View style={{ flex: 1 }}>
             <Text style={[styles.text, !item.read && { color: colors.ink }]} numberOfLines={2}>

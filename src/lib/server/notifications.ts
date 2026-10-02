@@ -78,7 +78,9 @@ export async function createNotification(db: Firestore, input: BuildNotification
 
 /** Screen the mobile app opens when the push is tapped. */
 function pushPathForNotification(type: NotificationType): string {
-  return type === "work_approve" || type === "work_reject" ? "/my-works" : "/notifications";
+  if (type === "work_approve" || type === "work_reject") return "/my-works";
+  if (type.startsWith("business_invite")) return "/invites";
+  return "/notifications";
 }
 
 export async function listNotificationsForUser(

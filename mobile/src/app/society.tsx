@@ -1,4 +1,4 @@
-import { Stack } from "expo-router";
+import { router, Stack } from "expo-router";
 import { useState } from "react";
 import { FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from "react-native";
 import { PersonRow } from "~/components/PersonRow";
@@ -30,7 +30,18 @@ export default function SocietyScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
-      <Stack.Screen options={{ title: t("society.title") }} />
+      <Stack.Screen
+        options={{
+          title: t("society.title"),
+          headerRight: user
+            ? () => (
+                <Text onPress={() => router.push("/invites")} style={{ ...type.small, color: colors.accentHover }}>
+                  {t("society.tabRequests")}
+                </Text>
+              )
+            : undefined,
+        }}
+      />
       <View style={styles.tabs}>
         {tabs.map((x) => (
           <Pressable key={x.id} onPress={() => setTab(x.id)} style={[styles.tab, tab === x.id && styles.tabActive]}>

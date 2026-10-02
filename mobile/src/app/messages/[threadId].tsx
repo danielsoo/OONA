@@ -4,7 +4,7 @@ import { ChatView } from "~/components/ChatView";
 import { Loading, Message } from "~/components/ui";
 import { useAuth } from "~/lib/auth";
 import { useLocale } from "~/lib/locale";
-import { loadThread, sendThreadMessage } from "~/lib/messages";
+import { deleteMessage, loadThread, reactToMessage, sendThreadMessage } from "~/lib/messages";
 import { useApi } from "~/lib/useApi";
 import { usePolling } from "~/lib/usePolling";
 import { colors, type } from "~/theme";
@@ -41,6 +41,14 @@ export default function ThreadScreen() {
       <ChatView
         myUid={user.uid}
         messages={data.messages}
+        onReact={async (messageId, emoji) => {
+          await reactToMessage({ kind: "thread", id: threadId }, messageId, emoji);
+          await thread.refresh();
+        }}
+        onDelete={async (messageId) => {
+          await deleteMessage({ kind: "thread", id: threadId }, messageId);
+          await thread.refresh();
+        }}
         onSend={async (text, replyTo) => {
           await sendThreadMessage(threadId, text, replyTo, data.otherUid);
           await thread.refresh();

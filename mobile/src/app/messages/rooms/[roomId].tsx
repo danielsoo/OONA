@@ -4,7 +4,7 @@ import { ChatView } from "~/components/ChatView";
 import { Loading, Message } from "~/components/ui";
 import { useAuth } from "~/lib/auth";
 import { useLocale } from "~/lib/locale";
-import { leaveRoom, loadRoom, sendRoomMessage } from "~/lib/messages";
+import { deleteMessage, leaveRoom, loadRoom, reactToMessage, sendRoomMessage } from "~/lib/messages";
 import { useApi } from "~/lib/useApi";
 import { usePolling } from "~/lib/usePolling";
 import { colors, type } from "~/theme";
@@ -54,6 +54,14 @@ export default function RoomScreen() {
         myUid={user.uid}
         messages={data.messages}
         senderName={(uid) => names.get(uid) ?? "—"}
+        onReact={async (messageId, emoji) => {
+          await reactToMessage({ kind: "room", id: roomId }, messageId, emoji);
+          await room.refresh();
+        }}
+        onDelete={async (messageId) => {
+          await deleteMessage({ kind: "room", id: roomId }, messageId);
+          await room.refresh();
+        }}
         onSend={async (text, replyTo) => {
           await sendRoomMessage(roomId, text, replyTo);
           await room.refresh();
