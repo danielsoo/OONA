@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">OONA</string>
+    <string name="title_activity_main">OONA</string>
+    <string name="package_name">com.xiio.oona</string>
+    <string name="custom_url_scheme">com.xiio.oona</string>
+</resources>

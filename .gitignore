@@ -34,3 +34,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Capacitor: absolute symlinks into node_modules, recreated by `npx cap sync ios`
+ios/App/CapApp-SPM/symlinks/
+# Firebase native config files (download from the Firebase console per developer)
+android/app/google-services.json
+ios/App/App/GoogleService-Info.plist

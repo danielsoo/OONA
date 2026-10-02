@@ -8,7 +8,6 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
-  signInWithPopup,
   signInWithCustomToken,
   linkWithCredential,
   updateProfile,
@@ -18,6 +17,7 @@ import {
 import AccountConflictDialog from "@/components/auth/AccountConflictDialog";
 import { auth, appleProvider, googleProvider } from "@/lib/firebase";
 import { applyAuthPersistence } from "@/lib/authPersistence";
+import { signInWithSocialProvider } from "@/lib/native/social-sign-in";
 import {
   AUTH_ACCOUNT_CONFLICT,
   type AccountConflictState,
@@ -140,12 +140,12 @@ async function loginWithExistingProvider(conflict: AccountConflictState): Promis
   await applyAuthPersistence(conflict.remember);
 
   if (existing === "google") {
-    const { user: signedIn } = await signInWithPopup(auth, googleProvider);
+    const { user: signedIn } = await signInWithSocialProvider(auth, "google", googleProvider);
     rememberSocialProvider("google");
     return signedIn;
   }
 
-  const { user: signedIn } = await signInWithPopup(auth, appleProvider);
+  const { user: signedIn } = await signInWithSocialProvider(auth, "apple", appleProvider);
   rememberSocialProvider("apple");
   return signedIn;
 }
@@ -187,7 +187,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const authProvider = provider === "apple" ? appleProvider : googleProvider;
       try {
-        const { user: signedIn } = await signInWithPopup(auth, authProvider);
+        const { user: signedIn } = await signInWithSocialProvider(auth, provider, authProvider);
         return signedIn;
       } catch (err) {
         const conflict = parseOAuthConflictError(err, provider, remember);

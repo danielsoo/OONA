@@ -11,6 +11,7 @@ import VisitRecorder from "@/components/VisitRecorder";
 import ProfileLocaleSync from "@/components/ProfileLocaleSync";
 import type { HomeHeroTheme } from "@/lib/homeHeroColors";
 import { AdminAccessProvider } from "@/hooks/useAdminAccess";
+import NativeAppBridge from "@/components/NativeAppBridge";
 
 export default function Providers({
   children,
@@ -25,6 +26,7 @@ export default function Providers({
         <AdminAccessProvider>
           <ProfileProvider>
             <HomeHeroThemeProvider initialTheme={initialHomeTheme}>
+              <NativeAppBridge />
               <ProfileLocaleSync />
               <VisitRecorder />
               <MemberGuard />
