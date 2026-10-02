@@ -2,11 +2,13 @@ import { useCallback } from "react";
 import { RefreshControl, ScrollView, View } from "react-native";
 import { router } from "expo-router";
 import { HeroCard } from "~/components/HeroCard";
+import { CreatorsRail, ShortsRail } from "~/components/HomeExtras";
 import { Loading, Message } from "~/components/ui";
 import { WorkRail } from "~/components/WorkRail";
 import { toRailItem } from "~/lib/catalog";
 import { useAuth } from "~/lib/auth";
-import { loadCatalog, loadContinueWatching } from "~/lib/feeds";
+import { discoverPeople } from "~/lib/discovery";
+import { loadCatalog, loadContinueWatching, loadPromoShorts } from "~/lib/feeds";
 import { useLocale } from "~/lib/locale";
 import { useApi } from "~/lib/useApi";
 import { colors, space } from "~/theme";
@@ -25,11 +27,16 @@ export default function HomeScreen() {
     return { movies, series, entertainment };
   });
   const continueWatching = useApi(user ? `continue:${user.uid}` : null, loadContinueWatching);
+  // Secondary rails: failures just hide the row.
+  const shorts = useApi(`promo-shorts:${user?.uid ?? "guest"}`, loadPromoShorts);
+  const creators = useApi("home-creators", () => discoverPeople({}));
 
   const refresh = useCallback(() => {
     void catalog.refresh();
     void continueWatching.refresh();
-  }, [catalog, continueWatching]);
+    void shorts.refresh();
+    void creators.refresh();
+  }, [catalog, continueWatching, shorts, creators]);
 
   if (catalog.loading && !catalog.data) return <Loading />;
   if (catalog.error && !catalog.data) {
@@ -60,6 +67,7 @@ export default function HomeScreen() {
         }))}
       />
       <WorkRail title={ui("Trending on OONA")} items={trending.slice(1).map(toRailItem)} />
+      <ShortsRail title={t("nav.discover")} items={shorts.data ?? []} />
       {(["movies", "series", "entertainment"] as const).map((section) => (
         <WorkRail
           key={section}
@@ -68,6 +76,12 @@ export default function HomeScreen() {
           seeAll={{ label: ui("View all"), onPress: () => router.push(`/section/${section}`) }}
         />
       ))}
+      <CreatorsRail
+        title={t("society.title")}
+        people={creators.data ?? []}
+        seeAllLabel={ui("View all")}
+        onSeeAll={() => router.push("/society")}
+      />
     </ScrollView>
   );
 }
