@@ -49,6 +49,8 @@ export type PeopleWorkEntry = {
   role: string;
   characterName?: string;
   thumbnailUrl?: string | null;
+  /** The profile owner's note about this work (portfolio memo). */
+  profileNote?: string | null;
 };
 
 export type PeopleProfilePayload = {
@@ -64,7 +66,11 @@ export type PeopleProfilePayload = {
     followerCount: number;
     followingCount: number;
     schoolName?: string | null;
+    collaborationNote?: string;
+    profileLink?: string | null;
+    societyBannerBackgroundId?: string | null;
   };
+  isOnline?: boolean;
   viewer: { uid: string; isSelf: boolean; isFollowing: boolean } | null;
   directed: PeopleWorkEntry[];
   credited: PeopleWorkEntry[];
