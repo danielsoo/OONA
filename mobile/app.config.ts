@@ -11,7 +11,8 @@ import type { ExpoConfig } from "expo/config";
 const googleIosUrlScheme = process.env.EXPO_PUBLIC_GOOGLE_IOS_URL_SCHEME;
 /** Website host whose links open the app (served files: src/app/.well-known/*). */
 const appLinkHost = process.env.APP_LINK_HOST || "xiio.vercel.app";
-const appLinkPaths = ["/watch", "/people", "/collab-invite", "/messages"];
+// Trailing slashes: Android matches by prefix, so "/p" alone would also catch "/people" or "/privacy".
+const appLinkPaths = ["/watch/", "/people/", "/collab-invite/", "/messages/", "/p/", "/projects/"];
 
 const plugins: ExpoConfig["plugins"] = [
   "expo-router",

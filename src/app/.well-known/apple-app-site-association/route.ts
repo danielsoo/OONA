@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
  * the app instead of Safari. Needs APPLE_TEAM_ID (Apple Developer > Membership);
  * without it the file is empty and links keep opening the website.
  */
-const APP_LINK_PATHS = ["/watch/*", "/people/*", "/collab-invite/*", "/messages/*"];
+const APP_LINK_PATHS = ["/watch/*", "/people/*", "/collab-invite/*", "/messages/*", "/p/*", "/projects/*"];
 
 export function GET() {
   const teamId = process.env.APPLE_TEAM_ID?.trim();

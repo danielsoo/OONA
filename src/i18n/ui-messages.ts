@@ -1719,5 +1719,13 @@ export const uiMessages: Record<string, readonly [string, string]> = {
   "reorder": [
     "순서 바꾸기",
     "並べ替え"
+  ],
+  "projects": [
+    "프로젝트",
+    "プロジェクト"
+  ],
+  "no projects yet": [
+    "아직 프로젝트가 없습니다",
+    "プロジェクトはまだありません"
   ]
 };

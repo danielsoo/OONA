@@ -12,7 +12,7 @@ import { colors, space, type } from "~/theme";
 
 export default function MeScreen() {
   const { user, profile, signOut } = useAuth();
-  const { locale, t } = useLocale();
+  const { locale, t, ui } = useLocale();
   const handle = useApi(user ? `handle:${user.uid}` : null, () => loadHandleForUid(user!.uid));
 
   if (!user) return <SignInPrompt />;
@@ -33,7 +33,9 @@ export default function MeScreen() {
       <Button variant="secondary" label={t("dm.inboxTitle")} onPress={() => router.push("/messages")} />
       <Button variant="secondary" label={t("myWorks.title")} onPress={() => router.push("/my-works")} />
       <Button variant="secondary" label={t("myList.title")} onPress={() => router.push("/my-list")} />
+      <Button variant="secondary" label={ui("Projects")} onPress={() => router.push("/projects")} />
       <Button variant="secondary" label={t("settings.title")} onPress={() => router.push("/settings")} />
+      <Button variant="secondary" label={t("about.title")} onPress={() => router.push("/about")} />
       <Button
         variant="secondary"
         label={appText(locale, "signOut")}

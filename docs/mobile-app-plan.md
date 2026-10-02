@@ -62,7 +62,7 @@ Expo Go로는 실행되지 않는다. Google 로그인과 Apple 로그인이 네
 
 **업로드 주의:** 업로드 중에는 화면이 꺼지지 않게 해 두었다. 그래도 다른 앱으로 넘어가면 멈출 수 있어서, 큰 영상은 Wi-Fi에서 앱을 켠 채로 올리도록 안내한다. 영상은 웹과 같이 Firebase Storage(스테이징)와 Cloudflare Stream에 각각 한 번씩, 총 두 번 올라간다.
 
-**유니버설 링크:** `/watch`, `/people`, `/collab-invite`, `/messages` 링크가 앱으로 열린다. 웹사이트가 `/.well-known/apple-app-site-association`과 `/.well-known/assetlinks.json`을 서빙하는데(`src/app/.well-known/`), Vercel 환경 변수 `APPLE_TEAM_ID`(Apple 팀 ID)와 `ANDROID_APP_SHA256`(서명 키 SHA-256, Play 앱 서명 키 포함, 쉼표로 구분)을 넣어야 켜진다. 앱 쪽 도메인은 `APP_LINK_HOST`(기본 xiio.vercel.app)로 바꿀 수 있다.
+**유니버설 링크:** `/watch/…`, `/people/…`, `/collab-invite/…`, `/messages/…`, `/p/…`(포트폴리오), `/projects/…` 링크가 앱으로 열린다. 웹사이트가 `/.well-known/apple-app-site-association`과 `/.well-known/assetlinks.json`을 서빙하는데(`src/app/.well-known/`), Vercel 환경 변수 `APPLE_TEAM_ID`(Apple 팀 ID)와 `ANDROID_APP_SHA256`(서명 키 SHA-256, Play 앱 서명 키 포함, 쉼표로 구분)을 넣어야 켜진다. 앱 쪽 도메인은 `APP_LINK_HOST`(기본 xiio.vercel.app)로 바꿀 수 있다.
 
 ### 3단계: 소통
 
@@ -71,7 +71,7 @@ Expo Go로는 실행되지 않는다. Google 로그인과 Apple 로그인이 네
 | `/messages` `/messages/[threadId]` | 메시지함, 1:1 대화 | ✅ | 8초마다 새로고침, 길게 눌러 반응·답장·삭제. 새 1:1 대화는 프로필의 메시지 버튼으로 시작 |
 | `/messages/rooms/[roomId]` | 그룹 대화, 새 그룹, 나가기, 멤버 관리 | ✅ | 누구나 멤버 추가, 만든 사람만 내보내기 (웹과 같음) |
 | `/society` `/creators` | 소사이어티, 구직 제안함 | ◐ | 사람 찾기, 협업 가능, 내 커넥션, 받은·보낸 제안 수락·거절, 역할 필터, 프로필에서 프로젝트 제안 보내기(프로젝트 새로 만들기 포함). 남은 것: 학교 필터(서버 API에 아직 없음), 제안 첨부 파일 |
-| `/projects/[projectId]` | | ☐ | 프로젝트 |
+| `/projects/[projectId]` | 프로젝트 목록·작업 공간 (나 탭) | ✅ | 새 프로젝트, 상태·소개 수정, 주요 일정 체크·추가(소유자만), 참여자, 프로젝트 대화, 연결된 작품 |
 | `/my-list` | 내 리스트 + 시청 화면의 담기 버튼 | ✅ | |
 | `/search` | 검색 (홈 오른쪽 위) | ✅ | 최근 검색어 |
 | (신규) 푸시 알림 | 앱 전체 | ◐ | 새 메시지(1:1·그룹), 새 팔로워, 작품 승인·반려, 구직 제안에 푸시가 간다. 누르면 해당 화면으로 열림. 실제 발송에는 EAS 프로젝트 ID가 필요하다 (아래) |
@@ -86,8 +86,8 @@ Expo Go로는 실행되지 않는다. Google 로그인과 Apple 로그인이 네
 | `/series/[seriesId]` `/entertainment/[showId]` | 해당 없음 | — | 웹에서도 데모 모드에서만 열리는 화면이라 앱에는 넣지 않음 |
 | `/shorts` | Discover 탭 | ✅ | |
 | `/uploader/analytics` | 통계 (내 작품) | ✅ | 30일 조회·좋아요 추이, 참여율, 작품별 표 |
-| `/p/[token]` | | ☐ | 공개 포트폴리오 (웹 링크로 충분할 수 있음) |
-| `/about` | | ☐ | 소개 (웹 링크로 충분할 수 있음) |
+| `/p/[token]` | 공개 포트폴리오 | ✅ | 로그인 없이 열람·재생, 공유. 링크 만들기·관리는 아직 웹에서 |
+| `/about` | 소개 (나 탭) | ✅ | |
 | `/admin/*` | 웹 유지 | — | 관리자 기능은 웹에서만 쓴다 |
 | `/auth/callback` | 해당 없음 | — | 웹 전용 OAuth 콜백 |
 
