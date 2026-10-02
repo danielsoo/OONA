@@ -1695,5 +1695,17 @@ export const uiMessages: Record<string, readonly [string, string]> = {
   "creator games": [
     "창작자 대결",
     "クリエイター対決"
+  ],
+  "the project could not be created.": [
+    "프로젝트를 만들지 못했습니다.",
+    "プロジェクトを作成できませんでした。"
+  ],
+  "the invitation could not be sent.": [
+    "제안을 보내지 못했습니다.",
+    "招待を送信できませんでした。"
+  ],
+  "password reset email sent.": [
+    "비밀번호 재설정 메일을 보냈습니다.",
+    "パスワード再設定メールを送信しました。"
   ]
 };

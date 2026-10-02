@@ -16,7 +16,7 @@ import { colors, space, type } from "~/theme";
 export default function PeopleScreen() {
   const { handle } = useLocalSearchParams<{ handle: string }>();
   const { user } = useAuth();
-  const { t, locale } = useLocale();
+  const { t, ui, locale } = useLocale();
   const { width } = useWindowDimensions();
   const people = useApi(`people:${handle}:${user?.uid ?? "guest"}`, () => loadPeople(handle));
   const [followBusy, setFollowBusy] = useState(false);
@@ -112,6 +112,19 @@ export default function PeopleScreen() {
         ) : null}
         {!viewer?.isSelf ? (
           <Button variant="secondary" label={t("dm.inbox.sendMessageCta")} onPress={() => void message()} style={{ alignSelf: "stretch", marginTop: space(2) }} />
+        ) : null}
+        {user && !viewer?.isSelf ? (
+          <Button
+            variant="secondary"
+            label={ui("Invite to project")}
+            onPress={() =>
+              router.push({
+                pathname: "/send-invite",
+                params: { uid: profile.uid, handle: profile.handle, name: profile.displayName, avatar: profile.avatarUrl ?? "" },
+              })
+            }
+            style={{ alignSelf: "stretch", marginTop: space(2) }}
+          />
         ) : null}
       </View>
       {profile.bio ? <Text style={styles.bio}>{profile.bio}</Text> : null}

@@ -20,8 +20,11 @@ export async function searchPeople(q: string): Promise<PersonCard[]> {
   return data.people ?? [];
 }
 
-export async function discoverPeople(opts: { openOnly?: boolean; followingOnly?: boolean }): Promise<PersonCard[]> {
+export type RoleFilter = "director" | "actor" | "crew";
+
+export async function discoverPeople(opts: { openOnly?: boolean; followingOnly?: boolean; role?: RoleFilter }): Promise<PersonCard[]> {
   const params = new URLSearchParams();
+  if (opts.role) params.set("role", opts.role);
   if (opts.openOnly) params.set("openOnly", "1");
   if (opts.followingOnly) params.set("followingOnly", "1");
   const data = await apiFetch<{ people?: PersonCard[] }>(`/api/discover/people?${params}`, {

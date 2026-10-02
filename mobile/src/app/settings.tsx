@@ -5,6 +5,8 @@ import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { useEffect, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from "react-native";
 import { LOCALES } from "@/i18n";
+import { isValidProfileLinkInput } from "@/lib/profileLink";
+import { ChangeRequestSection } from "~/components/ChangeRequestSection";
 import { SignInPrompt } from "~/components/SignInPrompt";
 import { Avatar, Button, Loading } from "~/components/ui";
 import { apiFetch } from "~/lib/api";
@@ -21,11 +23,17 @@ type ProfessionalProfile = {
   isDiscoverable: boolean;
   openToCollaborate: boolean;
   avatarUrl?: string | null;
+  handle: string | null;
+  displayName: string;
+  profileLink: string | null;
+  displayNameChangeRequest: { status?: string; requestedName?: string; reason?: string } | null;
+  handleChangeRequest: { status?: string; requestedName?: string; reason?: string } | null;
 };
 
 /**
  * Settings and public profile (website /settings and /account/profile):
- * photo, headline, bio, visibility, language, account deletion.
+ * photo, headline, bio, link, visibility, language, identity change
+ * requests, account deletion.
  */
 export default function SettingsScreen() {
   const { user, profile, refreshGate } = useAuth();
@@ -40,14 +48,13 @@ export default function SettingsScreen() {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ text: string; ok: boolean } | null>(null);
-  const [directorRequest, setDirectorRequest] = useState("");
-  const [directorReason, setDirectorReason] = useState("");
-  const [directorMsg, setDirectorMsg] = useState<{ text: string; ok: boolean } | null>(null);
+  const [profileLink, setProfileLink] = useState("");
 
   useEffect(() => {
     if (!loaded.data) return;
     setHeadline(loaded.data.headline ?? "");
     setBio(loaded.data.bio ?? "");
+    setProfileLink(loaded.data.profileLink ?? "");
     setDiscoverable(loaded.data.isDiscoverable);
     setOpenToCollab(loaded.data.openToCollaborate);
     setAvatarUrl(loaded.data.avatarUrl ?? user?.photoURL ?? null);
@@ -78,13 +85,17 @@ export default function SettingsScreen() {
   }
 
   async function save() {
+    if (!isValidProfileLinkInput(profileLink)) {
+      setMessage({ text: t("profile.edit.profileLinkInvalid"), ok: false });
+      return;
+    }
     setSaving(true);
     setMessage(null);
     try {
       await apiFetch("/api/me/professional-profile", {
         method: "PATCH",
         auth: "required",
-        json: { headline, bio, isDiscoverable: discoverable, openToCollaborate: openToCollab },
+        json: { headline, bio, profileLink: profileLink.trim() || null, isDiscoverable: discoverable, openToCollaborate: openToCollab },
       });
       await refreshGate();
       setMessage({ text: t("profile.edit.saved"), ok: true });
@@ -95,24 +106,8 @@ export default function SettingsScreen() {
     }
   }
 
-  const currentDirector = profile?.defaultDirectorName?.trim();
-  const pendingDirector = profile?.directorNameChangeRequest?.status === "pending" ? profile.directorNameChangeRequest : null;
-
-  async function requestDirectorChange() {
-    setDirectorMsg(null);
-    try {
-      await apiFetch("/api/me/director-name-change-request", {
-        method: "POST",
-        auth: "required",
-        json: { requestedName: directorRequest.trim(), reason: directorReason.trim() || undefined },
-      });
-      await refreshGate();
-      setDirectorRequest("");
-      setDirectorReason("");
-      setDirectorMsg({ text: t("settings.directorNameSuccess"), ok: true });
-    } catch (err) {
-      setDirectorMsg({ text: (err as Error).message, ok: false });
-    }
+  async function afterRequest() {
+    await Promise.all([refreshGate(), loaded.refresh()]);
   }
 
   return (
@@ -138,6 +133,19 @@ export default function SettingsScreen() {
         maxLength={2000}
         style={[styles.input, { minHeight: 120, paddingTop: space(3), textAlignVertical: "top" }]}
       />
+      <Text style={styles.label}>{t("profile.edit.profileLink")}</Text>
+      <TextInput
+        value={profileLink}
+        onChangeText={setProfileLink}
+        placeholder="https://"
+        placeholderTextColor={colors.ink4}
+        autoCapitalize="none"
+        autoCorrect={false}
+        keyboardType="url"
+        maxLength={2048}
+        style={styles.input}
+      />
+      <Text style={styles.hint}>{t("profile.edit.profileLinkHint")}</Text>
 
       <Text style={[styles.section, { marginTop: space(4) }]}>{t("profile.edit.boothTitle")}</Text>
       <Text style={styles.hint}>{t("profile.edit.boothHint")}</Text>
@@ -163,36 +171,19 @@ export default function SettingsScreen() {
         ))}
       </View>
 
-      {currentDirector ? (
-        <>
-          <Text style={[styles.section, { marginTop: space(6) }]}>{t("settings.directorNameSection")}</Text>
-          <Text style={styles.hint}>
-            {t("settings.directorNameCurrent")}: {currentDirector}
-          </Text>
-          <Text style={styles.hint}>{t("settings.directorNameLockedHint")}</Text>
-          {pendingDirector ? (
-            <Text style={styles.hint}>
-              {t("settings.directorNamePending")} {pendingDirector.requestedName}
-              {pendingDirector.reason ? ` — ${pendingDirector.reason}` : ""}
-            </Text>
-          ) : (
-            <>
-              <Text style={styles.label}>{t("settings.directorNameRequestLabel")}</Text>
-              <TextInput value={directorRequest} onChangeText={setDirectorRequest} maxLength={120} style={styles.input} />
-              <Text style={styles.label}>{t("settings.directorNameReasonLabel")}</Text>
-              <TextInput
-                value={directorReason}
-                onChangeText={setDirectorReason}
-                placeholder={t("settings.directorNameReasonPlaceholder")}
-                placeholderTextColor={colors.ink4}
-                style={styles.input}
-              />
-              <Button variant="secondary" label={t("settings.directorNameSubmit")} disabled={!directorRequest.trim()} onPress={requestDirectorChange} />
-            </>
-          )}
-          {directorMsg ? <Text style={[styles.hint, { color: directorMsg.ok ? colors.success : colors.destructive }]}>{directorMsg.text}</Text> : null}
-        </>
-      ) : null}
+      <ChangeRequestSection
+        kind="displayName"
+        currentValue={loaded.data?.displayName}
+        pending={loaded.data?.displayNameChangeRequest}
+        onSubmitted={afterRequest}
+      />
+      <ChangeRequestSection kind="handle" currentValue={loaded.data?.handle} pending={loaded.data?.handleChangeRequest} onSubmitted={afterRequest} />
+      <ChangeRequestSection
+        kind="director"
+        currentValue={profile?.defaultDirectorName}
+        pending={profile?.directorNameChangeRequest}
+        onSubmitted={afterRequest}
+      />
 
       <Text style={[styles.section, { marginTop: space(6) }]}>{t("settings.accountSection")}</Text>
       <Text style={styles.hint}>{t("settings.deleteAccount.hint")}</Text>
