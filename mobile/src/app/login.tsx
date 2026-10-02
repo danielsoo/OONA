@@ -1,0 +1,125 @@
+import * as AppleAuthentication from "expo-apple-authentication";
+import { router } from "expo-router";
+import { useState } from "react";
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { formatLoginErrorMessage } from "@/lib/authErrors";
+import { Button, Message } from "~/components/ui";
+import { useAuth } from "~/lib/auth";
+import { useLocale } from "~/lib/locale";
+import { colors, radius, space, type } from "~/theme";
+
+export default function LoginScreen() {
+  const { t } = useLocale();
+  const { configured, googleAvailable, appleAvailable, signInWithEmail, signInWithGoogle, signInWithApple } = useAuth();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [busy, setBusy] = useState<"email" | "google" | "apple" | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  if (!configured) {
+    return <Message title={t("auth.login.errorAdminNotConfigured")} body="EXPO_PUBLIC_FIREBASE_* (.env.local)" />;
+  }
+
+  async function run(kind: "email" | "google" | "apple", action: () => Promise<void>, fallbackKey?: string) {
+    setBusy(kind);
+    setError(null);
+    try {
+      await action();
+      if (router.canGoBack()) router.back();
+      else router.replace("/");
+    } catch (err) {
+      const code = (err as { code?: string }).code;
+      // The user closed the Apple / Google sheet: not an error.
+      if (code === "ERR_REQUEST_CANCELED" || code === "SIGN_IN_CANCELLED") return;
+      setError(fallbackKey && !code?.startsWith("auth/") ? t(fallbackKey) : formatLoginErrorMessage(err, t));
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  return (
+    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: colors.bg }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+        <Text style={styles.title}>{t("auth.login.title")}</Text>
+
+        {appleAvailable ? (
+          <AppleAuthentication.AppleAuthenticationButton
+            buttonType={AppleAuthentication.AppleAuthenticationButtonType.CONTINUE}
+            buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.WHITE}
+            cornerRadius={radius.control}
+            style={{ height: 48 }}
+            onPress={() => run("apple", signInWithApple, "auth.login.errorAppleFailed")}
+          />
+        ) : null}
+        {googleAvailable ? (
+          <Button
+            variant="secondary"
+            label={t("auth.login.google")}
+            loading={busy === "google"}
+            onPress={() => run("google", signInWithGoogle, "auth.login.errorGoogleFailed")}
+          />
+        ) : null}
+
+        {appleAvailable || googleAvailable ? (
+          <View style={styles.divider}>
+            <View style={styles.rule} />
+            <Text style={styles.or}>{t("common.or")}</Text>
+            <View style={styles.rule} />
+          </View>
+        ) : null}
+
+        <Text style={styles.label}>{t("auth.login.emailLabel")}</Text>
+        <TextInput
+          value={email}
+          onChangeText={setEmail}
+          autoCapitalize="none"
+          autoComplete="email"
+          keyboardType="email-address"
+          textContentType="emailAddress"
+          style={styles.input}
+          placeholderTextColor={colors.ink4}
+        />
+        <Text style={styles.label}>{t("auth.login.passwordLabel")}</Text>
+        <TextInput
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+          autoComplete="current-password"
+          textContentType="password"
+          style={styles.input}
+          onSubmitEditing={() => run("email", () => signInWithEmail(email, password))}
+        />
+
+        {error ? <Text style={styles.error}>{error}</Text> : null}
+
+        <Button
+          label={busy === "email" ? t("auth.login.submitting") : t("auth.login.submit")}
+          loading={busy === "email"}
+          disabled={!email || !password}
+          onPress={() => run("email", () => signInWithEmail(email, password))}
+          style={{ marginTop: space(2) }}
+        />
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { padding: space(6), gap: space(3) },
+  title: { ...type.h1, color: colors.ink, marginBottom: space(4) },
+  divider: { flexDirection: "row", alignItems: "center", gap: space(3), marginVertical: space(2) },
+  rule: { flex: 1, height: StyleSheet.hairlineWidth, backgroundColor: colors.lineStrong },
+  or: { ...type.small, color: colors.ink3 },
+  label: { ...type.small, color: colors.ink2, marginTop: space(2) },
+  input: {
+    ...type.body,
+    color: colors.ink,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.line,
+    borderRadius: radius.control,
+    paddingHorizontal: space(4),
+    minHeight: 48,
+  },
+  error: { ...type.small, color: colors.destructive },
+});

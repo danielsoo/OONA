@@ -13,19 +13,9 @@
     "test:society": "node scripts/check-society-access.cjs",
     "test": "node --experimental-strip-types --test src/lib/collab-invite-pure.test.ts src/lib/works/promo-crop-interaction-pure.test.ts src/lib/credit-display-name-pure.test.ts src/lib/works/promo-file-validation.test.ts src/lib/homeHeroColors.test.ts",
     "firebase:deploy": "firebase deploy --only firestore",
-    "process:campus-logos": "node scripts/process-campus-logos.mjs",
-    "cap:sync": "cap sync",
-    "cap:ios": "cap sync ios && cap open ios",
-    "cap:android": "cap sync android && cap open android"
+    "process:campus-logos": "node scripts/process-campus-logos.mjs"
   },
   "dependencies": {
-    "@capacitor-firebase/authentication": "^8.5.2",
-    "@capacitor/android": "^8.5.2",
-    "@capacitor/app": "^8.1.2",
-    "@capacitor/core": "^8.5.2",
-    "@capacitor/ios": "^8.5.2",
-    "@capacitor/splash-screen": "^8.0.2",
-    "@capacitor/status-bar": "^8.0.4",
     "firebase": "^12.19.0",
     "firebase-admin": "^13.10.0",
     "hls.js": "^1.6.16",
@@ -38,8 +28,6 @@
     "tus-js-client": "^4.3.1"
   },
   "devDependencies": {
-    "@capacitor/assets": "^3.0.5",
-    "@capacitor/cli": "^8.5.2",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

@@ -1,0 +1,15 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "paths": {
+      // App code.
+      "~/*": ["./src/*"],
+      // The website's src/, for pure TypeScript shared with the app (types, i18n,
+      // formatting helpers). Same alias the website uses, so shared files'
+      // own "@/..." imports resolve unchanged.
+      "@/*": ["../src/*"]
+    }
+  },
+  "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts"]
+}
