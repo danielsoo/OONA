@@ -2,15 +2,18 @@ import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import { activateKeepAwakeAsync, deactivateKeepAwake } from "expo-keep-awake";
 import { router } from "expo-router";
+import { useVideoPlayer, VideoView } from "expo-video";
 import { useEffect, useState } from "react";
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { closestVideoAspectRatio } from "@/lib/works/aspect-ratio";
 import { validatePromoClipRange, type PromoTrimRange } from "@/lib/works/promo-clip";
 import { defaultPromoFrameCrop } from "@/lib/works/promo-crop";
+import { CATALOG_THUMBNAIL_FRAME_ASPECT, PORTRAIT_FRAME_ASPECT } from "@/lib/works/promo-crop-interaction-pure";
 import { PROMO_MAX_DURATION_SEC, validatePromoVideoDimensions, validatePromoVideoDuration } from "@/lib/works/promo-video";
 import { uploadPercentForPhase, uploadPercentForSubmitPhase, type UploadPhase } from "@/lib/works/upload-progress";
 import type { SchoolSuggestion } from "@/types/school";
-import type { WorkSection } from "@/types/work";
+import type { PromoFrameCrop, WorkSection } from "@/types/work";
+import { CropFrameEditor } from "~/components/CropFrameEditor";
 import { CreditTagger } from "~/components/CreditTagger";
 import { SignInPrompt } from "~/components/SignInPrompt";
 import { Button } from "~/components/ui";
@@ -77,6 +80,7 @@ export default function UploadScreen() {
   const [contentCategory, setContentCategory] = useState("");
   const [tags, setTags] = useState("");
   const [thumbnail, setThumbnail] = useState<PickedMedia | null>(null);
+  const [thumbnailCrop, setThumbnailCrop] = useState<PromoFrameCrop>(defaultPromoFrameCrop);
   const [school, setSchool] = useState<SchoolSuggestion | null>(null);
   const [schoolQuery, setSchoolQuery] = useState("");
   const [schoolResults, setSchoolResults] = useState<SchoolSuggestion[]>([]);
@@ -86,6 +90,13 @@ export default function UploadScreen() {
   const [prologue, setPrologue] = useState<PickedMedia | null>(null);
   const [prologueTitle, setPrologueTitle] = useState("");
   const [promo, setPromo] = useState<PickedMedia | null>(null);
+  const [promoCrop, setPromoCrop] = useState<PromoFrameCrop>(defaultPromoFrameCrop);
+  // Muted looping preview under the 9:16 frame editor.
+  const promoPlayer = useVideoPlayer(promo?.uri ?? null, (p) => {
+    p.muted = true;
+    p.loop = true;
+    p.play();
+  });
   const [promoTitle, setPromoTitle] = useState("");
   const [promoDescription, setPromoDescription] = useState("");
   const [trimStart, setTrimStart] = useState("0");
@@ -200,7 +211,7 @@ export default function UploadScreen() {
       });
 
       setPhase("thumbnail");
-      await uploadThumbnail(user.uid, workId, thumbnail, (r) => setPercent(uploadPercentForPhase("thumbnail", r)));
+      await uploadThumbnail(user.uid, workId, thumbnail, thumbnailCrop, (r) => setPercent(uploadPercentForPhase("thumbnail", r)));
 
       setPhase("full");
       const fullStaged = await uploadStagingVideo(user.uid, workId, "full", full, (r) => setPercent(uploadPercentForPhase("full", r)));
@@ -249,7 +260,7 @@ export default function UploadScreen() {
         full,
         prologue: withPrologue,
         promo,
-        frameCrop: defaultPromoFrameCrop(),
+        frameCrop: promoCrop,
         promoTrimRange: range,
         onProgress: (p, ratio) => {
           setPhase(phaseMap[p]);
@@ -358,8 +369,29 @@ export default function UploadScreen() {
               </>
             )}
             <Text style={styles.label}>{t("uploader.catalogThumbnailPreviewTitle")}</Text>
-            {thumbnail ? <Image source={{ uri: thumbnail.uri }} style={styles.thumbPreview} contentFit="cover" /> : null}
-            {pickButton(t("uploader.catalogThumbnailPreviewTitle"), thumbnail, async () => setThumbnail((await pick("images")) ?? thumbnail))}
+            {thumbnail && thumbnail.width > 0 ? (
+              <>
+                <Text style={styles.hint}>{t("uploader.thumbnailCropHint")}</Text>
+                <CropFrameEditor
+                  sourceWidth={thumbnail.width}
+                  sourceHeight={thumbnail.height}
+                  frameAspect={CATALOG_THUMBNAIL_FRAME_ASPECT}
+                  crop={thumbnailCrop}
+                  onChange={setThumbnailCrop}
+                  label={t("uploader.catalogThumbnailPreviewTitle")}
+                >
+                  <Image source={{ uri: thumbnail.uri }} style={StyleSheet.absoluteFill} contentFit="contain" />
+                </CropFrameEditor>
+              </>
+            ) : thumbnail ? (
+              <Image source={{ uri: thumbnail.uri }} style={styles.thumbPreview} contentFit="cover" />
+            ) : null}
+            {pickButton(t("uploader.catalogThumbnailPreviewTitle"), thumbnail, async () => {
+              const next = await pick("images");
+              if (!next) return;
+              setThumbnail(next);
+              setThumbnailCrop(defaultPromoFrameCrop());
+            })}
             <Text style={styles.hint}>{t("uploader.catalogThumbnailPreviewHint")}</Text>
           </View>
         ) : null}
@@ -398,7 +430,27 @@ export default function UploadScreen() {
           <View style={styles.section}>
             <Text style={styles.title}>{t("uploader.uploadZonePromoTitle")}</Text>
             <Text style={styles.hint}>{t("uploader.promoVideoFileHint")}</Text>
-            {pickButton(t("uploader.dropzoneTitle"), promo, async () => setPromo((await pick("videos")) ?? promo))}
+            {pickButton(t("uploader.dropzoneTitle"), promo, async () => {
+              const next = await pick("videos");
+              if (!next) return;
+              setPromo(next);
+              setPromoCrop(defaultPromoFrameCrop());
+            })}
+            {promo && promo.width > 0 ? (
+              <>
+                <Text style={styles.hint}>{t("uploader.promoCropHint")}</Text>
+                <CropFrameEditor
+                  sourceWidth={promo.width}
+                  sourceHeight={promo.height}
+                  frameAspect={PORTRAIT_FRAME_ASPECT}
+                  crop={promoCrop}
+                  onChange={setPromoCrop}
+                  label={t("uploader.promoCropDragLabel")}
+                >
+                  <VideoView player={promoPlayer} style={StyleSheet.absoluteFill} contentFit="contain" nativeControls={false} />
+                </CropFrameEditor>
+              </>
+            ) : null}
             {promoNeedsTrim ? (
               <>
                 <Text style={styles.label}>

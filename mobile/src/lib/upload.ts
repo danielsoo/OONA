@@ -86,12 +86,13 @@ export async function uploadThumbnail(
   uid: string,
   workId: string,
   image: PickedMedia,
+  thumbnailCrop: PromoFrameCrop,
   onProgress?: (ratio: number) => void
 ): Promise<void> {
   const path = `users/${uid}/works/${workId}/promo-thumbnail.${extOf(image.fileName, SAFE_IMAGE_EXT, "jpg")}`;
   await uploadToStorage(path, image, image.mimeType || "image/jpeg", onProgress);
   const thumbnailUrl = await getDownloadURL(ref(storage!, path));
-  await apiFetch(`/api/me/works/${workId}/promo-thumbnail`, { method: "PATCH", auth: "required", json: { thumbnailUrl } });
+  await apiFetch(`/api/me/works/${workId}/promo-thumbnail`, { method: "PATCH", auth: "required", json: { thumbnailUrl, thumbnailCrop } });
 }
 
 export async function uploadStagingVideo(
