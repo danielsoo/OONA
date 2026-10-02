@@ -181,9 +181,17 @@ export default function MyWorksScreen() {
                   <Text style={styles.meta}>{t("myWorks.statsFullViews", { count: item.viewCount })}</Text>
                 ) : null}
                 {published ? (
-                  <Text style={styles.edit} onPress={() => router.push(`/edit-work/${item.id}`)}>
-                    {t("myWorks.editVideo")}
-                  </Text>
+                  <View style={{ flexDirection: "row", flexWrap: "wrap", columnGap: space(3) }}>
+                    <Text style={styles.edit} onPress={() => router.push(`/edit-work/${item.id}`)}>
+                      {t("myWorks.editVideo")}
+                    </Text>
+                    <Text style={styles.edit} onPress={() => router.push({ pathname: "/edit-clip/[workId]", params: { workId: item.id, kind: "promo" } })}>
+                      {t("myWorks.editPromo")}
+                    </Text>
+                    <Text style={styles.edit} onPress={() => router.push({ pathname: "/edit-clip/[workId]", params: { workId: item.id, kind: "prologue" } })}>
+                      {t(item.prologue ? "myWorks.editPrologue" : "myWorks.createPrologue")}
+                    </Text>
+                  </View>
                 ) : null}
               </View>
               {ordering ? (

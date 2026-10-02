@@ -1,5 +1,4 @@
 import { Image } from "expo-image";
-import * as ImagePicker from "expo-image-picker";
 import { activateKeepAwakeAsync, deactivateKeepAwake } from "expo-keep-awake";
 import { router } from "expo-router";
 import { useVideoPlayer, VideoView } from "expo-video";
@@ -31,6 +30,7 @@ import {
   type CreditDraft,
   type InviteDraft,
   type PickedMedia,
+  pickMedia as pick,
 } from "~/lib/upload";
 import { colors, radius, space, type } from "~/theme";
 
@@ -38,27 +38,6 @@ type StepId = "fullWork" | "catalog" | "credits" | "prologue" | "promo";
 const STEPS: StepId[] = ["fullWork", "catalog", "credits", "prologue", "promo"];
 const SECTIONS: WorkSection[] = ["movies", "series", "entertainment"];
 const MAX_THUMBNAIL_BYTES = 10 * 1024 * 1024; // storage.rules, same as the website
-
-async function pick(kind: "videos" | "images"): Promise<PickedMedia | null> {
-  const result = await ImagePicker.launchImageLibraryAsync({
-    mediaTypes: kind,
-    allowsMultipleSelection: false,
-    quality: 1,
-    // Keep the original file: no iOS re-encode before upload.
-    preferredAssetRepresentationMode: ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Current,
-  });
-  const asset = result.canceled ? null : result.assets[0];
-  if (!asset) return null;
-  return {
-    uri: asset.uri,
-    fileName: asset.fileName ?? asset.uri.split("/").pop() ?? (kind === "videos" ? "video.mp4" : "image.jpg"),
-    mimeType: asset.mimeType ?? (kind === "videos" ? "video/mp4" : "image/jpeg"),
-    fileSize: asset.fileSize ?? 0,
-    width: asset.width,
-    height: asset.height,
-    duration: (asset.duration ?? 0) / 1000,
-  };
-}
 
 function formatDuration(sec: number): string {
   const m = Math.floor(sec / 60);

@@ -1,3 +1,4 @@
+import * as ImagePicker from "expo-image-picker";
 import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
 import * as tus from "tus-js-client";
 import type { PromoTrimRange } from "@/lib/works/promo-clip";
@@ -27,6 +28,28 @@ export type CreditDraft = { userId: string; handle: string; displayName: string;
 export type InviteDraft = { email: string; role: WorkCreditRole };
 
 export type SubmitPhase = "full_upload" | "prologue_upload" | "promo_upload" | "encoding" | "done";
+
+/** One video or image from the library, keeping the original file. */
+export async function pickMedia(kind: "videos" | "images"): Promise<PickedMedia | null> {
+  const result = await ImagePicker.launchImageLibraryAsync({
+    mediaTypes: kind,
+    allowsMultipleSelection: false,
+    quality: 1,
+    // Keep the original file: no iOS re-encode before upload.
+    preferredAssetRepresentationMode: ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Current,
+  });
+  const asset = result.canceled ? null : result.assets[0];
+  if (!asset) return null;
+  return {
+    uri: asset.uri,
+    fileName: asset.fileName ?? asset.uri.split("/").pop() ?? (kind === "videos" ? "video.mp4" : "image.jpg"),
+    mimeType: asset.mimeType ?? (kind === "videos" ? "video/mp4" : "image/jpeg"),
+    fileSize: asset.fileSize ?? 0,
+    width: asset.width,
+    height: asset.height,
+    duration: (asset.duration ?? 0) / 1000,
+  };
+}
 
 const SAFE_VIDEO_EXT = ["mp4", "mov", "webm", "mkv"];
 const SAFE_IMAGE_EXT = ["jpg", "jpeg", "png", "webp", "gif"];
@@ -119,7 +142,7 @@ export function sendCollabInvite(workId: string, invite: InviteDraft, locale: st
   );
 }
 
-async function tusUpload(video: PickedMedia, endpoint: string, onProgress: (ratio: number) => void): Promise<void> {
+export async function tusUpload(video: PickedMedia, endpoint: string, onProgress: (ratio: number) => void): Promise<void> {
   const blob = await blobFromUri(video.uri);
   await new Promise<void>((resolve, reject) => {
     const upload = new tus.Upload(blob, {
