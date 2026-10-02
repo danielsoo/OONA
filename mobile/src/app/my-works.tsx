@@ -57,7 +57,10 @@ export default function MyWorksScreen() {
         contentContainerStyle={{ padding: space(4), gap: space(3) }}
         refreshControl={<RefreshControl refreshing={works.loading} onRefresh={works.refresh} tintColor={colors.ink2} />}
         ListHeaderComponent={
-          <Button label={t("myWorks.uploadNew")} onPress={() => router.push("/upload")} style={{ marginBottom: space(2) }} />
+          <View style={{ gap: space(2), marginBottom: space(2) }}>
+            <Button label={t("myWorks.uploadNew")} onPress={() => router.push("/upload")} />
+            <Button variant="secondary" label={t("myWorks.viewAnalytics")} onPress={() => router.push("/analytics")} />
+          </View>
         }
         ListEmptyComponent={<Message title={t("myWorks.empty")} />}
         renderItem={({ item }) => {

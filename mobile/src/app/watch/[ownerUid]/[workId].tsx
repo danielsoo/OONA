@@ -6,9 +6,10 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { guestPreviewLimitSeconds } from "@/lib/watch/guestPreview";
 import type { PublicWorkWatch } from "@/types/watch";
 import { SaveButton } from "~/components/SaveButton";
+import { WorkRail } from "~/components/WorkRail";
 import { Avatar, Button, Loading, Message } from "~/components/ui";
 import { useAuth } from "~/lib/auth";
-import { loadWatch, recordView, reportWatchProgress } from "~/lib/feeds";
+import { loadCatalog, loadWatch, recordView, reportWatchProgress } from "~/lib/feeds";
 import { useLocale } from "~/lib/locale";
 import { useApi } from "~/lib/useApi";
 import { colors, radius, space, type } from "~/theme";
@@ -93,6 +94,8 @@ export default function WatchScreen() {
   const { ownerUid, workId } = useLocalSearchParams<{ ownerUid: string; workId: string }>();
   const { t } = useLocale();
   const watch = useApi(`watch:${ownerUid}:${workId}`, () => loadWatch(ownerUid, workId));
+  const section = watch.data?.section;
+  const related = useApi(section && section !== "shorts" ? `related:${section}` : null, () => loadCatalog(section as "movies"));
 
   if (watch.loading && !watch.data) return <Loading />;
   if (!watch.data) return <Message title={t("common.retry")} body={watch.error?.message} />;
@@ -142,6 +145,24 @@ export default function WatchScreen() {
           </View>
         ) : null}
       </View>
+
+      {(() => {
+        const others = (related.data ?? []).filter((w) => w.workId !== work.workId);
+        const toItem = (w: (typeof others)[number]) => ({
+          key: `${w.ownerUid}:${w.workId}`,
+          ownerUid: w.ownerUid,
+          workId: w.workId,
+          title: w.title,
+          subtitle: w.director,
+          thumbnailUrl: w.thumbnailUrl,
+        });
+        return (
+          <>
+            <WorkRail title={t("watch.fromSameCreator")} items={others.filter((w) => w.ownerUid === work.ownerUid).map(toItem)} />
+            <WorkRail title={t("watch.moreLikeThis")} items={others.filter((w) => w.ownerUid !== work.ownerUid).slice(0, 12).map(toItem)} />
+          </>
+        );
+      })()}
     </ScrollView>
   );
 }
