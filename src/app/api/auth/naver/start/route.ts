@@ -1,6 +1,7 @@
 import { randomBytes } from "crypto";
 import { NextResponse } from "next/server";
 import { buildNaverAuthorizeUrl } from "@/lib/server/naverAuth";
+import { APP_FLOW_COOKIE } from "@/lib/server/appAuthRedirect";
 import { getRequestOrigin } from "@/lib/server/socialAuth";
 
 const STATE_COOKIE = "naver_oauth_state";
@@ -31,5 +32,15 @@ export async function GET(request: Request) {
     maxAge: COOKIE_MAX_AGE,
     path: "/",
   });
+  // ?app=1: the mobile app started this; the callback sends the result back to it.
+  if (new URL(request.url).searchParams.get("app") === "1") {
+    response.cookies.set(APP_FLOW_COOKIE, "1", {
+      httpOnly: true,
+      secure: origin.startsWith("https"),
+      sameSite: "lax",
+      maxAge: COOKIE_MAX_AGE,
+      path: "/",
+    });
+  }
   return response;
 }

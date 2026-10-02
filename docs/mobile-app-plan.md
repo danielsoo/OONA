@@ -46,7 +46,7 @@ Expo Go로는 실행되지 않는다. Google 로그인과 Apple 로그인이 네
 | `/watch/[ownerUid]/[workId]` | 시청 | ◐ | 재생, 프롤로그 먼저 재생 + 건너뛰기, 크레딧, 내 리스트, 신고 완료. 남은 것: 비슷한 작품, 같은 창작자의 작품 |
 | `/people/[handle]` | 창작자 프로필 | ◐ | 배너, 학교, 메시지 보내기, 포트폴리오 메모 |
 | `/notifications` | 알림 탭 | ✅ | 메시지·방 알림은 메시지 화면이 생기면 연결 |
-| `/login` | 로그인 | ◐ | 카카오·네이버 로그인 |
+| `/login` | 로그인 | ✅ | 이메일, Apple, Google, 카카오, 네이버. 카카오·네이버는 앱 안 브라우저에서 웹 서버 로그인을 거쳐 `oona://auth/callback`으로 돌아온다 (아래) |
 | `/account` | 나 탭 | ◐ | 계정 설정 항목 전체 |
 
 ### 2단계: 올리기와 가입
@@ -90,6 +90,10 @@ Expo Go로는 실행되지 않는다. Google 로그인과 Apple 로그인이 네
 | `/about` | | ☐ | 소개 (웹 링크로 충분할 수 있음) |
 | `/admin/*` | 웹 유지 | — | 관리자 기능은 웹에서만 쓴다 |
 | `/auth/callback` | 해당 없음 | — | 웹 전용 OAuth 콜백 |
+
+**카카오·네이버 앱 로그인 설정:**
+- 네이버: 웹과 같은 `NAVER_CLIENT_ID`/`NAVER_CLIENT_SECRET`를 쓴다. 추가 설정은 없다(`/api/auth/naver/start?app=1`).
+- 카카오: 웹은 JS SDK를 쓰지만 앱은 REST 로그인을 쓴다. Vercel에 `KAKAO_REST_API_KEY`(필요하면 `KAKAO_CLIENT_SECRET`)를 넣고, Kakao Developers → 카카오 로그인 → Redirect URI에 `https://xiio.vercel.app/api/auth/kakao/callback`을 등록한다.
 
 ## 스토어 제출 전에 필요한 것
 

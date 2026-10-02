@@ -8,21 +8,44 @@ import { EMAIL_NOT_VERIFIED, useAuth } from "~/lib/auth";
 import { useLocale } from "~/lib/locale";
 import { colors, radius, space, type } from "~/theme";
 
+/** Maps server codes from the Kakao/Naver flow to the website's login messages. */
+function useSocialErrorMessage() {
+  const { t } = useLocale();
+  return (message: string, kind: string): string | null => {
+    if (!message.startsWith("SOCIAL_")) return null;
+    const code = message.slice("SOCIAL_".length);
+    if (code === "account_exists") return t("auth.login.errorAccountExistsDifferent");
+    if (code === "admin_not_configured") return t("auth.login.errorAdminNotConfigured");
+    if (code === "naver_denied" || code === "kakao_denied") return t(kind === "naver" ? "auth.login.errorNaverDenied" : "auth.login.errorKakaoFailed");
+    if (code.endsWith("not_configured")) return t(kind === "naver" ? "auth.login.errorNaverNotConfigured" : "auth.login.errorKakaoNotConfigured");
+    return t(kind === "naver" ? "auth.login.errorNaverFailed" : "auth.login.errorKakaoFailed");
+  };
+}
+
 export default function LoginScreen() {
   const { t, ui } = useLocale();
-  const { configured, googleAvailable, appleAvailable, signInWithEmail, signInWithGoogle, signInWithApple, resetPassword } =
-    useAuth();
+  const {
+    configured,
+    googleAvailable,
+    appleAvailable,
+    signInWithEmail,
+    signInWithGoogle,
+    signInWithApple,
+    signInWithSocialWeb,
+    resetPassword,
+  } = useAuth();
   const [notice, setNotice] = useState<string | null>(null);
+  const socialErrorMessage = useSocialErrorMessage();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [busy, setBusy] = useState<"email" | "google" | "apple" | null>(null);
+  const [busy, setBusy] = useState<"email" | "google" | "apple" | "kakao" | "naver" | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   if (!configured) {
     return <Message title={t("auth.login.errorAdminNotConfigured")} body="EXPO_PUBLIC_FIREBASE_* (.env.local)" />;
   }
 
-  async function run(kind: "email" | "google" | "apple", action: () => Promise<void>, fallbackKey?: string) {
+  async function run(kind: "email" | "google" | "apple" | "kakao" | "naver", action: () => Promise<void>, fallbackKey?: string) {
     setBusy(kind);
     setError(null);
     setNotice(null);
@@ -32,6 +55,11 @@ export default function LoginScreen() {
       else router.replace("/");
     } catch (err) {
       const code = (err as { code?: string }).code;
+      const social = socialErrorMessage((err as Error).message, kind);
+      if (social) {
+        setError(social);
+        return;
+      }
       if ((err as Error).message === EMAIL_NOT_VERIFIED) {
         setError(t("auth.login.errorEmailNotVerified"));
         return;
@@ -67,13 +95,24 @@ export default function LoginScreen() {
           />
         ) : null}
 
-        {appleAvailable || googleAvailable ? (
-          <View style={styles.divider}>
-            <View style={styles.rule} />
-            <Text style={styles.or}>{t("common.or")}</Text>
-            <View style={styles.rule} />
-          </View>
-        ) : null}
+        <Button
+          variant="secondary"
+          label={t("auth.login.kakao")}
+          loading={busy === "kakao"}
+          onPress={() => run("kakao", () => signInWithSocialWeb("kakao"))}
+        />
+        <Button
+          variant="secondary"
+          label={t("auth.login.naver")}
+          loading={busy === "naver"}
+          onPress={() => run("naver", () => signInWithSocialWeb("naver"))}
+        />
+
+        <View style={styles.divider}>
+          <View style={styles.rule} />
+          <Text style={styles.or}>{t("common.or")}</Text>
+          <View style={styles.rule} />
+        </View>
 
         <Text style={styles.label}>{t("auth.login.emailLabel")}</Text>
         <TextInput

@@ -1,5 +1,7 @@
 import * as AppleAuthentication from "expo-apple-authentication";
 import * as Crypto from "expo-crypto";
+import * as Linking from "expo-linking";
+import * as WebBrowser from "expo-web-browser";
 import {
   createUserWithEmailAndPassword,
   GoogleAuthProvider,
@@ -8,6 +10,7 @@ import {
   sendEmailVerification,
   sendPasswordResetEmail,
   signInWithCredential,
+  signInWithCustomToken,
   signInWithEmailAndPassword,
   signOut as firebaseSignOut,
   updateProfile,
@@ -17,7 +20,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { Platform } from "react-native";
 import { isEmailPasswordUser, isOAuthProfileUser } from "@/lib/authProviders";
 import type { SignupProfile, UserProfileDoc } from "@/types/user";
-import { googleSignInConfig } from "~/lib/config";
+import { API_BASE_URL, googleSignInConfig } from "~/lib/config";
 import { auth } from "~/lib/firebase";
 import { fetchProfileStatus, saveSignupProfile, type ProfileStatus } from "~/lib/profile";
 
@@ -50,6 +53,8 @@ type AuthContextValue = {
   resetPassword: (email: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
   signInWithApple: () => Promise<void>;
+  /** Kakao / Naver: the website's server login in an in-app browser session (throws SOCIAL_<code>). */
+  signInWithSocialWeb: (provider: "kakao" | "naver") => Promise<void>;
   signOut: () => Promise<void>;
   refreshGate: () => Promise<void>;
 };
@@ -195,6 +200,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!result.identityToken) throw new Error("APPLE_NO_ID_TOKEN");
         const credential = new OAuthProvider("apple.com").credential({ idToken: result.identityToken, rawNonce });
         await signInWithCredential(auth, credential);
+      },
+      async signInWithSocialWeb(provider) {
+        if (!auth) throw new Error("FIREBASE_NOT_CONFIGURED");
+        const result = await WebBrowser.openAuthSessionAsync(
+          `${API_BASE_URL}/api/auth/${provider}/start?app=1`,
+          "oona://auth/callback"
+        );
+        if (result.type !== "success") return; // closed by the user
+        const { queryParams } = Linking.parse(result.url);
+        const token = typeof queryParams?.token === "string" ? queryParams.token : null;
+        if (!token) throw new Error(`SOCIAL_${String(queryParams?.error ?? "auth_failed")}`);
+        await signInWithCustomToken(auth, token);
       },
       async signOut() {
         if (!auth) return;
