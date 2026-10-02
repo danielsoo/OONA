@@ -22,13 +22,27 @@ function Player({ work }: { work: PublicWorkWatch }) {
   const lastReported = useRef(0);
   const viewRecorded = useRef(false);
   const sessionId = useRef(`app-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+  // Like the website, a work's prologue plays first and can be skipped.
+  const prologueUrl = work.prologue?.playbackUrl ?? null;
+  const [inPrologue, setInPrologue] = useState(Boolean(prologueUrl));
 
-  const player = useVideoPlayer(work.playbackUrl, (p) => {
+  const player = useVideoPlayer(prologueUrl ?? work.playbackUrl, (p) => {
     p.timeUpdateEventInterval = 1;
     p.play();
   });
 
+  function startMain() {
+    if (!inPrologue) return;
+    setInPrologue(false);
+    void player.replaceAsync(work.playbackUrl).then(() => player.play());
+  }
+
+  useEventListener(player, "playToEnd", () => {
+    if (inPrologue) startMain();
+  });
+
   useEventListener(player, "playingChange", ({ isPlaying }) => {
+    if (inPrologue) return;
     if (isPlaying && !viewRecorded.current) {
       viewRecorded.current = true;
       void recordView(work.ownerUid, work.workId, sessionId.current).catch(() => {});
@@ -36,6 +50,7 @@ function Player({ work }: { work: PublicWorkWatch }) {
   });
 
   useEventListener(player, "timeUpdate", ({ currentTime }) => {
+    if (inPrologue) return;
     const duration = player.duration || work.durationSec || 0;
     // Guests watch the first quarter, same as the website (src/lib/watch/guestPreview.ts).
     if (!user && duration > 0 && currentTime >= guestPreviewLimitSeconds(duration)) {
@@ -56,6 +71,14 @@ function Player({ work }: { work: PublicWorkWatch }) {
   return (
     <View style={styles.playerWrap}>
       <VideoView player={player} style={styles.player} fullscreenOptions={{ enable: true }} allowsPictureInPicture nativeControls />
+      {inPrologue ? (
+        <View style={styles.prologueBar} pointerEvents="box-none">
+          <Text style={styles.prologueLabel}>{t("watch.prologuePlaying")}</Text>
+          <Pressable onPress={startMain} style={styles.skip} accessibilityRole="button">
+            <Text style={styles.skipText}>{t("watch.skipPrologue")}</Text>
+          </Pressable>
+        </View>
+      ) : null}
       {guestLimitReached ? (
         <View style={styles.guestOverlay}>
           <Text style={[type.h3, { color: colors.ink, textAlign: "center" }]}>{t("watch.guestPreviewTitle")}</Text>
@@ -134,6 +157,18 @@ const styles = StyleSheet.create({
     gap: space(4),
     padding: space(6),
   },
+  prologueBar: {
+    position: "absolute",
+    top: space(3),
+    left: space(3),
+    right: space(3),
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  prologueLabel: { ...type.small, color: colors.ink, backgroundColor: "rgba(0,0,0,0.55)", paddingHorizontal: space(2), paddingVertical: 2, borderRadius: 4 },
+  skip: { backgroundColor: "rgba(0,0,0,0.7)", borderRadius: radius.control, paddingHorizontal: space(3), paddingVertical: space(2) },
+  skipText: { ...type.small, color: colors.ink, fontWeight: "600" },
   body: { padding: space(4) },
   title: { ...type.h1, color: colors.ink },
   meta: { ...type.small, color: colors.ink3, marginTop: space(1) },
