@@ -12,7 +12,7 @@ import { colors, space, type } from "~/theme";
 
 /** Routes that already exist in the app; anything else stays on this screen for now. */
 function openTarget(path: string) {
-  if (path.startsWith("/watch/") || path.startsWith("/people/")) {
+  if (["/watch/", "/people/", "/messages", "/collab-invite/"].some((prefix) => path.startsWith(prefix))) {
     router.push(path as never);
   }
 }

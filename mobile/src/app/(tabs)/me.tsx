@@ -35,7 +35,9 @@ export default function MeScreen() {
         />
       ) : null}
 
+      <Button variant="secondary" label={t("dm.inboxTitle")} onPress={() => router.push("/messages")} />
       <Button variant="secondary" label={t("myWorks.title")} onPress={() => router.push("/my-works")} />
+      <Button variant="secondary" label={t("myList.title")} onPress={() => router.push("/my-list")} />
 
       <View style={{ gap: space(2) }}>
         <Text style={styles.label}>{appText(locale, "language")}</Text>

@@ -5,6 +5,7 @@ import { Avatar, Button, Loading, Message } from "~/components/ui";
 import { WorkCard } from "~/components/WorkRail";
 import { useAuth } from "~/lib/auth";
 import { loadPeople, setFollowing, type PeopleWorkEntry } from "~/lib/feeds";
+import { openThreadWith } from "~/lib/messages";
 import { useLocale } from "~/lib/locale";
 import { useApi } from "~/lib/useApi";
 import { colors, space, type } from "~/theme";
@@ -24,6 +25,15 @@ export default function PeopleScreen() {
 
   const { profile, viewer, directed, credited } = people.data;
   const isFollowing = viewer?.isFollowing ?? false;
+
+  async function message() {
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+    const threadId = await openThreadWith(profile.uid);
+    router.push(`/messages/${threadId}`);
+  }
 
   async function toggleFollow() {
     if (!user) {
@@ -81,6 +91,9 @@ export default function PeopleScreen() {
             onPress={toggleFollow}
             style={{ alignSelf: "stretch", marginTop: space(4) }}
           />
+        ) : null}
+        {!viewer?.isSelf ? (
+          <Button variant="secondary" label={t("dm.inbox.sendMessageCta")} onPress={() => void message()} style={{ alignSelf: "stretch", marginTop: space(2) }} />
         ) : null}
       </View>
       {profile.bio ? <Text style={styles.bio}>{profile.bio}</Text> : null}

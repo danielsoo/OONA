@@ -66,15 +66,15 @@ Expo Go로는 실행되지 않는다. Google 로그인과 Apple 로그인이 네
 
 ### 3단계: 소통
 
-| 웹 경로 | 상태 | 메모 |
-| --- | --- | --- |
-| `/messages` `/messages/[threadId]` | ☐ | DM. 웹은 8초 폴링, 앱은 푸시 알림과 함께 |
-| `/messages/rooms/[roomId]` | ☐ | 그룹 채팅 |
-| `/society` `/creators` `/people/u/[uid]` | ☐ | 창작자 찾기, 팔로잉, 구직 제안 |
-| `/projects/[projectId]` | ☐ | 프로젝트 |
-| `/my-list` | ☐ | 내 리스트 |
-| `/search` | ☐ | 검색 |
-| (신규) 푸시 알림 | ☐ | `expo-notifications` + 서버에 기기 토큰 저장 API 추가 |
+| 웹 경로 | 앱 화면 | 상태 | 남은 것 |
+| --- | --- | --- | --- |
+| `/messages` `/messages/[threadId]` | 메시지함, 1:1 대화 | ◐ | 웹처럼 8초마다 새로고침, 길게 눌러 답장. 남은 것: 이모지 반응, 수정·삭제, 새 1:1 대화 검색(지금은 프로필의 메시지 버튼으로 시작) |
+| `/messages/rooms/[roomId]` | 그룹 대화, 새 그룹, 나가기 | ✅ | 멤버 추가·관리 |
+| `/society` `/creators` | 소사이어티 | ◐ | 사람 찾기, 협업 가능, 내 커넥션. 남은 것: 역할·학교 필터, 구직 제안(요청·보낸 요청) |
+| `/projects/[projectId]` | | ☐ | 프로젝트 |
+| `/my-list` | 내 리스트 + 시청 화면의 담기 버튼 | ✅ | |
+| `/search` | 검색 (홈 오른쪽 위) | ✅ | 최근 검색어 |
+| (신규) 푸시 알림 | | ☐ | `expo-notifications` + 서버에 기기 토큰 저장 API 추가 |
 
 ### 4단계: 나머지
 

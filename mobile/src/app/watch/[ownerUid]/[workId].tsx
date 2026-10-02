@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { guestPreviewLimitSeconds } from "@/lib/watch/guestPreview";
 import type { PublicWorkWatch } from "@/types/watch";
+import { SaveButton } from "~/components/SaveButton";
 import { Avatar, Button, Loading, Message } from "~/components/ui";
 import { useAuth } from "~/lib/auth";
 import { loadWatch, recordView, reportWatchProgress } from "~/lib/feeds";
@@ -83,6 +84,9 @@ export default function WatchScreen() {
       <View style={styles.body}>
         <Text style={styles.title}>{work.title}</Text>
         {work.director ? <Text style={styles.meta}>{work.director}</Text> : null}
+        <View style={{ marginTop: space(4) }}>
+          <SaveButton ownerUid={work.ownerUid} workId={work.workId} />
+        </View>
         {work.description ? <Text style={styles.description}>{work.description}</Text> : null}
 
         {work.credits.length > 0 ? (
