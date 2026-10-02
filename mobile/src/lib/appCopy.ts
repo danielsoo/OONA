@@ -10,8 +10,8 @@ const appCopy = {
     ko: "쇼츠 시작 지점(초), 최대 120초까지 사용돼요",
     ja: "ショートの開始位置（秒）、最大120秒まで使用されます",
   },
+  changePhoto: { en: "Change photo", ko: "사진 바꾸기", ja: "写真を変更" },
   myProfile: { en: "My profile", ko: "내 프로필", ja: "マイプロフィール" },
-  language: { en: "Language", ko: "언어", ja: "言語" },
   signOut: { en: "Sign out", ko: "로그아웃", ja: "ログアウト" },
 } satisfies Record<string, Record<Locale, string>>;
 

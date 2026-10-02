@@ -17,7 +17,7 @@ export type RailItem = {
 
 const CARD_WIDTH = 220;
 
-export function WorkCard({ item, width = CARD_WIDTH }: { item: RailItem; width?: number }) {
+export function WorkCard({ item, width = CARD_WIDTH }: { item: RailItem; width?: number | "100%" }) {
   return (
     <Pressable
       accessibilityRole="button"

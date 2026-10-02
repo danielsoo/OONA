@@ -78,17 +78,18 @@ Expo Go로는 실행되지 않는다. Google 로그인과 Apple 로그인이 네
 
 ### 4단계: 나머지
 
-| 웹 경로 | 상태 | 메모 |
-| --- | --- | --- |
-| `/schools` `/school/[schoolId]` | ☐ | 학교 목록, 학교 페이지 |
-| `/entertainment/[showId]` `/series/[seriesId]` | ☐ | 시리즈·쇼 상세, 에피소드 |
-| `/shorts` | ☐ | 쇼츠 |
-| `/settings` `/account/profile` | ☐ | 설정, 프로필 수정, 계정 삭제(스토어 필수) |
-| `/uploader/analytics` | ☐ | 내 작품 통계 |
-| `/p/[token]` | ☐ | 공개 포트폴리오 (웹 링크로 충분할 수 있음) |
-| `/about` | ☐ | 소개 |
-| `/admin/*` | 웹 유지 | 관리자 기능은 웹에서만 쓴다 |
-| `/auth/callback` | 해당 없음 | 웹 전용 OAuth 콜백 |
+| 웹 경로 | 앱 화면 | 상태 | 남은 것 |
+| --- | --- | --- | --- |
+| `/settings` `/account/profile` | 설정 (나 탭) | ◐ | 프로필 사진, 한 줄 소개, 소개, 검색 노출, 협업 가능, 언어. 남은 것: 역할 태그, 프로필 링크, 이름·핸들·감독명 변경 요청 |
+| (계정 삭제) | 계정 삭제 | ✅ | 웹과 같은 안내, 확인 문구, 비밀번호 재인증, 같은 API. 스토어 필수 요건 |
+| `/schools` `/school/[schoolId]` | 학교 순위, 학교 페이지 (홈 오른쪽 위) | ✅ | 학교 페이지용 API `/api/schools/[schoolId]`를 새로 추가 (웹 서버 렌더링과 같은 데이터) |
+| `/series/[seriesId]` `/entertainment/[showId]` | 해당 없음 | — | 웹에서도 데모 모드에서만 열리는 화면이라 앱에는 넣지 않음 |
+| `/shorts` | Discover 탭 | ◐ | 세로 스와이프 플레이어 |
+| `/uploader/analytics` | | ☐ | 내 작품 통계 |
+| `/p/[token]` | | ☐ | 공개 포트폴리오 (웹 링크로 충분할 수 있음) |
+| `/about` | | ☐ | 소개 (웹 링크로 충분할 수 있음) |
+| `/admin/*` | 웹 유지 | — | 관리자 기능은 웹에서만 쓴다 |
+| `/auth/callback` | 해당 없음 | — | 웹 전용 OAuth 콜백 |
 
 ## 스토어 제출 전에 필요한 것
 
@@ -101,7 +102,7 @@ Expo Go로는 실행되지 않는다. Google 로그인과 Apple 로그인이 네
    - 푸시 알림: `cd mobile && npx eas init`으로 EAS 프로젝트를 만들면 프로젝트 ID가 앱 설정에 들어간다(또는 `EAS_PROJECT_ID` 환경 변수). iOS는 EAS가 APNs 키를, Android는 Firebase(FCM) 설정을 요구한다.
    - 서버: `/api/me/push-tokens`가 기기 토큰을 `users/{uid}/pushTokens`에 저장하고, 알림·메시지가 생기면 Expo 푸시 서비스로 보낸다(`src/lib/server/push.ts`). 응답을 보낸 뒤에 보내기 때문에 푸시가 실패해도 원래 요청에는 영향이 없다.
 4. **스토어 필수 항목**:
-   - 앱 안에서 계정 삭제 (4단계 설정 화면)
+   - 앱 안에서 계정 삭제 (설정 → 계정 삭제, 완료). Apple 로그인 사용자는 삭제할 때 Apple 토큰 해지도 요구되니 서버 삭제 로직에 추가가 필요하다
    - 신고·차단 (사용자 콘텐츠 앱 규정)
    - 개인정보처리방침 공개 URL (`docs/privacy-policy-draft.md`를 확정해서 공개)
    - 심사용 데모 계정

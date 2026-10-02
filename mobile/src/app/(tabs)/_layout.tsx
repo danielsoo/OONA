@@ -39,6 +39,9 @@ export default function TabLayout() {
           tabBarIcon: icon("film-outline", "film"),
           headerRight: () => (
             <View style={{ flexDirection: "row", gap: 18, marginRight: 16 }}>
+              <Pressable accessibilityLabel={t("nav.schools")} onPress={() => router.push("/schools")} hitSlop={8}>
+                <Ionicons name="school-outline" size={22} color={colors.ink} />
+              </Pressable>
               <Pressable accessibilityLabel={t("nav.society")} onPress={() => router.push("/society")} hitSlop={8}>
                 <Ionicons name="people-outline" size={22} color={colors.ink} />
               </Pressable>
