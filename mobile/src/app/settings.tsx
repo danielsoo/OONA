@@ -161,6 +161,10 @@ export default function SettingsScreen() {
       {message ? <Text style={[styles.hint, { color: message.ok ? colors.success : colors.destructive }]}>{message.text}</Text> : null}
       <Button label={t("profile.edit.save")} loading={saving} onPress={save} />
 
+      <Text style={[styles.section, { marginTop: space(6) }]}>{t("portfolio.share.title")}</Text>
+      <Text style={styles.hint}>{t("portfolio.share.hint")}</Text>
+      <Button variant="secondary" label={t("portfolio.share.title")} onPress={() => router.push("/portfolio-links")} />
+
       <Text style={[styles.section, { marginTop: space(6) }]}>{t("settings.language")}</Text>
       <Text style={styles.hint}>{t("settings.languageHint")}</Text>
       <View style={styles.segment}>
