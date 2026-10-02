@@ -1727,5 +1727,9 @@ export const uiMessages: Record<string, readonly [string, string]> = {
   "no projects yet": [
     "아직 프로젝트가 없습니다",
     "プロジェクトはまだありません"
+  ],
+  "attach a pdf, document, or image smaller than 20 mb.": [
+    "20MB 이하의 PDF, 문서 또는 이미지를 첨부해 주세요.",
+    "20MB未満のPDF、文書、または画像を添付してください。"
   ]
 };

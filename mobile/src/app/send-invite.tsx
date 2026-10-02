@@ -1,4 +1,7 @@
+import { randomUUID } from "expo-crypto";
+import * as DocumentPicker from "expo-document-picker";
 import { router, Stack, useLocalSearchParams } from "expo-router";
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { useEffect, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import type { ProjectListItem } from "@/types/project";
@@ -6,6 +9,7 @@ import { SignInPrompt } from "~/components/SignInPrompt";
 import { Avatar, Button } from "~/components/ui";
 import { apiFetch } from "~/lib/api";
 import { useAuth } from "~/lib/auth";
+import { storage } from "~/lib/firebase";
 import { useLocale } from "~/lib/locale";
 import { useApi } from "~/lib/useApi";
 import { colors, radius, space, type } from "~/theme";
@@ -18,6 +22,16 @@ const PERMISSIONS: { id: Permission; label: string }[] = [
   { id: "edit", label: "Edit project" },
   { id: "manage", label: "Manage members" },
 ];
+// Same limits as storage.rules for users/{uid}/business-invites/**.
+const MAX_ATTACHMENT_BYTES = 20 * 1024 * 1024;
+const DOC_TYPES = [
+  "application/pdf",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+];
+
+type Attachment = { uri: string; name: string; mimeType: string; size: number };
+
 const COMPENSATIONS: { id: Compensation; label: string }[] = [
   { id: "negotiable", label: "Negotiable" },
   { id: "paid", label: "Paid" },
@@ -28,7 +42,6 @@ const COMPENSATIONS: { id: Compensation; label: string }[] = [
 /**
  * Invite a creator to a project (website BusinessInviteComposerModal,
  * POST /api/me/business-invites with direction "offer"). Opened from a profile.
- * The website's optional file attachment is not offered in the app yet.
  */
 export default function SendInviteScreen() {
   const params = useLocalSearchParams<{ uid: string; handle?: string; name?: string; avatar?: string }>();
@@ -49,6 +62,7 @@ export default function SendInviteScreen() {
   const [compensation, setCompensation] = useState<Compensation>("negotiable");
   const [budgetRange, setBudgetRange] = useState("");
   const [message, setMessage] = useState("");
+  const [attachment, setAttachment] = useState<Attachment | null>(null);
   const [sending, setSending] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
@@ -77,11 +91,35 @@ export default function SendInviteScreen() {
     }
   }
 
+  async function chooseAttachment() {
+    const result = await DocumentPicker.getDocumentAsync({ type: ["image/*", ...DOC_TYPES], copyToCacheDirectory: true, multiple: false });
+    const asset = result.canceled ? null : result.assets[0];
+    if (!asset) return;
+    const mimeType = asset.mimeType ?? "application/octet-stream";
+    if ((!mimeType.startsWith("image/") && !DOC_TYPES.includes(mimeType)) || (asset.size ?? 0) > MAX_ATTACHMENT_BYTES) {
+      setErr(ui("Attach a PDF, document, or image smaller than 20 MB."));
+      return;
+    }
+    setErr(null);
+    setAttachment({ uri: asset.uri, name: asset.name, mimeType, size: asset.size ?? 0 });
+  }
+
+  /** Same path and fields as the website's uploadBusinessInviteAttachment. */
+  async function uploadAttachment(file: Attachment) {
+    if (!storage || !user) throw new Error("storage_not_configured");
+    const ext = file.name.split(".").pop()?.toLowerCase() || "bin";
+    const storageRef = ref(storage, `users/${user.uid}/business-invites/${randomUUID()}/attachment.${ext}`);
+    const blob = await (await fetch(file.uri)).blob();
+    await uploadBytes(storageRef, blob, { contentType: file.mimeType });
+    return { attachmentUrl: await getDownloadURL(storageRef), attachmentFileName: file.name, attachmentContentType: file.mimeType };
+  }
+
   async function send() {
     if (!params.uid || !projectId || sending) return;
     setSending(true);
     setErr(null);
     try {
+      const uploaded = attachment ? await uploadAttachment(attachment) : null;
       await apiFetch("/api/me/business-invites", {
         method: "POST",
         auth: "required",
@@ -97,6 +135,7 @@ export default function SendInviteScreen() {
           compensation,
           budgetRange,
           message: message.trim() || undefined,
+          ...(uploaded ?? {}),
         },
       });
       router.replace("/invites");
@@ -171,6 +210,15 @@ export default function SendInviteScreen() {
         style={[styles.input, { minHeight: 120, paddingTop: space(3), textAlignVertical: "top" }]}
       />
       <Text style={[styles.hint, { textAlign: "right" }]}>{message.length} / 500</Text>
+
+      <Text style={styles.label}>{ui("SUPPORTING FILE (OPTIONAL)")}</Text>
+      {attachment ? (
+        <Text style={styles.hint} onPress={() => setAttachment(null)}>
+          {attachment.name} ✕
+        </Text>
+      ) : (
+        <Button variant="secondary" label={ui("SUPPORTING FILE (OPTIONAL)")} onPress={chooseAttachment} />
+      )}
 
       {err ? <Text style={[styles.hint, { color: colors.destructive }]}>{err}</Text> : null}
       <Button label={sending ? ui("Sending…") : ui("Send invite")} disabled={!projectId || sending} loading={sending} onPress={send} style={{ marginTop: space(2) }} />
