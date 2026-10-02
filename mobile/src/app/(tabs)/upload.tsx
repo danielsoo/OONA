@@ -3,7 +3,7 @@ import { activateKeepAwakeAsync, deactivateKeepAwake } from "expo-keep-awake";
 import { router } from "expo-router";
 import { useVideoPlayer, VideoView } from "expo-video";
 import { useEffect, useState } from "react";
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { closestVideoAspectRatio } from "@/lib/works/aspect-ratio";
 import { validatePromoClipRange, type PromoTrimRange } from "@/lib/works/promo-clip";
 import { defaultPromoFrameCrop } from "@/lib/works/promo-crop";
@@ -32,6 +32,7 @@ import {
   type PickedMedia,
   pickMedia as pick,
 } from "~/lib/upload";
+import { clearUploadDraft, hasDraftContent, loadUploadDraft, saveUploadDraft, type UploadDraft } from "~/lib/uploadDraft";
 import { colors, radius, space, type } from "~/theme";
 
 type StepId = "fullWork" | "catalog" | "credits" | "prologue" | "promo";
@@ -83,6 +84,84 @@ export default function UploadScreen() {
   const [phase, setPhase] = useState<UploadPhase | null>(null);
   const [percent, setPercent] = useState(0);
   const [notes, setNotes] = useState<string[]>([]);
+  const [draftReady, setDraftReady] = useState(false);
+  const [draftNotice, setDraftNotice] = useState<string | null>(null);
+
+  const draft: UploadDraft = {
+    stepIndex,
+    full,
+    title,
+    description,
+    director,
+    section,
+    contentCategory,
+    tags,
+    thumbnail,
+    thumbnailCrop,
+    school,
+    credits,
+    invites,
+    prologueChoice,
+    prologue,
+    prologueTitle,
+    promo,
+    promoCrop,
+    promoTitle,
+    promoDescription,
+    trimStart,
+  };
+
+  function applyDraft(d: UploadDraft) {
+    setStepIndex(Math.max(0, Math.min(d.stepIndex ?? 0, STEPS.length - 1)));
+    setFull(d.full);
+    setTitle(d.title ?? "");
+    setDescription(d.description ?? "");
+    setDirector(d.director ?? "");
+    setSection(d.section ?? "movies");
+    setContentCategory(d.contentCategory ?? "");
+    setTags(d.tags ?? "");
+    setThumbnail(d.thumbnail);
+    setThumbnailCrop(d.thumbnailCrop ?? defaultPromoFrameCrop());
+    setSchool(d.school ?? null);
+    setCredits(d.credits ?? []);
+    setInvites(d.invites ?? []);
+    setPrologueChoice(d.prologueChoice ?? "");
+    setPrologue(d.prologue);
+    setPrologueTitle(d.prologueTitle ?? "");
+    setPromo(d.promo);
+    setPromoCrop(d.promoCrop ?? defaultPromoFrameCrop());
+    setPromoTitle(d.promoTitle ?? "");
+    setPromoDescription(d.promoDescription ?? "");
+    setTrimStart(d.trimStart ?? "0");
+  }
+
+  // Restore the device draft once per signed-in user.
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    setDraftReady(false);
+    void loadUploadDraft(user.uid).then((saved) => {
+      if (cancelled) return;
+      if (saved && hasDraftContent(saved)) {
+        applyDraft(saved);
+        setDraftNotice(t("uploader.draftStatus.restored"));
+      }
+      setDraftReady(true);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.uid]); // eslint-disable-line react-hooks/exhaustive-deps -- restore only when the account changes
+
+  // Autosave, debounced; not while an upload is running.
+  const draftJson = JSON.stringify(draft);
+  useEffect(() => {
+    if (!user || !draftReady || phase !== null) return;
+    const timer = setTimeout(() => {
+      if (hasDraftContent(draft)) void saveUploadDraft(user.uid, draft);
+    }, 800);
+    return () => clearTimeout(timer);
+  }, [draftJson, draftReady, phase, user?.uid]); // eslint-disable-line react-hooks/exhaustive-deps -- draftJson covers every field
 
   // School tagging (website SchoolPicker, GET /api/schools/suggest).
   useEffect(() => {
@@ -106,6 +185,44 @@ export default function UploadScreen() {
   if (!user) return <SignInPrompt />;
 
   const lockedDirector = profile?.defaultDirectorName?.trim() || "";
+
+  function confirmClearDraft() {
+    Alert.alert(t("uploader.clearDraftConfirm"), undefined, [
+      { text: t("common.cancel"), style: "cancel" },
+      {
+        text: t("uploader.clearDraft"),
+        style: "destructive",
+        onPress: () => {
+          void clearUploadDraft(user!.uid);
+          applyDraft({
+            stepIndex: 0,
+            full: null,
+            title: "",
+            description: "",
+            director: "",
+            section: "movies",
+            contentCategory: "",
+            tags: "",
+            thumbnail: null,
+            thumbnailCrop: defaultPromoFrameCrop(),
+            school: null,
+            credits: [],
+            invites: [],
+            prologueChoice: "",
+            prologue: null,
+            prologueTitle: "",
+            promo: null,
+            promoCrop: defaultPromoFrameCrop(),
+            promoTitle: "",
+            promoDescription: "",
+            trimStart: "0",
+          });
+          setDraftNotice(null);
+          setError(null);
+        },
+      },
+    ]);
+  }
   const step = STEPS[stepIndex];
   const isLast = stepIndex === STEPS.length - 1;
   const busy = phase !== null;
@@ -247,6 +364,7 @@ export default function UploadScreen() {
         },
       });
       setPercent(100);
+      await clearUploadDraft(user.uid);
       router.replace("/my-works");
     } catch (err) {
       const message = (err as Error).message;
@@ -284,7 +402,15 @@ export default function UploadScreen() {
   return (
     <KeyboardAvoidingView style={{ flex: 1, backgroundColor: colors.bg }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-        <Text style={styles.progressText}>{t("uploader.uploadStepProgress", { current: stepIndex + 1, total: STEPS.length })}</Text>
+        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+          <Text style={styles.progressText}>{t("uploader.uploadStepProgress", { current: stepIndex + 1, total: STEPS.length })}</Text>
+          {!busy && hasDraftContent(draft) ? (
+            <Text style={[styles.hint, { color: colors.accentHover }]} onPress={confirmClearDraft} accessibilityRole="button">
+              {t("uploader.clearDraft")}
+            </Text>
+          ) : null}
+        </View>
+        {draftNotice ? <Text style={styles.hint}>{draftNotice}</Text> : null}
 
         {step === "fullWork" ? (
           <View style={styles.section}>
