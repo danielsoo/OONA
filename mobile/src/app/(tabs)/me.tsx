@@ -12,7 +12,7 @@ import { colors, radius, space, type } from "~/theme";
 
 export default function MeScreen() {
   const { user, signOut } = useAuth();
-  const { locale, setLocale } = useLocale();
+  const { locale, setLocale, t } = useLocale();
   const handle = useApi(user ? `handle:${user.uid}` : null, () => loadHandleForUid(user!.uid));
 
   if (!user) return <SignInPrompt />;
@@ -34,6 +34,8 @@ export default function MeScreen() {
           onPress={() => router.push(`/people/${handle.data!.handle}`)}
         />
       ) : null}
+
+      <Button variant="secondary" label={t("myWorks.title")} onPress={() => router.push("/my-works")} />
 
       <View style={{ gap: space(2) }}>
         <Text style={styles.label}>{appText(locale, "language")}</Text>

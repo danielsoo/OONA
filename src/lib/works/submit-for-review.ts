@@ -1,14 +1,10 @@
 import { uploadFileViaTus } from "@/lib/streamTusUpload";
 import { fetchStagingFile } from "@/lib/works/work-video-staging";
 import type { PromoTrimRange } from "@/lib/works/promo-clip";
+import type { SubmitProgressPhase } from "@/lib/works/upload-progress";
 import type { PromoFrameCrop } from "@/types/work";
 
-export type SubmitProgressPhase =
-  | "full_upload"
-  | "prologue_upload"
-  | "promo_upload"
-  | "encoding"
-  | "done";
+export type { SubmitProgressPhase };
 
 export type SubmitProgress = {
   phase: SubmitProgressPhase;

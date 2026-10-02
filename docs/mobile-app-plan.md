@@ -46,18 +46,23 @@ Expo Go로는 실행되지 않는다. Google 로그인과 Apple 로그인이 네
 | `/watch/[ownerUid]/[workId]` | 시청 | ◐ | 프롤로그 먼저 재생 + 건너뛰기, 비슷한 작품, 신고, 내 리스트 추가 |
 | `/people/[handle]` | 창작자 프로필 | ◐ | 배너, 학교, 메시지 보내기, 포트폴리오 메모 |
 | `/notifications` | 알림 탭 | ✅ | 메시지·방 알림은 메시지 화면이 생기면 연결 |
-| `/login` | 로그인 | ◐ | 카카오·네이버 로그인, 비밀번호 찾기 |
+| `/login` | 로그인 | ◐ | 카카오·네이버 로그인 |
 | `/account` | 나 탭 | ◐ | 계정 설정 항목 전체 |
 
 ### 2단계: 올리기와 가입
 
-| 웹 경로 | 상태 | 메모 |
-| --- | --- | --- |
-| `/signup` `/profiles` | ☐ | 가입 + 프로필 작성. 새 사용자는 지금 웹에서 가입해야 한다 |
-| `/uploader/upload` | ☐ | 영상·썸네일 선택(`expo-image-picker`), 크레딧 태그, 웹과 같은 API 순서(업로드 URL → Storage 스테이징 → tus → 검토 제출). tus는 파일 URI 처리 방식을 앱용으로 바꿔야 한다 |
-| `/uploader/works` `/uploader/works/[workId]/*` | ☐ | 내 작품, 수정, 프롤로그·프로모 편집 |
-| `/uploader/verify` | ☐ | 업로더 보증금(현재 꺼져 있음). iOS는 인앱 결제 규정 확인 필요 |
-| `/collab-invite/[token]` | ☐ | 크레딧 초대 수락. 앱 딥링크(`oona://`)와 유니버설 링크 연결 |
+| 웹 경로 | 앱 화면 | 상태 | 남은 것 |
+| --- | --- | --- | --- |
+| `/signup` `/profiles` | 가입, 프로필 완성, 이메일 인증 | ✅ | 웹과 같은 단계·검증 규칙. Apple·Google로 처음 들어온 사람은 프로필 단계만 |
+| `/uploader/upload` | 업로드 탭 | ◐ | 단계·API 순서는 웹과 같음. 남은 것: 쇼츠 프레임 크롭 편집(지금은 기본값), 썸네일 크롭, 학교 선택, 임시 저장, 백그라운드 업로드 |
+| `/uploader/works` | 내 작품 | ◐ | 목록·상태·초안 삭제(길게 누르기). 남은 것: 수정, 프롤로그·프로모 편집, 삭제 요청, 순서 바꾸기 |
+| `/uploader/works/[workId]/*` | | ☐ | 작품 수정, 프롤로그·프로모 편집 |
+| `/uploader/verify` | | ☐ | 업로더 보증금(현재 꺼져 있음). iOS는 인앱 결제 규정 확인 필요 |
+| `/collab-invite/[token]` | 크레딧 초대 수락 | ✅ | `oona://collab-invite/<token>`으로 열림. 메일 링크(https)가 앱으로 바로 열리려면 유니버설 링크 설정 필요 (아래) |
+
+**업로드 주의:** 앱이 화면을 벗어나거나 잠기면 업로드가 멈출 수 있다. 큰 영상은 Wi-Fi에서 화면을 켠 채로 올리도록 안내하고, 다음 단계에서 백그라운드 업로드를 붙인다. 영상은 웹과 같이 Firebase Storage(스테이징)와 Cloudflare Stream에 각각 한 번씩, 총 두 번 올라간다.
+
+**유니버설 링크:** 웹사이트가 `/.well-known/apple-app-site-association`과 `/.well-known/assetlinks.json`을 서빙하고, `app.config.ts`에 `ios.associatedDomains`와 `android.intentFilters`를 넣어야 한다. Apple 팀 ID와 Android 서명 키 SHA-256이 필요해서 계정이 생긴 뒤에 한다.
 
 ### 3단계: 소통
 

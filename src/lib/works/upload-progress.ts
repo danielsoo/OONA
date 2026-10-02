@@ -1,4 +1,10 @@
-import type { SubmitProgressPhase } from "@/lib/works/submit-for-review";
+/** Phases reported by submitStagedWorkForReview (src/lib/works/submit-for-review.ts). */
+export type SubmitProgressPhase =
+  | "full_upload"
+  | "prologue_upload"
+  | "promo_upload"
+  | "encoding"
+  | "done";
 
 export type UploadPhase =
   | "creating"

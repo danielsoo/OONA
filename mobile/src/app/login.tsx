@@ -4,13 +4,15 @@ import { useState } from "react";
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { formatLoginErrorMessage } from "@/lib/authErrors";
 import { Button, Message } from "~/components/ui";
-import { useAuth } from "~/lib/auth";
+import { EMAIL_NOT_VERIFIED, useAuth } from "~/lib/auth";
 import { useLocale } from "~/lib/locale";
 import { colors, radius, space, type } from "~/theme";
 
 export default function LoginScreen() {
-  const { t } = useLocale();
-  const { configured, googleAvailable, appleAvailable, signInWithEmail, signInWithGoogle, signInWithApple } = useAuth();
+  const { t, ui } = useLocale();
+  const { configured, googleAvailable, appleAvailable, signInWithEmail, signInWithGoogle, signInWithApple, resetPassword } =
+    useAuth();
+  const [notice, setNotice] = useState<string | null>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState<"email" | "google" | "apple" | null>(null);
@@ -23,12 +25,17 @@ export default function LoginScreen() {
   async function run(kind: "email" | "google" | "apple", action: () => Promise<void>, fallbackKey?: string) {
     setBusy(kind);
     setError(null);
+    setNotice(null);
     try {
       await action();
       if (router.canGoBack()) router.back();
       else router.replace("/");
     } catch (err) {
       const code = (err as { code?: string }).code;
+      if ((err as Error).message === EMAIL_NOT_VERIFIED) {
+        setError(t("auth.login.errorEmailNotVerified"));
+        return;
+      }
       // The user closed the Apple / Google sheet: not an error.
       if (code === "ERR_REQUEST_CANCELED" || code === "SIGN_IN_CANCELLED") return;
       setError(fallbackKey && !code?.startsWith("auth/") ? t(fallbackKey) : formatLoginErrorMessage(err, t));
@@ -91,6 +98,7 @@ export default function LoginScreen() {
         />
 
         {error ? <Text style={styles.error}>{error}</Text> : null}
+        {notice ? <Text style={styles.notice}>{notice}</Text> : null}
 
         <Button
           label={busy === "email" ? t("auth.login.submitting") : t("auth.login.submit")}
@@ -99,6 +107,33 @@ export default function LoginScreen() {
           onPress={() => run("email", () => signInWithEmail(email, password))}
           style={{ marginTop: space(2) }}
         />
+
+        <Text
+          style={styles.link}
+          accessibilityRole="link"
+          onPress={async () => {
+            if (!email) {
+              setError(t("auth.signup.errorEmailInvalid"));
+              return;
+            }
+            try {
+              await resetPassword(email);
+              setError(null);
+              setNotice(ui("Password reset email sent."));
+            } catch (err) {
+              setError(formatLoginErrorMessage(err, t));
+            }
+          }}
+        >
+          {ui("Forgot password?")}
+        </Text>
+
+        <View style={styles.signupRow}>
+          <Text style={styles.or}>{ui("New to OONA?")}</Text>
+          <Text style={styles.link} accessibilityRole="link" onPress={() => router.replace("/signup")}>
+            {ui("Create an account")}
+          </Text>
+        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -122,4 +157,7 @@ const styles = StyleSheet.create({
     minHeight: 48,
   },
   error: { ...type.small, color: colors.destructive },
+  notice: { ...type.small, color: colors.success },
+  link: { ...type.small, color: colors.accentHover, paddingVertical: space(2) },
+  signupRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: space(2), marginTop: space(4) },
 });

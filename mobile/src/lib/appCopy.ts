@@ -5,15 +5,10 @@ import type { Locale } from "@/i18n";
  * Move an entry into src/i18n/messages.ts once the website needs it too.
  */
 const appCopy = {
-  uploadComingTitle: {
-    en: "Uploading from the app is coming next",
-    ko: "앱 업로드는 다음 업데이트에서 열려요",
-    ja: "アプリからのアップロードは次のアップデートで対応します",
-  },
-  uploadComingBody: {
-    en: "For now, upload on the OONA website. Your work appears here as soon as it is approved.",
-    ko: "지금은 웹사이트에서 업로드해 주세요. 승인되면 앱에도 바로 보여요.",
-    ja: "現在はウェブサイトからアップロードしてください。承認されるとアプリにも表示されます。",
+  promoTrimStart: {
+    en: "Promo clip start (seconds), up to 120 seconds are used",
+    ko: "쇼츠 시작 지점(초), 최대 120초까지 사용돼요",
+    ja: "ショートの開始位置（秒）、最大120秒まで使用されます",
   },
   myProfile: { en: "My profile", ko: "내 프로필", ja: "マイプロフィール" },
   language: { en: "Language", ko: "언어", ja: "言語" },
