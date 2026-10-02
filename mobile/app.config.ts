@@ -9,6 +9,9 @@ import type { ExpoConfig } from "expo/config";
  * is set; until then Google sign-in is hidden in the app.
  */
 const googleIosUrlScheme = process.env.EXPO_PUBLIC_GOOGLE_IOS_URL_SCHEME;
+/** Website host whose links open the app (served files: src/app/.well-known/*). */
+const appLinkHost = process.env.APP_LINK_HOST || "xiio.vercel.app";
+const appLinkPaths = ["/watch", "/people", "/collab-invite", "/messages"];
 
 const plugins: ExpoConfig["plugins"] = [
   "expo-router",
@@ -55,6 +58,7 @@ const config: ExpoConfig = {
     bundleIdentifier: "com.xiio.oona",
     supportsTablet: true,
     usesAppleSignIn: true,
+    associatedDomains: [`applinks:${appLinkHost}`],
     config: { usesNonExemptEncryption: false },
   },
   android: {
@@ -67,6 +71,14 @@ const config: ExpoConfig = {
       monochromeImage: "./assets/android-icon-monochrome.png",
     },
     predictiveBackGestureEnabled: false,
+    intentFilters: [
+      {
+        action: "VIEW",
+        autoVerify: true,
+        data: appLinkPaths.map((pathPrefix) => ({ scheme: "https", host: appLinkHost, pathPrefix })),
+        category: ["BROWSABLE", "DEFAULT"],
+      },
+    ],
   },
   plugins,
   // Set by `eas init` (needed for push tokens); EAS_PROJECT_ID overrides.

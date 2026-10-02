@@ -5,6 +5,7 @@ import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-
 import { isEmailPasswordUser } from "@/lib/authProviders";
 import { Button } from "~/components/ui";
 import { apiFetch, ApiError } from "~/lib/api";
+import { revokeAppleTokenIfNeeded } from "~/lib/appleRevoke";
 import { useAuth } from "~/lib/auth";
 import { useLocale } from "~/lib/locale";
 import { unregisterPush } from "~/lib/push";
@@ -72,12 +73,15 @@ export default function DeleteAccountScreen() {
       if (needsPassword && user.email) {
         await reauthenticateWithCredential(user, EmailAuthProvider.credential(user.email, password));
       }
+      // Apple users confirm once more so the Apple token can be revoked (guideline 5.1.1(v)).
+      await revokeAppleTokenIfNeeded();
       await unregisterPush();
       await apiFetch("/api/me/account/delete", { method: "POST", auth: "required", json: { confirmPhrase: phrase.trim() } });
       await signOut().catch(() => {});
       router.replace("/");
     } catch (err) {
       const code = (err as { code?: string }).code;
+      if (code === "ERR_REQUEST_CANCELED") return;
       if (err instanceof ApiError && err.code === "admin_cannot_delete") setError(t("settings.deleteAccount.errorAdmin"));
       else if (code === "auth/requires-recent-login") setError(t("settings.deleteAccount.errorRecentLogin"));
       else if (code === "auth/wrong-password" || code === "auth/invalid-credential") setError(t("settings.deleteAccount.errorWrongPassword"));

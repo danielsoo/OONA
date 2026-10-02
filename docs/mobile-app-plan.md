@@ -60,9 +60,9 @@ Expo Go로는 실행되지 않는다. Google 로그인과 Apple 로그인이 네
 | `/uploader/verify` | | ☐ | 업로더 보증금(현재 꺼져 있음). iOS는 인앱 결제 규정 확인 필요 |
 | `/collab-invite/[token]` | 크레딧 초대 수락 | ✅ | `oona://collab-invite/<token>`으로 열림. 메일 링크(https)가 앱으로 바로 열리려면 유니버설 링크 설정 필요 (아래) |
 
-**업로드 주의:** 앱이 화면을 벗어나거나 잠기면 업로드가 멈출 수 있다. 큰 영상은 Wi-Fi에서 화면을 켠 채로 올리도록 안내하고, 다음 단계에서 백그라운드 업로드를 붙인다. 영상은 웹과 같이 Firebase Storage(스테이징)와 Cloudflare Stream에 각각 한 번씩, 총 두 번 올라간다.
+**업로드 주의:** 업로드 중에는 화면이 꺼지지 않게 해 두었다. 그래도 다른 앱으로 넘어가면 멈출 수 있어서, 큰 영상은 Wi-Fi에서 앱을 켠 채로 올리도록 안내한다. 영상은 웹과 같이 Firebase Storage(스테이징)와 Cloudflare Stream에 각각 한 번씩, 총 두 번 올라간다.
 
-**유니버설 링크:** 웹사이트가 `/.well-known/apple-app-site-association`과 `/.well-known/assetlinks.json`을 서빙하고, `app.config.ts`에 `ios.associatedDomains`와 `android.intentFilters`를 넣어야 한다. Apple 팀 ID와 Android 서명 키 SHA-256이 필요해서 계정이 생긴 뒤에 한다.
+**유니버설 링크:** `/watch`, `/people`, `/collab-invite`, `/messages` 링크가 앱으로 열린다. 웹사이트가 `/.well-known/apple-app-site-association`과 `/.well-known/assetlinks.json`을 서빙하는데(`src/app/.well-known/`), Vercel 환경 변수 `APPLE_TEAM_ID`(Apple 팀 ID)와 `ANDROID_APP_SHA256`(서명 키 SHA-256, Play 앱 서명 키 포함, 쉼표로 구분)을 넣어야 켜진다. 앱 쪽 도메인은 `APP_LINK_HOST`(기본 xiio.vercel.app)로 바꿀 수 있다.
 
 ### 3단계: 소통
 
@@ -102,7 +102,7 @@ Expo Go로는 실행되지 않는다. Google 로그인과 Apple 로그인이 네
    - 푸시 알림: `cd mobile && npx eas init`으로 EAS 프로젝트를 만들면 프로젝트 ID가 앱 설정에 들어간다(또는 `EAS_PROJECT_ID` 환경 변수). iOS는 EAS가 APNs 키를, Android는 Firebase(FCM) 설정을 요구한다.
    - 서버: `/api/me/push-tokens`가 기기 토큰을 `users/{uid}/pushTokens`에 저장하고, 알림·메시지가 생기면 Expo 푸시 서비스로 보낸다(`src/lib/server/push.ts`). 응답을 보낸 뒤에 보내기 때문에 푸시가 실패해도 원래 요청에는 영향이 없다.
 4. **스토어 필수 항목**:
-   - 앱 안에서 계정 삭제 (설정 → 계정 삭제, 완료). Apple 로그인 사용자는 삭제할 때 Apple 토큰 해지도 요구되니 서버 삭제 로직에 추가가 필요하다
+   - 앱 안에서 계정 삭제 (설정 → 계정 삭제, 완료). Apple 로그인 사용자는 삭제할 때 Apple 확인 창이 한 번 더 뜨고 Apple 토큰이 해지된다 (완료)
    - 신고·차단 (사용자 콘텐츠 앱 규정): 시청 화면의 신고, 프로필의 차단 (완료)
    - 개인정보처리방침 공개 URL (`docs/privacy-policy-draft.md`를 확정해서 공개)
    - 심사용 데모 계정

@@ -1,5 +1,6 @@
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
+import { activateKeepAwakeAsync, deactivateKeepAwake } from "expo-keep-awake";
 import { router } from "expo-router";
 import { useState } from "react";
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
@@ -151,6 +152,8 @@ export default function UploadScreen() {
     setNotes([]);
     const withPrologue = prologueChoice === "upload" && prologue ? prologue : null;
     let staged = false;
+    // A sleeping screen suspends the app and stops the upload.
+    await activateKeepAwakeAsync("upload").catch(() => {});
 
     try {
       setPhase("creating");
@@ -234,6 +237,7 @@ export default function UploadScreen() {
       setError(staged ? `${message}\n\n${t("uploader.errorSubmitReviewStagedSaved")}` : message);
     } finally {
       setPhase(null);
+      void deactivateKeepAwake("upload").catch(() => {});
     }
   }
 
