@@ -7,6 +7,7 @@ import { appText } from "~/lib/appCopy";
 import { useAuth } from "~/lib/auth";
 import { loadHandleForUid } from "~/lib/feeds";
 import { useLocale } from "~/lib/locale";
+import { unregisterPush } from "~/lib/push";
 import { useApi } from "~/lib/useApi";
 import { colors, radius, space, type } from "~/theme";
 
@@ -56,7 +57,14 @@ export default function MeScreen() {
         </View>
       </View>
 
-      <Button variant="secondary" label={appText(locale, "signOut")} onPress={() => void signOut()} />
+      <Button
+        variant="secondary"
+        label={appText(locale, "signOut")}
+        onPress={async () => {
+          await unregisterPush();
+          await signOut();
+        }}
+      />
     </ScrollView>
   );
 }

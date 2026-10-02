@@ -26,6 +26,7 @@ const plugins: ExpoConfig["plugins"] = [
   "expo-font",
   "expo-localization",
   "expo-apple-authentication",
+  ["expo-notifications", { color: "#3D7DFF" }],
   [
     "expo-image-picker",
     {
@@ -68,6 +69,8 @@ const config: ExpoConfig = {
     predictiveBackGestureEnabled: false,
   },
   plugins,
+  // Set by `eas init` (needed for push tokens); EAS_PROJECT_ID overrides.
+  extra: process.env.EAS_PROJECT_ID ? { eas: { projectId: process.env.EAS_PROJECT_ID } } : undefined,
   experiments: {
     typedRoutes: true,
   },

@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { AuthProvider, useAuth } from "~/lib/auth";
 import { LocaleProvider } from "~/lib/locale";
+import { usePushNotifications } from "~/lib/push";
 import { colors } from "~/theme";
 
 void SplashScreen.preventAutoHideAsync();
@@ -38,6 +39,7 @@ function useAuthGateRedirect() {
 function RootStack() {
   const { loading } = useAuth();
   useAuthGateRedirect();
+  usePushNotifications();
 
   useEffect(() => {
     if (!loading) void SplashScreen.hideAsync();

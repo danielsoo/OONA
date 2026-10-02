@@ -1,6 +1,7 @@
 import { FieldValue, type Firestore } from "firebase-admin/firestore";
 import type { DmMessageDoc, DmThreadDoc } from "@/types/dm";
 import { isBlocked } from "@/lib/server/blocks";
+import { schedulePushForMessage } from "@/lib/server/push";
 import { adminTimestampToMillis } from "@/lib/admin/format-timestamp";
 import { isAllowedReactionEmoji } from "@/lib/dm/messageReactions";
 
@@ -159,6 +160,7 @@ export async function sendDmMessage(
     updatedAt: FieldValue.serverTimestamp(),
   });
   await batch.commit();
+  schedulePushForMessage(db, [otherUid], senderUid, trimmed, { threadId });
   return { ok: true, messageId: msgRef.id };
 }
 

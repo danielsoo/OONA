@@ -1,5 +1,6 @@
 import { FieldValue, type Firestore } from "firebase-admin/firestore";
 import { buildNotificationPayload, notificationsCol } from "@/lib/server/notifications";
+import { schedulePushForNotification } from "@/lib/server/push";
 
 export function followDocId(followerUid: string, followingUid: string): string {
   return `${followerUid}_${followingUid}`;
@@ -52,6 +53,7 @@ export async function followUser(
     buildNotificationPayload({ recipientUid: followingUid, type: "new_follower", actorUid: followerUid })
   );
   await batch.commit();
+  schedulePushForNotification(db, { recipientUid: followingUid, type: "new_follower", actorUid: followerUid }, "/notifications");
   return { ok: true };
 }
 

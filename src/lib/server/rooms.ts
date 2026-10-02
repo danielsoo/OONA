@@ -1,6 +1,7 @@
 import { FieldValue, type Firestore } from "firebase-admin/firestore";
 import { adminTimestampToMillis } from "@/lib/admin/format-timestamp";
 import { isBlocked } from "@/lib/server/blocks";
+import { schedulePushForMessage } from "@/lib/server/push";
 import { isAllowedReactionEmoji } from "@/lib/dm/messageReactions";
 import type { SendMessageReplyTo } from "@/lib/server/dm";
 import { MAX_ROOM_MEMBERS, type RoomDoc, type RoomMessageDoc } from "@/types/room";
@@ -144,6 +145,13 @@ export async function sendRoomMessage(
     updatedAt: FieldValue.serverTimestamp(),
   });
   await batch.commit();
+  schedulePushForMessage(
+    db,
+    room.memberIds.filter((uid) => uid !== senderUid),
+    senderUid,
+    trimmed,
+    { roomId, roomName: room.name }
+  );
   return { ok: true, messageId: msgRef.id };
 }
 

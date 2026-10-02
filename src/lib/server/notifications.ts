@@ -1,4 +1,5 @@
 import { FieldValue, type Firestore } from "firebase-admin/firestore";
+import { schedulePushForNotification } from "@/lib/server/push";
 import { NOTIFICATION_TYPES, type NotificationDoc, type NotificationType } from "@/types/notification";
 
 const MAX_MARK_READ_BATCH = 500;
@@ -72,6 +73,12 @@ export function buildNotificationPayload(input: BuildNotificationInput): Record<
 /** 단발성 쓰기 지점(작품 승인/반려, 구직 제안 생성/수락/거절)에서 사용하는 얇은 래퍼 */
 export async function createNotification(db: Firestore, input: BuildNotificationInput): Promise<void> {
   await notificationsCol(db).add(buildNotificationPayload(input));
+  schedulePushForNotification(db, input, pushPathForNotification(input.type));
+}
+
+/** Screen the mobile app opens when the push is tapped. */
+function pushPathForNotification(type: NotificationType): string {
+  return type === "work_approve" || type === "work_reject" ? "/my-works" : "/notifications";
 }
 
 export async function listNotificationsForUser(

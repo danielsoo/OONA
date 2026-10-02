@@ -74,7 +74,7 @@ Expo Go로는 실행되지 않는다. Google 로그인과 Apple 로그인이 네
 | `/projects/[projectId]` | | ☐ | 프로젝트 |
 | `/my-list` | 내 리스트 + 시청 화면의 담기 버튼 | ✅ | |
 | `/search` | 검색 (홈 오른쪽 위) | ✅ | 최근 검색어 |
-| (신규) 푸시 알림 | | ☐ | `expo-notifications` + 서버에 기기 토큰 저장 API 추가 |
+| (신규) 푸시 알림 | 앱 전체 | ◐ | 새 메시지(1:1·그룹), 새 팔로워, 작품 승인·반려, 구직 제안에 푸시가 간다. 누르면 해당 화면으로 열림. 실제 발송에는 EAS 프로젝트 ID가 필요하다 (아래) |
 
 ### 4단계: 나머지
 
@@ -98,6 +98,8 @@ Expo Go로는 실행되지 않는다. Google 로그인과 Apple 로그인이 네
    - Android: SHA-1을 등록한다.
    - Apple 로그인: Firebase에서 Apple 로그인을 켜고, Apple Developer에서 Sign in with Apple을 켠다.
 3. **빌드**: EAS Build(`npx eas build`) 또는 Xcode·Android Studio.
+   - 푸시 알림: `cd mobile && npx eas init`으로 EAS 프로젝트를 만들면 프로젝트 ID가 앱 설정에 들어간다(또는 `EAS_PROJECT_ID` 환경 변수). iOS는 EAS가 APNs 키를, Android는 Firebase(FCM) 설정을 요구한다.
+   - 서버: `/api/me/push-tokens`가 기기 토큰을 `users/{uid}/pushTokens`에 저장하고, 알림·메시지가 생기면 Expo 푸시 서비스로 보낸다(`src/lib/server/push.ts`). 응답을 보낸 뒤에 보내기 때문에 푸시가 실패해도 원래 요청에는 영향이 없다.
 4. **스토어 필수 항목**:
    - 앱 안에서 계정 삭제 (4단계 설정 화면)
    - 신고·차단 (사용자 콘텐츠 앱 규정)
