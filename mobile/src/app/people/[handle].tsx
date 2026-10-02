@@ -1,8 +1,10 @@
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
-import { ScrollView, StyleSheet, Text, useWindowDimensions, View } from "react-native";
+import { Alert, ScrollView, StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import { Avatar, Button, Loading, Message } from "~/components/ui";
 import { WorkCard } from "~/components/WorkRail";
+import { apiFetch } from "~/lib/api";
+import { appText } from "~/lib/appCopy";
 import { useAuth } from "~/lib/auth";
 import { loadPeople, setFollowing, type PeopleWorkEntry } from "~/lib/feeds";
 import { openThreadWith } from "~/lib/messages";
@@ -14,7 +16,7 @@ import { colors, space, type } from "~/theme";
 export default function PeopleScreen() {
   const { handle } = useLocalSearchParams<{ handle: string }>();
   const { user } = useAuth();
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const { width } = useWindowDimensions();
   const people = useApi(`people:${handle}:${user?.uid ?? "guest"}`, () => loadPeople(handle));
   const [followBusy, setFollowBusy] = useState(false);
@@ -33,6 +35,22 @@ export default function PeopleScreen() {
     }
     const threadId = await openThreadWith(profile.uid);
     router.push(`/messages/${threadId}`);
+  }
+
+  function block() {
+    Alert.alert(appText(locale, "block"), appText(locale, "blockConfirm"), [
+      { text: t("common.cancel"), style: "cancel" },
+      {
+        text: appText(locale, "block"),
+        style: "destructive",
+        onPress: async () => {
+          await apiFetch(`/api/me/blocks/${encodeURIComponent(profile.uid)}`, { method: "POST", auth: "required" });
+          if (isFollowing) await setFollowing(profile.uid, false).catch(() => {});
+          Alert.alert(appText(locale, "blocked"));
+          router.back();
+        },
+      },
+    ]);
   }
 
   async function toggleFollow() {
@@ -99,6 +117,11 @@ export default function PeopleScreen() {
       {profile.bio ? <Text style={styles.bio}>{profile.bio}</Text> : null}
       {grid(t("watch.director"), directed)}
       {grid(t("watch.castCrew"), credited)}
+      {user && !viewer?.isSelf ? (
+        <Text style={styles.block} accessibilityRole="button" onPress={block}>
+          {appText(locale, "block")}
+        </Text>
+      ) : null}
     </ScrollView>
   );
 }
@@ -112,4 +135,5 @@ const styles = StyleSheet.create({
   bio: { ...type.body, color: colors.ink2, marginTop: space(6) },
   sectionTitle: { ...type.h3, color: colors.ink, marginBottom: space(3) },
   grid: { flexDirection: "row", flexWrap: "wrap", gap: space(3) },
+  block: { ...type.small, color: colors.ink3, marginTop: space(8), textAlign: "center" },
 });

@@ -10,6 +10,13 @@ const appCopy = {
     ko: "쇼츠 시작 지점(초), 최대 120초까지 사용돼요",
     ja: "ショートの開始位置（秒）、最大120秒まで使用されます",
   },
+  block: { en: "Block", ko: "차단", ja: "ブロック" },
+  blockConfirm: {
+    en: "Block this person? They can't message you, and you won't see each other in messages.",
+    ko: "이 사람을 차단할까요? 차단하면 서로 메시지를 주고받을 수 없어요.",
+    ja: "この人をブロックしますか？ブロックするとメッセージのやり取りができなくなります。",
+  },
+  blocked: { en: "Blocked.", ko: "차단했어요.", ja: "ブロックしました。" },
   changePhoto: { en: "Change photo", ko: "사진 바꾸기", ja: "写真を変更" },
   myProfile: { en: "My profile", ko: "내 프로필", ja: "マイプロフィール" },
   signOut: { en: "Sign out", ko: "로그아웃", ja: "ログアウト" },

@@ -87,6 +87,13 @@ export default function WatchScreen() {
         <View style={{ marginTop: space(4) }}>
           <SaveButton ownerUid={work.ownerUid} workId={work.workId} />
         </View>
+        <Text
+          style={styles.report}
+          accessibilityRole="link"
+          onPress={() => router.push({ pathname: "/report", params: { ownerUid: work.ownerUid, workId: work.workId, target: "full" } })}
+        >
+          {t("watch.report")}
+        </Text>
         {work.description ? <Text style={styles.description}>{work.description}</Text> : null}
 
         {work.credits.length > 0 ? (
@@ -141,4 +148,5 @@ const styles = StyleSheet.create({
   },
   creditName: { ...type.body, color: colors.ink, fontWeight: "500" },
   creditRole: { ...type.small, color: colors.ink3 },
+  report: { ...type.small, color: colors.ink3, marginTop: space(3), alignSelf: "flex-start" },
 });
