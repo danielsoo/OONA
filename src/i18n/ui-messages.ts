@@ -1707,5 +1707,17 @@ export const uiMessages: Record<string, readonly [string, string]> = {
   "password reset email sent.": [
     "비밀번호 재설정 메일을 보냈습니다.",
     "パスワード再設定メールを送信しました。"
+  ],
+  "move up": [
+    "위로 이동",
+    "上へ移動"
+  ],
+  "move down": [
+    "아래로 이동",
+    "下へ移動"
+  ],
+  "reorder": [
+    "순서 바꾸기",
+    "並べ替え"
   ]
 };

@@ -1,5 +1,5 @@
 import { router, Stack, useLocalSearchParams } from "expo-router";
-import { Alert, Text } from "react-native";
+import { Alert, Text, View } from "react-native";
 import { ChatView } from "~/components/ChatView";
 import { Loading, Message } from "~/components/ui";
 import { useAuth } from "~/lib/auth";
@@ -7,7 +7,7 @@ import { useLocale } from "~/lib/locale";
 import { deleteMessage, leaveRoom, loadRoom, reactToMessage, sendRoomMessage } from "~/lib/messages";
 import { useApi } from "~/lib/useApi";
 import { usePolling } from "~/lib/usePolling";
-import { colors, type } from "~/theme";
+import { colors, space, type } from "~/theme";
 
 /** Group conversation (website /messages/rooms/[roomId]). */
 export default function RoomScreen() {
@@ -42,11 +42,16 @@ export default function RoomScreen() {
     <>
       <Stack.Screen
         options={{
-          title: `${data.name} · ${t("dm.rooms.membersCount", { count: data.members.length })}`,
+          title: data.name,
           headerRight: () => (
-            <Text onPress={confirmLeave} style={{ ...type.small, color: colors.destructive }}>
-              {t("dm.rooms.leaveRoom")}
-            </Text>
+            <View style={{ flexDirection: "row", gap: space(4) }}>
+              <Text onPress={() => router.push(`/messages/room-members/${roomId}`)} style={{ ...type.small, color: colors.accentHover }}>
+                {t("dm.rooms.addMember")}
+              </Text>
+              <Text onPress={confirmLeave} style={{ ...type.small, color: colors.destructive }}>
+                {t("dm.rooms.leaveRoom")}
+              </Text>
+            </View>
           ),
         }}
       />
