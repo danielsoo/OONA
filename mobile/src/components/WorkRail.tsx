@@ -49,11 +49,30 @@ export function WorkCard({ item, width = CARD_WIDTH }: { item: RailItem; width?:
   );
 }
 
-export function WorkRail({ title, items }: { title: string; items: RailItem[] }) {
+export function WorkRail({
+  title,
+  items,
+  seeAll,
+}: {
+  title: string;
+  items: RailItem[];
+  /** Label and target for a "View all" link on the right of the title. */
+  seeAll?: { label: string; onPress: () => void };
+}) {
   if (items.length === 0) return null;
   return (
     <View style={{ marginBottom: space(7) }}>
-      <SectionTitle>{title}</SectionTitle>
+      <SectionTitle
+        action={
+          seeAll ? (
+            <Text onPress={seeAll.onPress} style={styles.seeAll} accessibilityRole="link">
+              {seeAll.label}
+            </Text>
+          ) : undefined
+        }
+      >
+        {title}
+      </SectionTitle>
       <FlatList
         horizontal
         data={items}
@@ -74,4 +93,5 @@ const styles = StyleSheet.create({
   progressFill: { height: 3, backgroundColor: colors.accent },
   title: { ...type.body, color: colors.ink, marginTop: space(2), fontWeight: "500" },
   subtitle: { ...type.small, color: colors.ink3 },
+  seeAll: { ...type.small, color: colors.accentHover },
 });

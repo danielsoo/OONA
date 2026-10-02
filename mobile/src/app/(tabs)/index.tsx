@@ -1,24 +1,15 @@
 import { useCallback } from "react";
-import { RefreshControl, ScrollView } from "react-native";
-import type { CatalogFeedItem } from "@/types/work";
+import { RefreshControl, ScrollView, View } from "react-native";
+import { router } from "expo-router";
+import { HeroCard } from "~/components/HeroCard";
 import { Loading, Message } from "~/components/ui";
-import { WorkRail, type RailItem } from "~/components/WorkRail";
+import { WorkRail } from "~/components/WorkRail";
+import { toRailItem } from "~/lib/catalog";
 import { useAuth } from "~/lib/auth";
 import { loadCatalog, loadContinueWatching } from "~/lib/feeds";
 import { useLocale } from "~/lib/locale";
 import { useApi } from "~/lib/useApi";
 import { colors, space } from "~/theme";
-
-function toRailItem(item: CatalogFeedItem): RailItem {
-  return {
-    key: `${item.ownerUid}:${item.workId}`,
-    ownerUid: item.ownerUid,
-    workId: item.workId,
-    title: item.title,
-    subtitle: item.director,
-    thumbnailUrl: item.thumbnailUrl,
-  };
-}
 
 /** Home: the website's catalog rails (src/components/home/CinematicHomePage.tsx). */
 export default function HomeScreen() {
@@ -56,6 +47,11 @@ export default function HomeScreen() {
       contentContainerStyle={{ paddingTop: space(4), paddingBottom: space(10) }}
       refreshControl={<RefreshControl refreshing={catalog.loading} onRefresh={refresh} tintColor={colors.ink2} />}
     >
+      {trending[0] ? (
+        <View style={{ marginBottom: space(7) }}>
+          <HeroCard item={trending[0]} label={ui("Trending on OONA")} />
+        </View>
+      ) : null}
       <WorkRail
         title={ui("Continue Watching")}
         items={(continueWatching.data ?? []).map((item) => ({
@@ -63,10 +59,15 @@ export default function HomeScreen() {
           progressPercent: item.progressPercent,
         }))}
       />
-      <WorkRail title={ui("Trending on OONA")} items={trending.map(toRailItem)} />
-      <WorkRail title={t("nav.movies")} items={data.movies.map(toRailItem)} />
-      <WorkRail title={t("nav.series")} items={data.series.map(toRailItem)} />
-      <WorkRail title={t("nav.entertainment")} items={data.entertainment.map(toRailItem)} />
+      <WorkRail title={ui("Trending on OONA")} items={trending.slice(1).map(toRailItem)} />
+      {(["movies", "series", "entertainment"] as const).map((section) => (
+        <WorkRail
+          key={section}
+          title={t(`nav.${section}`)}
+          items={data[section].map(toRailItem)}
+          seeAll={{ label: ui("View all"), onPress: () => router.push(`/section/${section}`) }}
+        />
+      ))}
     </ScrollView>
   );
 }
