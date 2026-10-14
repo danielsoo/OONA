@@ -36,7 +36,9 @@ function useRoleLabel() {
   return useCallback(
     (person: CreditsRollPerson) => {
       const role = t(`watch.creditRole.${person.role}`);
-      return person.characterName ? `${role} · ${person.characterName}` : role;
+      // Same rule as the watch page: a character named like the person adds nothing.
+      const character = person.characterName?.trim();
+      return character && character !== person.displayName.trim() ? `${role} · ${character}` : role;
     },
     [t]
   );
