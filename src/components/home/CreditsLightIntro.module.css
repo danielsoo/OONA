@@ -1,9 +1,10 @@
 /* The first-visit intro on "/" (CreditsLightIntro). All keyframes share one
    1900ms timeline; the percentages line up across them:
-     0–37%  the O draws itself, light gathers in its slit
-     37–55% hold
-     55–84% the O opens, the light streaks out across the screen
-     84–100% the streak settles into one line
+     0–13%   dark
+     13–40%  a spotlight snaps on at the top and pours down to the center
+     26–58%  the slit "O" comes up in the light, light fills its slit
+     52–76%  "Stay for the credits" under it; hold
+     76–100% the O opens and the light stretches into one line
    The flight to the roll and the fade are run from the component. */
 .intro {
   --mark: clamp(88px, 12vmin, 136px);
@@ -36,32 +37,74 @@
   transition: opacity 520ms ease;
 }
 
-/* The light flooding out from the center. */
-.bloom {
+/* The punch of the light switching on. */
+.flash {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 160vmax;
-  height: 160vmax;
-  border-radius: 50%;
-  background: radial-gradient(
-    circle,
-    rgba(214, 230, 255, 0.55) 0%,
-    rgba(110, 160, 255, 0.2) 16%,
-    rgba(40, 80, 170, 0.08) 34%,
-    transparent 56%
-  );
-  animation: bloom 1900ms linear both;
+  inset: 0;
+  background: radial-gradient(120% 70% at 50% 0%, rgba(210, 226, 255, 0.38), transparent 62%);
+  animation: flash 1900ms linear both;
 }
 
-/* The wide, flat glow of the streak (an anamorphic flare). */
+/* The spotlight: a cone from the top edge down to the O. The blur is on the
+   wrapper so the clipped cone's edges come out soft. */
+.spot {
+  position: absolute;
+  top: -6vh;
+  left: 50%;
+  width: calc(var(--mark) * 4.4);
+  height: calc(56vh + var(--mark) * 0.42);
+  transform-origin: 50% 0;
+  filter: blur(16px);
+  animation: spot 1900ms linear both;
+}
+
+.spot::before {
+  /* The lamp itself, just above the screen. */
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: calc(var(--mark) * 2.2);
+  height: calc(var(--mark) * 0.9);
+  transform: translate(-50%, -30%);
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(240, 246, 255, 0.95), rgba(170, 200, 255, 0.4) 55%, transparent);
+  content: "";
+}
+
+.cone {
+  position: absolute;
+  inset: 0;
+  clip-path: polygon(39% 0, 61% 0, 100% 100%, 0 100%);
+  background: linear-gradient(
+    to bottom,
+    rgba(228, 238, 255, 0.62) 0%,
+    rgba(175, 203, 255, 0.26) 42%,
+    rgba(135, 172, 255, 0.14) 78%,
+    rgba(120, 160, 255, 0.04) 100%
+  );
+}
+
+/* Where the light lands, under the O. */
+.pool {
+  position: absolute;
+  top: calc(50% + var(--mark) * 0.44);
+  left: 50%;
+  width: calc(var(--mark) * 3.6);
+  height: calc(var(--mark) * 0.8);
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(175, 203, 255, 0.36), rgba(110, 150, 255, 0.12) 55%, transparent);
+  transform: translate(-50%, -50%);
+  animation: pool 1900ms linear both;
+}
+
+/* The flat glow around the line as it stretches. */
 .haze {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 150vw;
-  height: clamp(120px, 22vh, 220px);
-  background: radial-gradient(50% 50% at 50% 50%, rgba(160, 200, 255, 0.5), rgba(70, 120, 230, 0.16) 45%, transparent 72%);
+  width: calc(var(--settle) * 1.5);
+  height: clamp(90px, 16vh, 160px);
+  background: radial-gradient(50% 50% at 50% 50%, rgba(160, 200, 255, 0.42), rgba(70, 120, 230, 0.12) 45%, transparent 72%);
   filter: blur(6px);
   animation: haze 1900ms linear both;
 }
@@ -74,18 +117,16 @@
   width: var(--mark);
   height: var(--mark);
   overflow: visible;
-  transform: translate(-50%, -50%);
   fill: none;
-  stroke: #eaf2ff;
-  filter: drop-shadow(0 0 6px rgba(140, 185, 255, 0.75));
+  stroke: #eef4ff;
+  filter: drop-shadow(0 0 6px rgba(150, 190, 255, 0.7));
+  animation: mark 1900ms linear both;
 }
 
 /* In the mark's own units (60 across): about 1.6px at its usual size. */
 .arcTop,
 .arcBottom {
   stroke-width: 0.8;
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
 }
 
 .arcTop {
@@ -98,7 +139,7 @@
 
 .tagline {
   position: absolute;
-  top: calc(50% + var(--mark) * 0.5 + 22px);
+  top: calc(50% + var(--mark) * 0.5 + 26px);
   right: 0;
   left: 0;
   margin: 0;
@@ -111,9 +152,9 @@
   animation: tagline 1900ms linear both;
 }
 
-/* The light itself: first inside the slit, then the streak, then the line
-   that flies to the roll. Two lines on top of each other, so they can open
-   into the two edges of the roll's center band. */
+/* The light in the slit, then the line that flies to the roll. Two lines on
+   top of each other, so they can open into the two edges of the roll's
+   center band. */
 .lines {
   position: absolute;
   inset: 0;
@@ -140,26 +181,117 @@
   animation: lineGrow 1900ms linear both;
 }
 
+@keyframes flash {
+  0%,
+  13% {
+    opacity: 0;
+  }
+  16% {
+    opacity: 1;
+    animation-timing-function: ease-out;
+  }
+  34%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes spot {
+  0%,
+  13% {
+    opacity: 0;
+    transform: translateX(-50%) scaleY(0.12);
+    animation-timing-function: cubic-bezier(0.2, 0.9, 0.25, 1);
+  }
+  21% {
+    opacity: 1;
+  }
+  40% {
+    opacity: 1;
+    transform: translateX(-50%) scaleY(1);
+  }
+  76% {
+    opacity: 1;
+    transform: translateX(-50%) scaleY(1);
+    animation-timing-function: ease-in;
+  }
+  100% {
+    opacity: 0.5;
+    transform: translateX(-50%) scaleY(1);
+  }
+}
+
+@keyframes pool {
+  0%,
+  28% {
+    opacity: 0;
+    animation-timing-function: ease-out;
+  }
+  50%,
+  76% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.4;
+  }
+}
+
+@keyframes mark {
+  0%,
+  24% {
+    opacity: 0;
+    transform: translate(-50%, -50%) translateY(-6px);
+    filter: drop-shadow(0 0 0 rgba(150, 190, 255, 0)) brightness(0.5);
+    animation-timing-function: cubic-bezier(0.2, 0.8, 0.25, 1);
+  }
+  47%,
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+    filter: drop-shadow(0 0 6px rgba(150, 190, 255, 0.7)) brightness(1);
+  }
+}
+
+@keyframes arcTop {
+  0%,
+  76% {
+    opacity: 1;
+    transform: none;
+    animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  97%,
+  100% {
+    opacity: 0;
+    transform: translateY(-9px);
+  }
+}
+
+@keyframes arcBottom {
+  0%,
+  76% {
+    opacity: 1;
+    transform: none;
+    animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  97%,
+  100% {
+    opacity: 0;
+    transform: translateY(9px);
+  }
+}
+
 @keyframes lineGrow {
   0%,
-  16% {
+  40% {
     width: 0;
     opacity: 0;
     animation-timing-function: cubic-bezier(0.3, 0, 0.2, 1);
   }
-  37% {
-    width: calc(var(--mark) * 0.6);
-    opacity: 1;
-  }
-  55% {
+  58%,
+  76% {
     width: calc(var(--mark) * 0.6);
     opacity: 1;
     animation-timing-function: cubic-bezier(0.12, 0.9, 0.2, 1);
-  }
-  84% {
-    width: 124vw;
-    opacity: 1;
-    animation-timing-function: cubic-bezier(0.45, 0, 0.25, 1);
   }
   100% {
     width: var(--settle);
@@ -167,99 +299,27 @@
   }
 }
 
-@keyframes arcTop {
-  0% {
-    stroke-dashoffset: 1;
-    opacity: 0.4;
-    transform: none;
-    animation-timing-function: cubic-bezier(0.45, 0, 0.2, 1);
-  }
-  37%,
-  55% {
-    stroke-dashoffset: 0;
-    opacity: 1;
-    transform: none;
-    animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
-  }
-  80%,
-  100% {
-    stroke-dashoffset: 0;
-    opacity: 0;
-    transform: translateY(-9px);
-  }
-}
-
-@keyframes arcBottom {
-  0% {
-    stroke-dashoffset: 1;
-    opacity: 0.4;
-    transform: none;
-    animation-timing-function: cubic-bezier(0.45, 0, 0.2, 1);
-  }
-  37%,
-  55% {
-    stroke-dashoffset: 0;
-    opacity: 1;
-    transform: none;
-    animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
-  }
-  80%,
-  100% {
-    stroke-dashoffset: 0;
-    opacity: 0;
-    transform: translateY(9px);
-  }
-}
-
-@keyframes bloom {
-  0% {
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(0.02);
-  }
-  37% {
-    opacity: 0.35;
-    transform: translate(-50%, -50%) scale(0.06);
-  }
-  55% {
-    opacity: 0.5;
-    transform: translate(-50%, -50%) scale(0.08);
-    animation-timing-function: cubic-bezier(0.12, 0.9, 0.2, 1);
-  }
-  72% {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(0.8);
-  }
-  100% {
-    opacity: 0.3;
-    transform: translate(-50%, -50%) scale(1);
-  }
-}
-
 @keyframes haze {
   0%,
-  55% {
+  76% {
     opacity: 0;
-    transform: translate(-50%, -50%) scaleX(0.04);
+    transform: translate(-50%, -50%) scaleX(0.1);
     animation-timing-function: cubic-bezier(0.12, 0.9, 0.2, 1);
   }
-  84% {
-    opacity: 1;
-    transform: translate(-50%, -50%) scaleX(1);
-  }
   100% {
-    opacity: 0.55;
-    transform: translate(-50%, -50%) scaleX(0.7);
+    opacity: 0.7;
+    transform: translate(-50%, -50%) scaleX(1);
   }
 }
 
 @keyframes tagline {
   0%,
-  62% {
+  52% {
     opacity: 0;
     transform: translateY(8px);
     animation-timing-function: ease-out;
   }
-  86%,
+  68%,
   100% {
     opacity: 1;
     transform: none;

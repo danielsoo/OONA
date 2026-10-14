@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef } from "react";
 import UiText from "@/components/i18n/UiText";
 import styles from "./CreditsLightIntro.module.css";
 
-/** Length of the CSS part (draw, gather, burst, settle); see the module's keyframes. */
+/** Length of the CSS part (spotlight, the lit O, the line); see the module's keyframes. */
 const BURST_MS = 1900;
 /** If the credits still haven't loaded by then, the intro just fades away. */
 const GIVE_UP_MS = 6000;
@@ -14,10 +14,10 @@ const ARC_X = 19.375;
 const ARC_Y = 2.2;
 
 /**
- * The first visit to "/": the slit "O" of the wordmark draws itself, light
- * gathers in the slit, the O opens and the light streaks across the screen.
- * The streak settles into a line that flies to the credit roll's center line
- * and opens into its frame, while the dark falls away to the credits.
+ * The first visit to "/": in the dark, a spotlight snaps on from the top and
+ * pours down onto the slit "O" of the wordmark. Light fills the slit, the O
+ * opens and the light stretches into a line that flies to the credit roll's
+ * center line and opens into its frame, while the dark falls away.
  *
  * `ready`: true once the roll is on the page, false if there are no credits
  * (the intro then just fades to the home), null while loading.
@@ -129,19 +129,15 @@ export default function CreditsLightIntro({ ready, onDone }: { ready: boolean | 
     <div ref={rootRef} className={styles.intro} aria-hidden="true">
       <div className={styles.backdrop} />
       <div className={styles.fx}>
-        <div className={styles.bloom} />
+        <div className={styles.flash} />
+        <div className={styles.spot}>
+          <div className={styles.cone} />
+        </div>
+        <div className={styles.pool} />
         <div className={styles.haze} />
         <svg className={styles.mark} viewBox="-30 -30 60 60">
-          <path
-            className={styles.arcTop}
-            pathLength={1}
-            d={`M${-ARC_X} ${-ARC_Y}A19.5 19.5 0 0 1 ${ARC_X} ${-ARC_Y}`}
-          />
-          <path
-            className={styles.arcBottom}
-            pathLength={1}
-            d={`M${ARC_X} ${ARC_Y}A19.5 19.5 0 0 1 ${-ARC_X} ${ARC_Y}`}
-          />
+          <path className={styles.arcTop} d={`M${-ARC_X} ${-ARC_Y}A19.5 19.5 0 0 1 ${ARC_X} ${-ARC_Y}`} />
+          <path className={styles.arcBottom} d={`M${ARC_X} ${ARC_Y}A19.5 19.5 0 0 1 ${-ARC_X} ${ARC_Y}`} />
         </svg>
         <p className={styles.tagline}>
           <UiText text="Stay for the credits" />
