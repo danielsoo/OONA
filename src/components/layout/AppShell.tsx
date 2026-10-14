@@ -35,6 +35,7 @@ const CINEMATIC_APP_PATHS = [
   "/settings",
   "/about",
   "/uploader",
+  "/credits",
 ] as const;
 
 function usesCinematicAppShell(pathname: string): boolean {

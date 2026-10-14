@@ -1731,5 +1731,101 @@ export const uiMessages: Record<string, readonly [string, string]> = {
   "attach a pdf, document, or image smaller than 20 mb.": [
     "20MB 이하의 PDF, 문서 또는 이미지를 첨부해 주세요.",
     "20MB未満のPDF、文書、または画像を添付してください。"
+  ],
+  "loading the credits…": [
+    "크레딧을 불러오는 중…",
+    "クレジットを読み込み中…"
+  ],
+  "stay for the credits": [
+    "크레딧까지 남아 주세요",
+    "クレジットまで見届けて"
+  ],
+  "the credits are empty for now.": [
+    "아직 올라간 크레딧이 없어요.",
+    "まだクレジットがありません。"
+  ],
+  "upload a film and confirm your crew to be the first names here.": [
+    "작품을 올리고 함께한 사람들의 크레딧을 확인받으면, 여기 첫 이름이 됩니다.",
+    "作品をアップロードしてクルーのクレジットを確認すると、ここに最初の名前が載ります。"
+  ],
+  "upload a film": [
+    "작품 올리기",
+    "作品をアップロード"
+  ],
+  "credits roll": [
+    "크레딧",
+    "クレジット"
+  ],
+  "now crediting": [
+    "지금 크레딧",
+    "いまのクレジット"
+  ],
+  "every name here is a confirmed credit on a real oona work.": [
+    "여기 나오는 이름은 모두 OONA 작품에서 확인된 실제 크레딧입니다.",
+    "ここに流れる名前は、すべてOONAの作品で確認された実際のクレジットです。"
+  ],
+  "hover to pause. click a name to see their work.": [
+    "마우스를 올리면 멈춰요. 이름을 누르면 그 사람의 작품을 볼 수 있어요.",
+    "カーソルを合わせると止まります。名前を押すとその人の作品が見られます。"
+  ],
+  "play the credits": [
+    "크레딧 다시 흐르게",
+    "クレジットを再開"
+  ],
+  "pause the credits": [
+    "크레딧 멈추기",
+    "クレジットを止める"
+  ],
+  "also by {name}": [
+    "{name}의 다른 작품",
+    "{name}のほかの作品"
+  ],
+  "up next": [
+    "다음 작품",
+    "次の作品"
+  ],
+  "blind screening": [
+    "블라인드 상영",
+    "ブラインド上映"
+  ],
+  "pick a frame. names come after.": [
+    "장면을 고르세요. 이름은 나중에 나옵니다.",
+    "場面を選んでください。名前はあとで出てきます。"
+  ],
+  "{works} works · {people} people credited": [
+    "작품 {works}편 · 크레딧 {people}명",
+    "作品{works}本・クレジット{people}人"
+  ],
+  "watch frame {n} blind": [
+    "{n}번째 장면 블라인드로 보기",
+    "{n}番目の場面をブラインドで見る"
+  ],
+  "back to the credits": [
+    "크레딧으로 돌아가기",
+    "クレジットに戻る"
+  ],
+  "no title. no names. no view counts. just the work.": [
+    "제목도, 이름도, 조회수도 없이. 작품만.",
+    "タイトルも名前も再生回数もなく、作品だけ。"
+  ],
+  "the people who made it": [
+    "이 작품을 만든 사람들",
+    "この作品を作った人たち"
+  ],
+  "next blind screening": [
+    "다음 블라인드 상영",
+    "次のブラインド上映"
+  ],
+  "open the full page": [
+    "작품 페이지로 가기",
+    "作品ページを開く"
+  ],
+  "skip to the credits": [
+    "크레딧으로 건너뛰기",
+    "クレジットへスキップ"
+  ],
+  "the credits couldn't load.": [
+    "크레딧을 불러오지 못했어요.",
+    "クレジットを読み込めませんでした。"
   ]
 };

@@ -55,7 +55,7 @@ function timestampIso(value: unknown): string | undefined {
   return millis > 0 ? new Date(millis).toISOString() : undefined;
 }
 
-async function getOrLoadFeed<T>(key: string, loader: () => Promise<T>): Promise<T> {
+export async function getOrLoadFeed<T>(key: string, loader: () => Promise<T>): Promise<T> {
   const cached = resultCache.get(key);
   if (cached && cached.expiresAt > Date.now()) return cached.data as T;
   if (cached) resultCache.delete(key);
