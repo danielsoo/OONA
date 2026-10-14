@@ -7,7 +7,7 @@ import StreamHlsVideo from "@/components/shorts/StreamHlsVideo";
 import { useTranslations } from "@/context/LocaleContext";
 import { useRecordEngagementView } from "@/hooks/useRecordEngagementView";
 import { UPLOAD_HREF } from "@/lib/appNav";
-import { buildRollLines, rollLength, type RollLine } from "@/lib/credits-roll";
+import { buildRollLines, rollLength, shuffleForVisit, type RollLine } from "@/lib/credits-roll";
 import { watchHref } from "@/lib/works/catalog-ui";
 import type { CreditsRollPerson, CreditsRollWork } from "@/types/creditsRoll";
 import styles from "./CreditsHome.module.css";
@@ -60,7 +60,8 @@ export function useCreditsRollFeed() {
         return (await res.json()) as { works?: CreditsRollWork[] };
       })
       .then((data) => {
-        if (!cancelled) setWorks(data.works ?? []);
+        // A new order each visit, so the same names don't always lead.
+        if (!cancelled) setWorks(shuffleForVisit(data.works ?? []));
       })
       .catch(() => {
         if (!cancelled) {

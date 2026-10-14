@@ -7,6 +7,27 @@
 export type RollSourceWork<C> = { workId: string; credits: readonly C[] };
 export type RollLine<C> = { workId: string; credit: C; creditIndex: number };
 
+function shuffled<T>(items: readonly T[], random: () => number): T[] {
+  const out = [...items];
+  for (let i = out.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(random() * (i + 1));
+    [out[i], out[j]] = [out[j]!, out[i]!];
+  }
+  return out;
+}
+
+/**
+ * A fresh order for each visit: the works, and the people within each work,
+ * in random order. A fixed order would always put the same names first,
+ * where everyone sees them, and the same names last, where few do.
+ */
+export function shuffleForVisit<W extends { credits: readonly unknown[] }>(
+  works: readonly W[],
+  random: () => number = Math.random
+): W[] {
+  return shuffled(works, random).map((work) => ({ ...work, credits: shuffled(work.credits, random) }));
+}
+
 export function buildRollLines<C extends { userId: string }>(
   works: readonly RollSourceWork<C>[],
   count: number
