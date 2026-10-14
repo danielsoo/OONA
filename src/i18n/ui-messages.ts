@@ -1827,5 +1827,33 @@ export const uiMessages: Record<string, readonly [string, string]> = {
   "the credits couldn't load.": [
     "크레딧을 불러오지 못했어요.",
     "クレジットを読み込めませんでした。"
+  ],
+  "credits layout": [
+    "크레딧 화면 방식",
+    "クレジットの表示方法"
+  ],
+  "a · stepped": [
+    "A · 한 명씩",
+    "A · 一人ずつ"
+  ],
+  "b · continuous": [
+    "B · 계속 흐름",
+    "B · 流れ続ける"
+  ],
+  "c · centered": [
+    "C · 가운데 + 양옆 화면",
+    "C · 中央+両側の画面"
+  ],
+  "one name holds the center, then the next steps in. every work gets a turn. hover to pause.": [
+    "한 이름이 가운데에 잠깐 머문 뒤 다음 이름이 올라와요. 모든 작품이 차례로 나와요. 마우스를 올리면 멈춰요.",
+    "一人の名前が中央に少し留まってから、次の名前が上がってきます。すべての作品が順番に登場します。カーソルを合わせると止まります。"
+  ],
+  "names roll up without stopping, like the end of a film. the scene follows whoever crosses the line. hover to pause.": [
+    "영화 엔딩처럼 이름이 멈추지 않고 올라가요. 가운데 선을 지나는 사람의 장면이 나와요. 마우스를 올리면 멈춰요.",
+    "映画のエンディングのように名前が止まらず流れます。中央の線を通る人の場面が映ります。カーソルを合わせると止まります。"
+  ],
+  "watch this film": [
+    "이 작품 보기",
+    "この作品を見る"
   ]
 };

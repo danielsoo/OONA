@@ -42,6 +42,207 @@
   font-size: 14px;
 }
 
+/* A · B · C switch, for comparing the three demos. */
+.layoutSwitch {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid rgba(155, 185, 220, 0.24);
+  border-radius: 999px;
+}
+
+.layoutOption {
+  min-height: 40px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: rgba(229, 235, 248, 0.72);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 150ms ease, color 150ms ease;
+}
+
+.layoutOption:hover,
+.layoutOption:focus-visible {
+  color: #fff;
+}
+
+.layoutOptionOn {
+  background: #f2f4fb;
+  color: #07111b;
+  font-weight: 600;
+}
+
+.layoutOptionOn:hover,
+.layoutOptionOn:focus-visible {
+  color: #07111b;
+}
+
+/* A and B: the roll on the left, one large screen on the right. */
+.side {
+  --side-roll-h: clamp(392px, calc(100svh - 300px), 504px);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 40px;
+}
+
+.sideRollColumn {
+  display: flex;
+  flex: 1 1 360px;
+  min-width: 0;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Two classes: must beat .roll, which sets C's taller height later in this file. */
+.roll.sideRoll {
+  height: var(--side-roll-h);
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 18%, #000 82%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 18%, #000 82%, transparent);
+}
+
+.sideCenter {
+  position: absolute;
+  top: calc(50% - 28px);
+  right: 0;
+  left: 0;
+  height: 56px;
+  border-top: 1px solid rgba(155, 185, 220, 0.12);
+  border-bottom: 1px solid rgba(155, 185, 220, 0.12);
+  pointer-events: none;
+}
+
+.sideLine {
+  display: grid;
+  height: 56px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: center;
+  column-gap: 22px;
+  transition: opacity 600ms ease;
+}
+
+.sideRole {
+  overflow: hidden;
+  color: rgba(155, 185, 220, 0.75);
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-align: right;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.sideNameCell {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.sideName {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  color: #d8dde8;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.15;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-decoration-thickness: 2px;
+  text-overflow: ellipsis;
+  text-underline-offset: 5px;
+  white-space: nowrap;
+  transition: color 300ms ease, font-size 400ms ease, text-decoration-color 150ms ease;
+}
+
+.sideNameOn {
+  color: #fff;
+  font-size: 24px;
+}
+
+.sideName:hover,
+.sideName:focus-visible {
+  outline: none;
+  color: #fff;
+  text-decoration-color: var(--accent);
+}
+
+.sideWork {
+  overflow: hidden;
+  color: rgba(229, 235, 248, 0.55);
+  font-size: 14px;
+  font-style: italic;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sideFoot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(125, 171, 205, 0.12);
+  color: rgba(229, 235, 248, 0.58);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.sideScreenWrap {
+  position: relative;
+  flex: 999 1 640px;
+  min-width: 0;
+}
+
+.sideScreen {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: 14px;
+  background: #000;
+  outline: 1px solid rgba(125, 171, 205, 0.14);
+}
+
+.sideCard {
+  position: absolute;
+  right: 20px;
+  bottom: 20px;
+  left: 20px;
+  display: flex;
+  max-width: 560px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 18px 22px;
+  border-radius: 12px;
+  background: rgba(4, 12, 20, 0.8);
+}
+
+.sideCardName {
+  color: #fff;
+  font-size: clamp(30px, 3vw, 44px);
+  line-height: 1.05;
+}
+
+a.sideCardName:hover,
+a.sideCardName:focus-visible {
+  text-decoration: underline;
+  text-decoration-color: var(--accent);
+  text-underline-offset: 6px;
+}
+
+.sideCardWork {
+  margin-bottom: 10px;
+  color: rgba(229, 235, 248, 0.82);
+  font-size: 18px;
+  font-style: italic;
+}
+
 /* Three columns: work · roll · another work. */
 .stage {
   display: grid;
@@ -438,6 +639,42 @@ a.creditCard:focus-visible {
 
   .stageRight {
     display: none;
+  }
+
+  .side {
+    --side-roll-h: 392px;
+    gap: 24px;
+  }
+
+  .sideScreenWrap {
+    order: -1;
+    flex-basis: 100%;
+  }
+
+  /* The card moves under the picture instead of covering it. */
+  .sideCard {
+    position: static;
+    max-width: none;
+    margin-top: 12px;
+    padding: 0;
+    background: transparent;
+  }
+
+  .sideCardWork {
+    margin-bottom: 8px;
+    font-size: 15px;
+  }
+}
+
+@media (max-width: 560px) {
+  .layoutSwitch {
+    flex-wrap: nowrap;
+  }
+
+  .layoutOption {
+    padding: 0 10px;
+    font-size: 12px;
+    white-space: nowrap;
   }
 }
 
