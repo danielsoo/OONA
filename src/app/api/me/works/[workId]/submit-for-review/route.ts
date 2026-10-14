@@ -12,6 +12,7 @@ import {
   worksCol,
 } from "@/lib/server/works";
 import { hasCompleteVideoStaging } from "@/lib/works/work-staging-ready";
+import { requireSchoolUploadEligibility } from "@/lib/server/school-verification";
 
 type Params = { params: Promise<{ workId: string }> };
 
@@ -33,6 +34,8 @@ export async function POST(request: Request, { params }: Params) {
   if (!workSnap.exists) return jsonError("not_found", "작품을 찾을 수 없습니다.", 404);
 
   const work = parseWorkDoc(workId, workSnap.data() as Record<string, unknown>);
+  const schoolBlock = await requireSchoolUploadEligibility(db, session.uid, work.proposedSchoolId);
+  if (schoolBlock) return schoolBlock;
   if (work.platformStatus !== "draft") {
     return jsonError("invalid_state", "초안 상태에서만 심사 제출할 수 있습니다.", 400);
   }

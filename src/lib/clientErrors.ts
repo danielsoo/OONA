@@ -10,6 +10,10 @@ export type TranslateFn = (key: string, vars?: Record<string, string | number>) 
 export type UploadApiErrorBody = ApiErrorBody;
 
 const API_ERROR_I18N_KEYS: Record<string, string> = {
+  school_verification_required: "schoolVerification.school_verification_required",
+  school_enrollment_expired: "schoolVerification.school_enrollment_expired",
+  school_review_required: "schoolVerification.school_review_required",
+  school_unavailable: "schoolVerification.school_unavailable",
   stream_not_configured: "uploader.errorStreamNotConfigured",
   stream_api_failed: "uploader.errorStreamApiFailed",
   stream_storage_full: "uploader.errorStreamStorageFull",

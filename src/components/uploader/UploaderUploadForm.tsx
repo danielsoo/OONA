@@ -20,6 +20,8 @@ import VideoUploadDropzone from "@/components/uploader/VideoUploadDropzone";
 import type { PromoTrimRange } from "@/lib/works/promo-clip";
 import WorkTagInput from "@/components/uploader/WorkTagInput";
 import SchoolPicker, { type SchoolPickerValue } from "@/components/uploader/SchoolPicker";
+import SchoolEmailVerification from "@/components/school/SchoolEmailVerification";
+import { graduationExpiry, type SchoolVerificationStatus } from "@/lib/school-verification";
 import CreditTagInput, {
   type PendingEmailInvite,
   type TaggedCredit,
@@ -161,6 +163,7 @@ type UploadDraftState = {
 
 type DraftStatus = "idle" | "saving" | "saved" | "restored" | "error";
 type RequiredFieldTarget =
+  | "school"
   | "fullFile"
   | "title"
   | "description"
@@ -210,6 +213,8 @@ export default function UploaderUploadForm({
   const [contentCategory, setContentCategory] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [school, setSchool] = useState<SchoolPickerValue>(null);
+  const [schoolVerification, setSchoolVerification] = useState<SchoolVerificationStatus | null>(null);
+  const schoolRef = useRef<HTMLDivElement>(null);
   const [credits, setCredits] = useState<TaggedCredit[]>([]);
   const [pendingEmailInvites, setPendingEmailInvites] = useState<PendingEmailInvite[]>([]);
   const directorLocked = Boolean(initialDirector?.trim());
@@ -635,6 +640,8 @@ export default function UploaderUploadForm({
 
   const requiredFieldRef = (target: RequiredFieldTarget) => {
     switch (target) {
+      case "school":
+        return schoolRef;
       case "fullFile":
         return fullFileRef;
       case "title":
@@ -701,6 +708,9 @@ export default function UploaderUploadForm({
         }
         return true;
       case "catalog":
+        if (school && (schoolVerification?.schoolId !== school.id || !schoolVerification.eligible || graduationExpiry(schoolVerification.graduationMonth) <= Date.now())) {
+          return showRequiredFieldError("school", t("schoolVerification.school_verification_required"));
+        }
         if (!thumbnailFile) {
           return showRequiredFieldError("thumbnail", t("uploader.errorThumbnailRequired"));
         }
@@ -1574,9 +1584,9 @@ export default function UploaderUploadForm({
                 })}
               </div>
             </div>
-            <div>
+            <div ref={schoolRef}>
               <label className="block text-xs text-xiio-muted mb-1.5">
-                {t("uploader.schoolPickerLabel")}
+                {t("schoolVerification.title")}
               </label>
               <SchoolPicker
                 value={school}
@@ -1586,7 +1596,9 @@ export default function UploaderUploadForm({
                 inputClassName={uploaderInputClass}
                 initialQuery={initialSchoolNameHint?.trim() ?? ""}
               />
-              <p className="mt-1.5 text-xs text-xiio-muted">{t("uploader.schoolPickerHint")}</p>
+              <p className="mt-1.5 text-xs text-xiio-muted">{t("schoolVerification.hint")}</p>
+              {school ? <SchoolEmailVerification key={`${user.uid}:${school.id}`} schoolId={school.id} disabled={busy} onEligibilityChange={setSchoolVerification} /> : null}
+              {school ? renderRequiredFieldError("school") : null}
             </div>
             <div>
               <label className="block text-xs text-xiio-muted mb-1.5" htmlFor="upload-category">

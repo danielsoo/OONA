@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useTranslations } from "@/context/LocaleContext";
 import ProfileAboutForm from "@/components/profile/ProfileAboutForm";
+import SchoolAffiliationSettings from "@/components/school/SchoolAffiliationSettings";
 import ProfileDiscoverSettings from "@/components/profile/ProfileDiscoverSettings";
 import ProfileIdentityChangePanel from "@/components/profile/ProfileIdentityChangePanel";
 import ProfileWorksThumbnailGrid from "@/components/profile/ProfileWorksThumbnailGrid";
@@ -174,6 +175,7 @@ export default function AccountProfileSettingsPanel({
               onSaved={onProfileSaved}
             />
           </div>
+          <SchoolAffiliationSettings initialSchoolName={accountProfile.schoolName} />
         </div>
       );
     case "handle":

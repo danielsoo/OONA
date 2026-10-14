@@ -88,6 +88,8 @@ export function parseSchoolDoc(id: string, data: Record<string, unknown>): Schoo
     logoUrl: typeof data.logoUrl === "string" ? data.logoUrl : null,
     location: parseSchoolLocation(data.location),
     status: data.status === "active" || data.status === "merged" ? data.status : "pending",
+    aliases: Array.isArray(data.aliases) ? data.aliases.filter((alias): alias is string => typeof alias === "string") : [],
+    countryCode: typeof data.countryCode === "string" ? data.countryCode : undefined,
     mergedIntoSlug: data.mergedIntoSlug ? String(data.mergedIntoSlug) : undefined,
     proposedBy: data.proposedBy ? String(data.proposedBy) : undefined,
     workCount: typeof data.workCount === "number" ? data.workCount : 0,
@@ -155,6 +157,7 @@ export function filterSchoolSuggestions(
     (s) =>
       s.name.toLowerCase().includes(q) ||
       s.shortName.toLowerCase().includes(q) ||
+      s.aliases?.some((alias) => alias.toLowerCase().includes(q)) ||
       s.slug.includes(q)
   );
 

@@ -1,0 +1,157 @@
+{
+  "version": 1,
+  "checkedAt": "2026-09-22",
+  "scope": "Initial curated US/KR/JP universities; not an exhaustive university or student-domain directory. Email ownership does not prove enrollment.",
+  "schools": [
+    {
+      "id": "the-pennsylvania-state-university", "name": "The Pennsylvania State University", "shortName": "Penn State", "countryCode": "US",
+      "matchNames": ["Pennsylvania State University", "Penn State University"], "aliases": ["PSU", "펜실베이니아 주립대학교"],
+      "emailDomains": ["psu.edu"],
+      "sources": ["https://security.psu.edu/services/penn-state-accts/access-resources/"]
+    },
+    {
+      "id": "new-york-university", "name": "New York University", "shortName": "NYU", "countryCode": "US",
+      "matchNames": ["뉴욕대학교"], "aliases": ["뉴욕대"],
+      "emailDomains": ["nyu.edu"],
+      "sources": ["https://tisch.nyu.edu/cit/information-technology/get-started.html"]
+    },
+    {
+      "id": "university-of-southern-california", "name": "University of Southern California", "shortName": "USC", "countryCode": "US",
+      "matchNames": ["서던캘리포니아대학교"], "aliases": ["서던 캘리포니아 대학교"],
+      "emailDomains": ["usc.edu"],
+      "sources": ["https://itservices.usc.edu/how-to-frequently-asked-questions-about-google-apps-at-usc/"]
+    },
+    {
+      "id": "university-of-california-los-angeles", "name": "University of California, Los Angeles", "shortName": "UCLA", "countryCode": "US",
+      "matchNames": ["University of California Los Angeles"], "aliases": ["캘리포니아대학교 로스앤젤레스"],
+      "emailDomains": ["ucla.edu", "g.ucla.edu"],
+      "sources": ["https://www.asucla.ucla.edu/ucla/gmail-ucla"]
+    },
+    {
+      "id": "stanford-university", "name": "Stanford University", "shortName": "Stanford", "countryCode": "US",
+      "matchNames": ["스탠퍼드대학교", "스탠포드대학교"], "aliases": ["스탠퍼드", "스탠포드"],
+      "emailDomains": ["stanford.edu"],
+      "sources": ["https://bulletin.stanford.edu/academic-polices/student-conduct-rights/university-communication-with-students"]
+    },
+    {
+      "id": "boston-university", "name": "Boston University", "shortName": "Boston University", "countryCode": "US",
+      "matchNames": ["보스턴대학교"], "aliases": ["BU", "보스턴대"],
+      "emailDomains": ["bu.edu"],
+      "sources": ["https://www.bu.edu/tech/support/google/faq/"]
+    },
+    {
+      "id": "university-of-california-berkeley", "name": "University of California, Berkeley", "shortName": "UC Berkeley", "countryCode": "US",
+      "matchNames": ["University of California Berkeley"], "aliases": ["Berkeley", "UC버클리", "캘리포니아대학교 버클리"],
+      "emailDomains": ["berkeley.edu"],
+      "sources": ["https://oercs.berkeley.edu/policies/campus-policy-library/student-e-mail-addresses", "https://berkeley.service-now.com/kb/en/how-do-i-create-my-bmail-account?id=kb_article_view&sysparm_article=KB0010172"],
+      "notes": "Historical domain policy was rescinded in January 2026; current student bMail setup remains documented separately. No departmental domains are inferred."
+    },
+    {
+      "id": "the-ohio-state-university", "name": "The Ohio State University", "shortName": "Ohio State", "countryCode": "US",
+      "matchNames": ["Ohio State University", "오하이오주립대학교"], "aliases": ["OSU", "오하이오 주립대학교"],
+      "emailDomains": ["osu.edu", "buckeyemail.osu.edu"],
+      "sources": ["https://it.osu.edu/news/2026/08/19/students-now-have-one-email-account-lastnameosuedu"],
+      "notes": "August 2026 transition: osu.edu is primary; BuckeyeMail remains a receiving alias."
+    },
+    {
+      "id": "seoul-national-university", "name": "Seoul National University", "shortName": "서울대학교", "countryCode": "KR",
+      "matchNames": ["서울대학교"], "aliases": ["SNU", "서울대"],
+      "emailDomains": ["snu.ac.kr"],
+      "sources": ["https://www.snu.ac.kr/campuslife/aid/it", "https://nursing.snu.ac.kr/board/notice?bbsidx=154165&bm=v"]
+    },
+    {
+      "id": "yonsei-university", "name": "Yonsei University", "shortName": "연세대학교", "countryCode": "KR",
+      "matchNames": ["연세대학교"], "aliases": ["연세대", "Yonsei"],
+      "emailDomains": ["yonsei.ac.kr"],
+      "sources": ["https://yis.yonsei.ac.kr/cloudmail/inspection/unrest.do", "https://yis.yonsei.ac.kr/graduate/board/notice.do?articleNo=125360&attachNo=106432&mode=download"]
+    },
+    {
+      "id": "korea-university", "name": "Korea University", "shortName": "고려대학교", "countryCode": "KR",
+      "matchNames": ["고려대학교"], "aliases": ["고려대"],
+      "emailDomains": ["korea.ac.kr"],
+      "sources": ["https://digital.korea.ac.kr/ic/inquiry/notice.do?articleNo=801683&mode=view"]
+    },
+    {
+      "id": "korea-advanced-institute-of-science-and-technology", "name": "Korea Advanced Institute of Science and Technology", "shortName": "KAIST", "countryCode": "KR",
+      "matchNames": ["한국과학기술원", "KAIST"], "aliases": ["카이스트"],
+      "emailDomains": ["kaist.ac.kr"], "excludedDomains": ["alumni.kaist.ac.kr"],
+      "sources": ["https://ict.kaist.ac.kr/mail", "https://sj.kaist.ac.kr/ko/?c=193&gbn=view&gp=1&ix=7220"]
+    },
+    {
+      "id": "hanyang-university", "name": "Hanyang University", "shortName": "한양대학교", "countryCode": "KR",
+      "matchNames": ["한양대학교"], "aliases": ["한양대", "Hanyang"],
+      "emailDomains": ["hanyang.ac.kr"],
+      "sources": ["https://site.hanyang.ac.kr/documents/11102694/13080439/MatLabGuide.pdf"]
+    },
+    {
+      "id": "sungkyunkwan-university", "name": "Sungkyunkwan University", "shortName": "성균관대학교", "countryCode": "KR",
+      "matchNames": ["성균관대학교"], "aliases": ["SKKU", "성균관대"],
+      "emailDomains": ["skku.edu", "g.skku.edu"],
+      "sources": ["https://www.skku.edu/skku/campus/skk_comm/popup_notice.do?articleNo=109197&mode=view"]
+    },
+    {
+      "id": "chung-ang-university", "name": "Chung-Ang University", "shortName": "중앙대학교", "countryCode": "KR",
+      "matchNames": ["Chung Ang University", "중앙대학교"], "aliases": ["CAU", "중앙대"],
+      "emailDomains": ["cau.ac.kr"],
+      "sources": ["https://nursing.cau.ac.kr/images//main/AcademicGuideforNewStudentsforClassof2024.pdf"]
+    },
+    {
+      "id": "korea-national-university-of-arts", "name": "Korea National University of Arts", "shortName": "한국예술종합학교", "countryCode": "KR",
+      "matchNames": ["한국예술종합학교"], "aliases": ["K-Arts", "KArts", "한예종"],
+      "emailDomains": ["karts.ac.kr"],
+      "sources": ["https://www.karts.ac.kr/nri/bbs/NuriBbsDetail.do?bbsId=BBSNURI_001&menuType=&nttNo=9877374&pageIndex=401"]
+    },
+    {
+      "id": "the-university-of-tokyo", "name": "The University of Tokyo", "shortName": "東京大学", "countryCode": "JP",
+      "matchNames": ["University of Tokyo", "東京大学", "도쿄대학교"], "aliases": ["UTokyo", "東大", "도쿄대"],
+      "emailDomains": ["g.ecc.u-tokyo.ac.jp"],
+      "sources": ["https://utelecon.adm.u-tokyo.ac.jp/en/google/"]
+    },
+    {
+      "id": "kyoto-university", "name": "Kyoto University", "shortName": "京都大学", "countryCode": "JP",
+      "matchNames": ["京都大学", "교토대학교"], "aliases": ["京大", "교토대"],
+      "emailDomains": ["st.kyoto-u.ac.jp"], "excludedDomains": ["kyoto-u.jp"],
+      "sources": ["https://www.iimc.kyoto-u.ac.jp/ja/services/mail/kumoi", "https://www.iimc.kyoto-u.ac.jp/ja/news/information/20260331154502", "https://www.alumni.kyoto-u.ac.jp/static/faq.html"]
+    },
+    {
+      "id": "waseda-university", "name": "Waseda University", "shortName": "早稲田大学", "countryCode": "JP",
+      "matchNames": ["早稲田大学", "와세다대학교"], "aliases": ["早稲田", "와세다"],
+      "emailDomains": ["akane.waseda.jp", "asagi.waseda.jp", "fuji.waseda.jp", "moegi.waseda.jp", "ruri.waseda.jp", "suou.waseda.jp", "toki.waseda.jp"],
+      "sources": ["https://www.waseda.jp/inst/cjl/assets/uploads/2026/03/03-1_How-to-set-up-MyWaseda_En.pdf"],
+      "notes": "Seven student-selectable subdomains; do not infer staff or other Waseda domains. Alumni may retain these addresses."
+    },
+    {
+      "id": "keio-university", "name": "Keio University", "shortName": "慶應義塾大学", "countryCode": "JP",
+      "matchNames": ["慶應義塾大学", "게이오기주쿠대학교"], "aliases": ["慶応義塾大学", "게이오대학교", "게이오대"],
+      "emailDomains": ["keio.jp"],
+      "sources": ["https://www.itc.keio.ac.jp/ja/keiojp_manual_student_myaccount.html", "https://www.itc.keio.ac.jp/ja/keiojp_keiomail_faq1.html"]
+    },
+    {
+      "id": "nihon-university", "name": "Nihon University", "shortName": "日本大学", "countryCode": "JP",
+      "matchNames": ["日本大学", "니혼대학교"], "aliases": ["日大", "니혼대"],
+      "emailDomains": ["g.nihon-u.ac.jp"],
+      "sources": ["https://www.nihon-u.ac.jp/information/20250704-3748.html"],
+      "notes": "Student domain only; nihon-u.ac.jp is documented for faculty/staff."
+    },
+    {
+      "id": "the-university-of-osaka", "name": "The University of Osaka", "shortName": "大阪大学", "countryCode": "JP",
+      "matchNames": ["Osaka University", "University of Osaka", "大阪大学", "오사카대학교"], "aliases": ["阪大", "오사카대"],
+      "emailDomains": ["ecs.osaka-u.ac.jp"],
+      "sources": ["https://oumail-support.ecs.cmc.osaka-u.ac.jp/hc/ja/articles/26757903427476-01-%E3%81%AF%E3%81%98%E3%82%81%E3%81%AB-%E5%88%9D%E6%9C%9F%E8%A8%AD%E5%AE%9A"],
+      "notes": "Student OUMail; ownership alone cannot distinguish alumni forwarding."
+    },
+    {
+      "id": "university-of-tsukuba", "name": "University of Tsukuba", "shortName": "筑波大学", "countryCode": "JP",
+      "matchNames": ["筑波大学", "쓰쿠바대학교"], "aliases": ["つくば", "쓰쿠바대", "츠쿠바대학교"],
+      "emailDomains": ["u.tsukuba.ac.jp", "s.tsukuba.ac.jp"],
+      "sources": ["https://www.u.tsukuba.ac.jp/email/"],
+      "notes": "u is current since 2023; s remains available for earlier cohorts."
+    },
+    {
+      "id": "ritsumeikan-university", "name": "Ritsumeikan University", "shortName": "立命館大学", "countryCode": "JP",
+      "matchNames": ["立命館大学", "리쓰메이칸대학교"], "aliases": ["立命館", "리츠메이칸대학교", "리츠메이칸"],
+      "emailDomains": ["ed.ritsumei.ac.jp"],
+      "sources": ["https://it.support.ritsumei.ac.jp/hc/ja/articles/900006116046-%E3%83%A1%E3%83%BC%E3%83%AB%E3%81%AB%E3%83%AD%E3%82%B0%E3%82%A4%E3%83%B3-%E3%82%B5%E3%82%A4%E3%83%B3%E3%82%A4%E3%83%B3-%E3%81%A7%E3%81%8D%E3%81%BE%E3%81%9B%E3%82%93"]
+    }
+  ]
+}

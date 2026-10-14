@@ -23,6 +23,11 @@ export type SchoolDoc = {
   /** Official campus coordinates. The map projects these automatically. */
   location?: SchoolGeoLocation | null;
   status: SchoolStatus;
+  /** Admin-reviewed exact email domains. Never accepted from public school suggestions. */
+  emailDomains?: string[];
+  /** Curated search labels, never evidence for email verification. */
+  aliases?: string[];
+  countryCode?: string;
   /** set when status === "merged" — canonical slug to redirect to */
   mergedIntoSlug?: string;
   /** uid of the uploader whose upload first introduced this school */
