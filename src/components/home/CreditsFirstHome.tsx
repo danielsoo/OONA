@@ -15,8 +15,12 @@ const POP_AT = 0.35;
 /** After a glide or a stop at an edge, the rest of that scroll gesture is swallowed. */
 const HOLD_MIN_MS = 450;
 const HOLD_MAX_MS = 1400;
-/** The light intro plays once per browser session; "/?intro" plays it again. */
-const INTRO_SEEN_KEY = "oona.creditsIntroSeen";
+/**
+ * The light intro plays once per page load: opening the site or reloading
+ * it, not coming back to "/" from another page of the app (this survives
+ * client-side navigation, not a reload). "/?intro" always plays it.
+ */
+let introPlayedThisLoad = false;
 
 function prefersReducedMotion(): boolean {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -349,21 +353,18 @@ function useHomeHeaderState(homeRef: RefObject<HTMLElement | null>) {
   }, [homeRef]);
 }
 
-/** Whether to play the light intro: first visit this session, at the top of the page. */
+/** Whether to play the light intro: once per page load, or whenever asked for with "?intro". */
 function useIntroOnce(): [boolean, () => void] {
   const [playing, setPlaying] = useState(false);
   // Before paint, so the page doesn't flash before the intro covers it.
   useLayoutEffect(() => {
-    if (prefersReducedMotion() || window.scrollY > 8) return;
-    const replay = new URLSearchParams(window.location.search).has("intro");
-    let seen = false;
-    try {
-      seen = window.sessionStorage.getItem(INTRO_SEEN_KEY) === "1";
-      window.sessionStorage.setItem(INTRO_SEEN_KEY, "1");
-    } catch {
-      // Storage blocked: play it; it just can't remember.
-    }
-    if (!seen || replay) setPlaying(true);
+    const asked = new URLSearchParams(window.location.search).has("intro");
+    if (!asked && (introPlayedThisLoad || prefersReducedMotion() || window.location.hash)) return;
+    introPlayedThisLoad = true;
+    // A reload would otherwise put the page back where it was scrolled to.
+    window.history.scrollRestoration = "manual";
+    window.scrollTo(0, 0);
+    setPlaying(true);
   }, []);
   return [playing, useCallback(() => setPlaying(false), [])];
 }

@@ -28,6 +28,8 @@ const WORDMARK_O = { x: 88, y: 29 };
  *
  * `ready`: null while the credits are loading (the O waits); otherwise the
  * page is ready to show. Any wheel, touch, click or key skips the intro.
+ * Whether it plays at all (reduced motion, once per load) is the caller's
+ * call: "/?intro" plays it even with reduced motion.
  */
 export default function CreditsLightIntro({ ready, onDone }: { ready: boolean | null; onDone: () => void }) {
   const rootRef = useRef<HTMLDivElement>(null);
