@@ -220,7 +220,12 @@ function useRollHold(setPinned: (index: number | null) => void) {
 }
 
 /** One name holds the center, then the next steps in. */
-function useSteppedRoll(lines: Line[], enabled: boolean, holdRef: React.RefObject<boolean>) {
+function useSteppedRoll(
+  lines: Line[],
+  enabled: boolean,
+  holdRef: React.RefObject<boolean>,
+  heldRef: React.RefObject<boolean>
+) {
   const [index, setIndex] = useState(0);
   const [jump, setJump] = useState(false);
   const [paused, setPaused] = useState(false);
@@ -230,7 +235,7 @@ function useSteppedRoll(lines: Line[], enabled: boolean, holdRef: React.RefObjec
   useEffect(() => {
     if (!enabled || lines.length === 0) return;
     const timer = window.setInterval(() => {
-      if (holdRef.current || pausedRef.current) return;
+      if (holdRef.current || heldRef.current || pausedRef.current) return;
       setIndex((i) => {
         // Back to the top without animating through every line.
         const next = i + 1 >= lines.length ? 0 : i + 1;
@@ -239,7 +244,7 @@ function useSteppedRoll(lines: Line[], enabled: boolean, holdRef: React.RefObjec
       });
     }, SECONDS_PER_LINE * 1000);
     return () => window.clearInterval(timer);
-  }, [lines, enabled, holdRef]);
+  }, [lines, enabled, holdRef, heldRef]);
 
   return { index, jump, paused, setPaused };
 }
@@ -261,14 +266,17 @@ function PauseButton({ paused, onToggle }: { paused: boolean; onToggle: () => vo
  * The roll on the left, one large screen on the right showing the work of the
  * name at the center line. One name holds the center, then the next steps in.
  */
-export function CreditsRoll({ works }: { works: CreditsRollWork[] }) {
+/** `held` keeps the first name at the center (e.g. while the home's intro plays). */
+export function CreditsRoll({ works, held = false }: { works: CreditsRollWork[]; held?: boolean }) {
   const { byId, lines } = useRollData(works);
   const copy = useUiCopy();
   const roleLabel = useRoleLabel();
   const reducedMotion = usePrefersReducedMotion();
   const [pinned, setPinned] = useState<number | null>(null);
   const { holdRef, handlers } = useRollHold(setPinned);
-  const stepped = useSteppedRoll(lines, !reducedMotion, holdRef);
+  const heldRef = useRef(held);
+  heldRef.current = held;
+  const stepped = useSteppedRoll(lines, !reducedMotion, holdRef, heldRef);
 
   const current = pinned ?? (reducedMotion ? 0 : stepped.index);
   const line = lines[current % lines.length];
@@ -303,7 +311,7 @@ export function CreditsRoll({ works }: { works: CreditsRollWork[] }) {
   } else {
     rollBody = (
       <>
-        <div className={styles.sideCenter} aria-hidden="true" />
+        <div className={styles.sideCenter} data-credits-center="" aria-hidden="true" />
         <div
           className={styles.track}
           style={{

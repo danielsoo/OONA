@@ -1,0 +1,273 @@
+/* The first-visit intro on "/" (CreditsLightIntro). All keyframes share one
+   1900ms timeline; the percentages line up across them:
+     0–37%  the O draws itself, light gathers in its slit
+     37–55% hold
+     55–84% the O opens, the light streaks out across the screen
+     84–100% the streak settles into one line
+   The flight to the roll and the fade are run from the component. */
+.intro {
+  --mark: clamp(88px, 12vmin, 136px);
+  --settle: min(52vw, 640px);
+  position: fixed;
+  z-index: 100;
+  inset: 0;
+  overflow: hidden;
+  touch-action: none;
+}
+
+.backdrop {
+  position: absolute;
+  inset: 0;
+  background: #010409;
+}
+
+.fx {
+  position: absolute;
+  inset: 0;
+}
+
+.leaving .backdrop {
+  opacity: 0;
+  transition: opacity 760ms cubic-bezier(0.4, 0, 0.2, 1) 80ms;
+}
+
+.leaving .fx {
+  opacity: 0;
+  transition: opacity 520ms ease;
+}
+
+/* The light flooding out from the center. */
+.bloom {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 160vmax;
+  height: 160vmax;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(214, 230, 255, 0.55) 0%,
+    rgba(110, 160, 255, 0.2) 16%,
+    rgba(40, 80, 170, 0.08) 34%,
+    transparent 56%
+  );
+  animation: bloom 1900ms linear both;
+}
+
+/* The wide, flat glow of the streak (an anamorphic flare). */
+.haze {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 150vw;
+  height: clamp(120px, 22vh, 220px);
+  background: radial-gradient(50% 50% at 50% 50%, rgba(160, 200, 255, 0.5), rgba(70, 120, 230, 0.16) 45%, transparent 72%);
+  filter: blur(6px);
+  animation: haze 1900ms linear both;
+}
+
+/* The slit "O" of the wordmark. */
+.mark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--mark);
+  height: var(--mark);
+  overflow: visible;
+  transform: translate(-50%, -50%);
+  fill: none;
+  stroke: #eaf2ff;
+  filter: drop-shadow(0 0 6px rgba(140, 185, 255, 0.75));
+}
+
+/* In the mark's own units (60 across): about 1.6px at its usual size. */
+.arcTop,
+.arcBottom {
+  stroke-width: 0.8;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+
+.arcTop {
+  animation: arcTop 1900ms linear both;
+}
+
+.arcBottom {
+  animation: arcBottom 1900ms linear both;
+}
+
+.tagline {
+  position: absolute;
+  top: calc(50% + var(--mark) * 0.5 + 22px);
+  right: 0;
+  left: 0;
+  margin: 0;
+  color: rgba(222, 234, 255, 0.9);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.34em;
+  text-align: center;
+  text-transform: uppercase;
+  animation: tagline 1900ms linear both;
+}
+
+/* The light itself: first inside the slit, then the streak, then the line
+   that flies to the roll. Two lines on top of each other, so they can open
+   into the two edges of the roll's center band. */
+.lines {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
+.line {
+  grid-area: 1 / 1;
+  width: 0;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(198, 220, 255, 0.95) 14%,
+    #fff 50%,
+    rgba(198, 220, 255, 0.95) 86%,
+    transparent
+  );
+  /* drop-shadow follows the gradient, so the faded ends don't glow. */
+  filter: drop-shadow(0 0 5px rgba(150, 190, 255, 0.95)) drop-shadow(0 0 16px rgba(70, 130, 255, 0.55));
+  animation: lineGrow 1900ms linear both;
+}
+
+@keyframes lineGrow {
+  0%,
+  16% {
+    width: 0;
+    opacity: 0;
+    animation-timing-function: cubic-bezier(0.3, 0, 0.2, 1);
+  }
+  37% {
+    width: calc(var(--mark) * 0.6);
+    opacity: 1;
+  }
+  55% {
+    width: calc(var(--mark) * 0.6);
+    opacity: 1;
+    animation-timing-function: cubic-bezier(0.12, 0.9, 0.2, 1);
+  }
+  84% {
+    width: 124vw;
+    opacity: 1;
+    animation-timing-function: cubic-bezier(0.45, 0, 0.25, 1);
+  }
+  100% {
+    width: var(--settle);
+    opacity: 1;
+  }
+}
+
+@keyframes arcTop {
+  0% {
+    stroke-dashoffset: 1;
+    opacity: 0.4;
+    transform: none;
+    animation-timing-function: cubic-bezier(0.45, 0, 0.2, 1);
+  }
+  37%,
+  55% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+    transform: none;
+    animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  80%,
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0;
+    transform: translateY(-9px);
+  }
+}
+
+@keyframes arcBottom {
+  0% {
+    stroke-dashoffset: 1;
+    opacity: 0.4;
+    transform: none;
+    animation-timing-function: cubic-bezier(0.45, 0, 0.2, 1);
+  }
+  37%,
+  55% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+    transform: none;
+    animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  80%,
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0;
+    transform: translateY(9px);
+  }
+}
+
+@keyframes bloom {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.02);
+  }
+  37% {
+    opacity: 0.35;
+    transform: translate(-50%, -50%) scale(0.06);
+  }
+  55% {
+    opacity: 0.5;
+    transform: translate(-50%, -50%) scale(0.08);
+    animation-timing-function: cubic-bezier(0.12, 0.9, 0.2, 1);
+  }
+  72% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(0.8);
+  }
+  100% {
+    opacity: 0.3;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@keyframes haze {
+  0%,
+  55% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scaleX(0.04);
+    animation-timing-function: cubic-bezier(0.12, 0.9, 0.2, 1);
+  }
+  84% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scaleX(1);
+  }
+  100% {
+    opacity: 0.55;
+    transform: translate(-50%, -50%) scaleX(0.7);
+  }
+}
+
+@keyframes tagline {
+  0%,
+  62% {
+    opacity: 0;
+    transform: translateY(8px);
+    animation-timing-function: ease-out;
+  }
+  86%,
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .intro {
+    display: none;
+  }
+}

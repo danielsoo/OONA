@@ -1,10 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useRef, type MutableRefObject, type RefObject } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type MutableRefObject, type RefObject } from "react";
 import { CreditsIntro, CreditsRoll, useCreditsRollFeed } from "@/components/credits/CreditsHome";
 import creditsStyles from "@/components/credits/CreditsHome.module.css";
 import UiText, { useUiCopy } from "@/components/i18n/UiText";
 import CinematicHomePage from "./CinematicHomePage";
+import CreditsLightIntro from "./CreditsLightIntro";
 import styles from "./CreditsFirstHome.module.css";
 
 const POP_STAGGER_MS = 90;
@@ -14,6 +15,8 @@ const POP_AT = 0.35;
 /** After a glide or a stop at an edge, the rest of that scroll gesture is swallowed. */
 const HOLD_MIN_MS = 450;
 const HOLD_MAX_MS = 1400;
+/** The light intro plays once per browser session; "/?intro" plays it again. */
+const INTRO_SEEN_KEY = "oona.creditsIntroSeen";
 
 function prefersReducedMotion(): boolean {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -346,6 +349,25 @@ function useHomeHeaderState(homeRef: RefObject<HTMLElement | null>) {
   }, [homeRef]);
 }
 
+/** Whether to play the light intro: first visit this session, at the top of the page. */
+function useIntroOnce(): [boolean, () => void] {
+  const [playing, setPlaying] = useState(false);
+  // Before paint, so the page doesn't flash before the intro covers it.
+  useLayoutEffect(() => {
+    if (prefersReducedMotion() || window.scrollY > 8) return;
+    const replay = new URLSearchParams(window.location.search).has("intro");
+    let seen = false;
+    try {
+      seen = window.sessionStorage.getItem(INTRO_SEEN_KEY) === "1";
+      window.sessionStorage.setItem(INTRO_SEEN_KEY, "1");
+    } catch {
+      // Storage blocked: play it; it just can't remember.
+    }
+    if (!seen || replay) setPlaying(true);
+  }, []);
+  return [playing, useCallback(() => setPlaying(false), [])];
+}
+
 function DownIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
@@ -368,6 +390,7 @@ export default function CreditsFirstHome() {
   const homeRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
   const goHomeRef = useRef<(() => void) | null>(null);
+  const [intro, endIntro] = useIntroOnce();
   useCreditsToHome(homeRef, hasCredits, goHomeRef);
   useRecedeOnScroll(innerRef, hasCredits);
   useHomeHeaderState(homeRef);
@@ -379,13 +402,14 @@ export default function CreditsFirstHome() {
 
   return (
     <>
+      {intro ? <CreditsLightIntro ready={hasCredits ? true : loading ? null : false} onDone={endIntro} /> : null}
       {loading || hasCredits ? (
         <section className={`${creditsStyles.page} ${styles.first}`} aria-label={copy("Credits roll")}>
           <div ref={innerRef} className={styles.firstInner}>
             {hasCredits ? (
               <>
                 <CreditsIntro />
-                <CreditsRoll works={works} />
+                <CreditsRoll works={works} held={intro} />
                 <button type="button" className={styles.cue} onClick={scrollToHome}>
                   <UiText text="Explore OONA" />
                   <DownIcon />
