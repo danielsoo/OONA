@@ -12,6 +12,7 @@ import { useDmUnreadCount } from "@/context/DmUnreadContext";
 import { useTranslations } from "@/context/LocaleContext";
 import { useAdminAccess } from "@/hooks/useAdminAccess";
 import { UPLOAD_HREF } from "@/lib/appNav";
+import { HOME_TO_TOP_EVENT } from "@/lib/home-events";
 import { getUserProfile } from "@/lib/userProfile";
 import type { UserProfileDoc } from "@/types/user";
 import styles from "./CinematicAppHeader.module.css";
@@ -105,12 +106,19 @@ export default function CinematicAppHeader() {
   const homePage = pathname === "/";
   const overlayPage = homePage || pathname === "/schools";
   const schoolPage = pathname === "/schools";
+  // Already home: go back up to the top (the credits) the way scrolling does.
+  const onHomeLink = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (!homePage || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    e.preventDefault();
+    setMenuOpen(false);
+    window.dispatchEvent(new Event(HOME_TO_TOP_EVENT));
+  };
 
   return (
     <header
       className={`${styles.header} ${overlayPage ? styles.overlayHeader : ""} ${homePage ? styles.homeHeader : ""} ${schoolPage ? styles.schoolHeader : ""}`}
     >
-      <Link href="/" className={styles.logoLink} aria-label={_copy("OONA home")} data-home-logo="">
+      <Link href="/" className={styles.logoLink} aria-label={_copy("OONA home")} data-home-logo="" onClick={onHomeLink}>
         <XiioWordmark className={styles.logo} />
       </Link>
 
@@ -132,6 +140,7 @@ export default function CinematicAppHeader() {
             href={item.href}
             className={isActive(pathname, item.match) ? styles.activeNav : undefined}
             aria-current={isActive(pathname, item.match) ? "page" : undefined}
+            onClick={item.href === "/" ? onHomeLink : undefined}
           >
             {copy(item.label)}
           </Link>

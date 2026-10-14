@@ -4,6 +4,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState, type Mutable
 import { CreditsIntro, CreditsRoll, useCreditsRollFeed } from "@/components/credits/CreditsHome";
 import creditsStyles from "@/components/credits/CreditsHome.module.css";
 import UiText, { useUiCopy } from "@/components/i18n/UiText";
+import { HOME_TO_TOP_EVENT } from "@/lib/home-events";
 import { isNewVisit, markActive, readLastActiveAt } from "@/lib/visit-clock";
 import CinematicHomePage from "./CinematicHomePage";
 import CreditsLightIntro from "./CreditsLightIntro";
@@ -13,9 +14,13 @@ const POP_STAGGER_MS = 90;
 const GLIDE_MS = 820;
 /** How far into the glide the arriving screen pops: it lands as the glide ends. */
 const POP_AT = 0.35;
-/** After a glide or a stop at an edge, the rest of that scroll gesture is swallowed. */
-const HOLD_MIN_MS = 450;
-const HOLD_MAX_MS = 1400;
+/**
+ * After a glide or a stop at an edge, the rest of that scroll gesture (a
+ * trackpad's momentum) is swallowed, up to HOLD_MAX_MS. A new gesture (a
+ * pause in the wheel events, or a harder push) gets through at once.
+ */
+const HOLD_MAX_MS = 2000;
+const NEW_GESTURE_GAP_MS = 120;
 /** Set once the intro has played, so coming back to "/" in the app doesn't replay it. */
 let introPlayedThisLoad = false;
 
@@ -43,23 +48,31 @@ function isTypingTarget(target: EventTarget | null, space: boolean): boolean {
 function useCreditsToHome(
   homeRef: RefObject<HTMLElement | null>,
   enabled: boolean,
-  goHomeRef: MutableRefObject<(() => void) | null>
+  glideRef: MutableRefObject<{ home: () => void; top: () => void } | null>
 ) {
   useEffect(() => {
     const home = homeRef.current;
     if (!enabled || !home || prefersReducedMotion()) return;
 
     // Where the home starts, and where the credits end (their bottom edge at
-    // the bottom of the window; above 0 only when they are taller than it).
+    // the bottom of the window). Credits only a little taller than the window
+    // count as one screen (end 0), so the first scroll goes straight to the
+    // home rather than nudging a few pixels; only much taller ones (phones)
+    // scroll inside first.
     const edges = () => {
       const top = home.getBoundingClientRect().top + window.scrollY;
-      return { top, end: Math.max(0, top - window.innerHeight) };
+      const overflow = top - window.innerHeight;
+      return { top, end: overflow > window.innerHeight * 0.25 ? overflow : 0 };
     };
+    // Glide only from one screen to the other: from the credits down, or from
+    // the top of the home up. Already at (or almost at) the home, or still
+    // inside a credits screen taller than the window, scrolling is normal.
     const snapTarget = (down: boolean): number | null => {
       const y = window.scrollY;
       const { top, end } = edges();
-      if (down && y >= end - 2 && y < top - 2) return top;
-      if (!down && y > end + 2 && y <= top + 2) return end;
+      const near = window.innerHeight * 0.2;
+      if (down && y >= end - 2 && y < top - near) return top;
+      if (!down && y > end + near && y <= top + 2) return end;
       return null;
     };
 
@@ -114,10 +127,12 @@ function useCreditsToHome(
     let raf = 0;
     let holdUntil = 0;
     let holdCap = 0;
-    const hold = (now: number, min: number) => {
-      holdUntil = now + min;
+    const hold = (now: number) => {
+      holdUntil = now + 160;
       holdCap = now + HOLD_MAX_MS;
     };
+    let lastWheelAt = 0;
+    let lastWheelSize = 0;
     const glide = (to: number) => {
       const from = window.scrollY;
       if (Math.abs(to - from) < 2) return;
@@ -144,25 +159,30 @@ function useCreditsToHome(
           return;
         }
         gliding = false;
-        hold(now, HOLD_MIN_MS);
+        hold(now);
       };
       raf = requestAnimationFrame(step);
     };
-    goHomeRef.current = () => glide(edges().top);
+    glideRef.current = { home: () => glide(edges().top), top: () => glide(0) };
 
     const onWheel = (e: WheelEvent) => {
       if (e.ctrlKey || Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
       const now = performance.now();
+      const dy = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaMode === 2 ? e.deltaY * window.innerHeight : e.deltaY;
+      const size = Math.abs(dy);
+      const newGesture = now - lastWheelAt > NEW_GESTURE_GAP_MS || size > lastWheelSize * 2 + 6;
+      lastWheelAt = now;
+      lastWheelSize = size;
       if (gliding) {
         e.preventDefault();
         return;
       }
-      if (now < holdUntil) {
+      if (now < holdUntil && !newGesture) {
         e.preventDefault();
         holdUntil = Math.min(holdCap, now + 160);
         return;
       }
-      const dy = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaMode === 2 ? e.deltaY * window.innerHeight : e.deltaY;
+      holdUntil = 0;
       const to = snapTarget(dy > 0);
       if (to !== null) {
         e.preventDefault();
@@ -176,11 +196,11 @@ function useCreditsToHome(
       if (dy < 0 && y > top + 2 && y + dy <= top + 2) {
         e.preventDefault();
         window.scrollTo(0, top);
-        hold(now, 200);
+        hold(now);
       } else if (dy > 0 && y < end - 2 && y + dy >= end - 2) {
         e.preventDefault();
         window.scrollTo(0, end);
-        hold(now, 200);
+        hold(now);
       }
     };
 
@@ -283,12 +303,12 @@ function useCreditsToHome(
       window.removeEventListener("scroll", onScroll);
       window.clearTimeout(settleTimer);
       cancelAnimationFrame(raf);
-      goHomeRef.current = null;
+      glideRef.current = null;
       mutations.disconnect();
       observer.disconnect();
       targets.forEach((el) => el.classList.remove(styles.popPending, styles.popIn));
     };
-  }, [homeRef, enabled, goHomeRef]);
+  }, [homeRef, enabled, glideRef]);
 }
 
 /** As the page leaves the credits, they shrink back and dim a little. */
@@ -407,14 +427,24 @@ export default function CreditsFirstHome() {
 
   const homeRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
-  const goHomeRef = useRef<(() => void) | null>(null);
+  const glideRef = useRef<{ home: () => void; top: () => void } | null>(null);
   const [intro, endIntro] = useIntroOnce();
-  useCreditsToHome(homeRef, hasCredits, goHomeRef);
+  useCreditsToHome(homeRef, hasCredits, glideRef);
+
+  // "Home" pressed while already here: back up to the credits, as scrolling up does.
+  useEffect(() => {
+    const toTop = () => {
+      if (glideRef.current) glideRef.current.top();
+      else window.scrollTo({ top: 0, behavior: prefersReducedMotion() ? "auto" : "smooth" });
+    };
+    window.addEventListener(HOME_TO_TOP_EVENT, toTop);
+    return () => window.removeEventListener(HOME_TO_TOP_EVENT, toTop);
+  }, []);
   useRecedeOnScroll(innerRef, hasCredits);
   useHomeHeaderState(homeRef);
 
   const scrollToHome = useCallback(() => {
-    if (goHomeRef.current) goHomeRef.current();
+    if (glideRef.current) glideRef.current.home();
     else homeRef.current?.scrollIntoView({ block: "start" });
   }, []);
 
