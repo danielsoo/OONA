@@ -21,7 +21,7 @@ type Line = RollLine<CreditsRollPerson>;
 type Mode = { kind: "roll" } | { kind: "player"; workId: string; revealed: boolean };
 
 /** The three demos from the design canvas, kept side by side for comparison. */
-type Layout = "stepped" | "continuous" | "centered";
+export type Layout = "stepped" | "continuous" | "centered";
 const LAYOUTS: { id: Layout; param: string; label: string }[] = [
   { id: "stepped", param: "a", label: "A · Stepped" },
   { id: "continuous", param: "b", label: "B · Continuous" },
@@ -30,7 +30,7 @@ const LAYOUTS: { id: Layout; param: string; label: string }[] = [
 const DEFAULT_LAYOUT: Layout = "centered";
 
 /** The chosen layout lives in the URL (?layout=a|b|c) so a link opens that version. */
-function useLayoutChoice(): [Layout, (layout: Layout) => void] {
+export function useLayoutChoice(): [Layout, (layout: Layout) => void] {
   const [layout, setLayoutState] = useState<Layout>(DEFAULT_LAYOUT);
   useEffect(() => {
     const param = new URLSearchParams(window.location.search).get("layout");
@@ -69,19 +69,11 @@ function useRoleLabel() {
   );
 }
 
-/**
- * Credits home: an end-credit roll of confirmed credits from real works, with
- * the credited work on the left and another work by the same person (else the
- * next work on the roll) on the right. Below it, a blind screening: frames
- * with no title or names until the film ends.
- */
-export default function CreditsHome() {
+/** Works with confirmed credits (GET /api/feed/credits-roll); `works` is null while loading. */
+export function useCreditsRollFeed() {
   const [works, setWorks] = useState<CreditsRollWork[] | null>(null);
   const [failed, setFailed] = useState(false);
   const [attempt, setAttempt] = useState(0);
-  const [mode, setMode] = useState<Mode>({ kind: "roll" });
-  const [layout, setLayout] = useLayoutChoice();
-  const copy = useUiCopy();
 
   useEffect(() => {
     let cancelled = false;
@@ -105,6 +97,49 @@ export default function CreditsHome() {
       cancelled = true;
     };
   }, [attempt]);
+
+  const retry = useCallback(() => setAttempt((n) => n + 1), []);
+  return { works, failed, retry };
+}
+
+/** "Stay for the credits", the A · B · C switch and the one-line note. */
+export function CreditsIntro({ layout, onLayout }: { layout: Layout; onLayout: (layout: Layout) => void }) {
+  const copy = useUiCopy();
+  return (
+    <div className={styles.intro}>
+      <h1 className={styles.eyebrow}>
+        <UiText text="Stay for the credits" />
+      </h1>
+      <div className={styles.layoutSwitch} role="group" aria-label={copy("Credits layout")}>
+        {LAYOUTS.map((l) => (
+          <button
+            key={l.id}
+            type="button"
+            className={`${styles.layoutOption} ${layout === l.id ? styles.layoutOptionOn : ""}`}
+            aria-pressed={layout === l.id}
+            onClick={() => onLayout(l.id)}
+          >
+            {copy(l.label)}
+          </button>
+        ))}
+      </div>
+      <p className={styles.introNote}>
+        <UiText text="Every name here is a confirmed credit on a real OONA work." />
+      </p>
+    </div>
+  );
+}
+
+/**
+ * Credits home: an end-credit roll of confirmed credits from real works, with
+ * the credited work on the left and another work by the same person (else the
+ * next work on the roll) on the right. Below it, a blind screening: frames
+ * with no title or names until the film ends.
+ */
+export default function CreditsHome() {
+  const { works, failed, retry } = useCreditsRollFeed();
+  const [mode, setMode] = useState<Mode>({ kind: "roll" });
+  const [layout, setLayout] = useLayoutChoice();
 
   const openBlind = useCallback((workId: string) => {
     setMode({ kind: "player", workId, revealed: false });
@@ -131,7 +166,7 @@ export default function CreditsHome() {
           <h1 className={`${styles.emptyTitle} ${styles.serif}`}>
             <UiText text="The credits couldn't load." />
           </h1>
-          <button type="button" className={styles.solidButton} onClick={() => setAttempt((n) => n + 1)}>
+          <button type="button" className={styles.solidButton} onClick={retry}>
             <UiText text="Try again" />
           </button>
         </div>
@@ -179,27 +214,7 @@ export default function CreditsHome() {
 
   return (
     <main className={styles.page}>
-      <div className={styles.intro}>
-        <h1 className={styles.eyebrow}>
-          <UiText text="Stay for the credits" />
-        </h1>
-        <div className={styles.layoutSwitch} role="group" aria-label={copy("Credits layout")}>
-          {LAYOUTS.map((l) => (
-            <button
-              key={l.id}
-              type="button"
-              className={`${styles.layoutOption} ${layout === l.id ? styles.layoutOptionOn : ""}`}
-              aria-pressed={layout === l.id}
-              onClick={() => setLayout(l.id)}
-            >
-              {copy(l.label)}
-            </button>
-          ))}
-        </div>
-        <p className={styles.introNote}>
-          <UiText text="Every name here is a confirmed credit on a real OONA work." />
-        </p>
-      </div>
+      <CreditsIntro layout={layout} onLayout={setLayout} />
       <CreditsRoll works={works} layout={layout} />
       <BlindRow works={works} onOpen={openBlind} />
     </main>
@@ -378,7 +393,7 @@ function PauseButton({ paused, onToggle }: { paused: boolean; onToggle: () => vo
   );
 }
 
-function CreditsRoll({ works, layout }: { works: CreditsRollWork[]; layout: Layout }) {
+export function CreditsRoll({ works, layout }: { works: CreditsRollWork[]; layout: Layout }) {
   const data = useRollData(works);
   if (data.lines.length === 0) return null;
   // Keyed so switching layouts restarts the motion from the top.

@@ -1855,5 +1855,9 @@ export const uiMessages: Record<string, readonly [string, string]> = {
   "watch this film": [
     "이 작품 보기",
     "この作品を見る"
+  ],
+  "explore oona": [
+    "OONA 둘러보기",
+    "OONAを見てまわる"
   ]
 };

@@ -1,5 +1,5 @@
-import CinematicHomePage from "@/components/home/CinematicHomePage";
+import CreditsFirstHome from "@/components/home/CreditsFirstHome";
 
 export default function HomePage() {
-  return <CinematicHomePage />;
+  return <CreditsFirstHome />;
 }
