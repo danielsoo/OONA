@@ -311,7 +311,7 @@ export function CreditsRoll({ works, held = false }: { works: CreditsRollWork[];
   } else {
     rollBody = (
       <>
-        <div className={styles.sideCenter} data-credits-center="" aria-hidden="true" />
+        <div className={styles.sideCenter} aria-hidden="true" />
         <div
           className={styles.track}
           style={{

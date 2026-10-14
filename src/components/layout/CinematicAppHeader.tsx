@@ -110,7 +110,7 @@ export default function CinematicAppHeader() {
     <header
       className={`${styles.header} ${overlayPage ? styles.overlayHeader : ""} ${homePage ? styles.homeHeader : ""} ${schoolPage ? styles.schoolHeader : ""}`}
     >
-      <Link href="/" className={styles.logoLink} aria-label={_copy("OONA home")}>
+      <Link href="/" className={styles.logoLink} aria-label={_copy("OONA home")} data-home-logo="">
         <XiioWordmark className={styles.logo} />
       </Link>
 

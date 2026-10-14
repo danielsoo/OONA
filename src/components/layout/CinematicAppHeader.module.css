@@ -39,7 +39,10 @@
   background: #010913;
 }
 
-.logoLink { width: fit-content; }
+.logoLink { width: fit-content; transition: opacity 450ms ease; }
+/* While the home's light intro plays, its O is still on the way here
+   (CreditsLightIntro); the wordmark appears as the O lands on it. */
+:global(html[data-home-intro]) .logoLink { opacity: 0; }
 .logo { width: 128px; height: auto; object-fit: contain; }
 
 .nav {
