@@ -58,8 +58,8 @@ export default function CreditsLightIntro({ ready, onDone }: { ready: boolean | 
     state.current.leaving = true;
     root.classList.add(styles.leaving);
     const from = lineA.getBoundingClientRect();
-    const dx = target.left + target.width / 2 - window.innerWidth / 2;
-    const dy = target.top + target.height / 2 - window.innerHeight / 2;
+    const dx = target.left + target.width / 2 - (from.left + from.width / 2);
+    const dy = target.top + target.height / 2 - (from.top + from.height / 2);
     const sx = from.width > 0 ? target.width / from.width : 1;
     const finish = () => onDoneRef.current();
     wrap
