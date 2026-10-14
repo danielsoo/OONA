@@ -14,10 +14,12 @@ const ARC_X = 19.375;
 const ARC_Y = 2.2;
 
 /**
- * The first visit to "/": in the dark, a spotlight snaps on from the top and
- * pours down onto the slit "O" of the wordmark. Light fills the slit, the O
- * opens and the light stretches into a line that flies to the credit roll's
- * center line and opens into its frame, while the dark falls away.
+ * The first visit to "/": in the dark, a small light snaps on above the
+ * center and a narrow beam falls from it onto the slit "O" of the wordmark,
+ * catching its top edge first, then the whole O, a pool of light under it
+ * and faint rings around it. Light fills the slit, the O opens and the light
+ * stretches into a line that flies to the credit roll's center line and opens
+ * into its frame, while the dark falls away.
  *
  * `ready`: true once the roll is on the page, false if there are no credits
  * (the intro then just fades to the home), null while loading.
@@ -129,10 +131,15 @@ export default function CreditsLightIntro({ ready, onDone }: { ready: boolean | 
     <div ref={rootRef} className={styles.intro} aria-hidden="true">
       <div className={styles.backdrop} />
       <div className={styles.fx}>
-        <div className={styles.flash} />
-        <div className={styles.spot}>
-          <div className={styles.cone} />
+        <svg className={styles.rings} viewBox="-100 -100 200 200">
+          <circle r="34" />
+          <circle r="58" />
+          <circle r="86" />
+        </svg>
+        <div className={styles.beam}>
+          <div className={styles.shaft} />
         </div>
+        <div className={styles.source} />
         <div className={styles.pool} />
         <div className={styles.haze} />
         <svg className={styles.mark} viewBox="-30 -30 60 60">

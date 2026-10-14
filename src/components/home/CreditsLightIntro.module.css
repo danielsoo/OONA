@@ -1,14 +1,17 @@
 /* The first-visit intro on "/" (CreditsLightIntro). All keyframes share one
    1900ms timeline; the percentages line up across them:
-     0–13%   dark
-     13–40%  a spotlight snaps on at the top and pours down to the center
-     26–58%  the slit "O" comes up in the light, light fills its slit
-     52–76%  "Stay for the credits" under it; hold
+     0–8%    dark
+     8–20%   a small light snaps on above the center
+     12–34%  a thin beam falls from it to the O
+     30–58%  the beam brightens; the O's top edge catches the light, then
+             the whole O; a pool of light under it, faint rings around it
+     46–76%  light fills the slit; "Stay for the credits"; hold
      76–100% the O opens and the light stretches into one line
    The flight to the roll and the fade are run from the component. */
 .intro {
   --mark: clamp(88px, 12vmin, 136px);
   --settle: min(52vw, 640px);
+  --source-y: 24vh;
   position: fixed;
   z-index: 100;
   inset: 0;
@@ -19,7 +22,7 @@
 .backdrop {
   position: absolute;
   inset: 0;
-  background: #010409;
+  background: #000;
 }
 
 .fx {
@@ -37,64 +40,73 @@
   transition: opacity 520ms ease;
 }
 
-/* The punch of the light switching on. */
-.flash {
+/* The light: small and hard, a little flattened. */
+.source {
   position: absolute;
-  inset: 0;
-  background: radial-gradient(120% 70% at 50% 0%, rgba(210, 226, 255, 0.38), transparent 62%);
-  animation: flash 1900ms linear both;
+  top: var(--source-y);
+  left: 50%;
+  width: calc(var(--mark) * 0.17);
+  height: calc(var(--mark) * 0.09);
+  border-radius: 40%;
+  background: #fff;
+  box-shadow:
+    0 0 10px 3px rgba(235, 240, 255, 0.95),
+    0 0 36px 10px rgba(170, 185, 255, 0.4);
+  animation: source 1900ms linear both;
 }
 
-/* The spotlight: a cone from the top edge down to the O. The blur is on the
-   wrapper so the clipped cone's edges come out soft. */
-.spot {
+/* The beam, from the light down to the top of the O. The blur is on the
+   wrapper so the clipped shaft's edges come out soft. */
+.beam {
   position: absolute;
-  top: -6vh;
+  top: var(--source-y);
   left: 50%;
-  width: calc(var(--mark) * 4.4);
-  height: calc(56vh + var(--mark) * 0.42);
+  width: calc(var(--mark) * 0.5);
+  height: calc(50vh - var(--source-y) - var(--mark) * 0.3);
   transform-origin: 50% 0;
-  filter: blur(16px);
-  animation: spot 1900ms linear both;
+  filter: blur(5px);
+  animation: beam 1900ms linear both;
 }
 
-.spot::before {
-  /* The lamp itself, just above the screen. */
-  position: absolute;
-  top: 0;
-  left: 50%;
-  width: calc(var(--mark) * 2.2);
-  height: calc(var(--mark) * 0.9);
-  transform: translate(-50%, -30%);
-  border-radius: 50%;
-  background: radial-gradient(closest-side, rgba(240, 246, 255, 0.95), rgba(170, 200, 255, 0.4) 55%, transparent);
-  content: "";
-}
-
-.cone {
+.shaft {
   position: absolute;
   inset: 0;
-  clip-path: polygon(39% 0, 61% 0, 100% 100%, 0 100%);
+  clip-path: polygon(41% 0, 59% 0, 84% 100%, 16% 100%);
   background: linear-gradient(
     to bottom,
-    rgba(228, 238, 255, 0.62) 0%,
-    rgba(175, 203, 255, 0.26) 42%,
-    rgba(135, 172, 255, 0.14) 78%,
-    rgba(120, 160, 255, 0.04) 100%
+    rgba(240, 244, 255, 0.92) 0%,
+    rgba(200, 212, 255, 0.5) 45%,
+    rgba(180, 196, 255, 0.34) 100%
   );
 }
 
 /* Where the light lands, under the O. */
 .pool {
   position: absolute;
-  top: calc(50% + var(--mark) * 0.44);
+  top: calc(50% + var(--mark) * 0.36);
   left: 50%;
-  width: calc(var(--mark) * 3.6);
-  height: calc(var(--mark) * 0.8);
+  width: calc(var(--mark) * 3.4);
+  height: calc(var(--mark) * 0.34);
   border-radius: 50%;
-  background: radial-gradient(closest-side, rgba(175, 203, 255, 0.36), rgba(110, 150, 255, 0.12) 55%, transparent);
-  transform: translate(-50%, -50%);
+  background: radial-gradient(closest-side, rgba(200, 196, 255, 0.42), rgba(120, 140, 255, 0.12) 55%, transparent);
   animation: pool 1900ms linear both;
+}
+
+/* Faint rings around the O, picked out by the light that spills. */
+.rings {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: calc(var(--mark) * 5);
+  height: calc(var(--mark) * 5);
+  overflow: visible;
+  transform: translate(-50%, -50%);
+  fill: none;
+  stroke: rgba(175, 188, 235, 0.13);
+  stroke-width: 0.5;
+  -webkit-mask-image: radial-gradient(closest-side at 50% 38%, #000 20%, transparent 100%);
+  mask-image: radial-gradient(closest-side at 50% 38%, #000 20%, transparent 100%);
+  animation: rings 1900ms linear both;
 }
 
 /* The flat glow around the line as it stretches. */
@@ -117,10 +129,10 @@
   width: var(--mark);
   height: var(--mark);
   overflow: visible;
+  transform: translate(-50%, -50%);
   fill: none;
-  stroke: #eef4ff;
-  filter: drop-shadow(0 0 6px rgba(150, 190, 255, 0.7));
-  animation: mark 1900ms linear both;
+  stroke: #f1f3ff;
+  filter: drop-shadow(0 0 5px rgba(185, 190, 255, 0.75));
 }
 
 /* In the mark's own units (60 across): about 1.6px at its usual size. */
@@ -139,7 +151,7 @@
 
 .tagline {
   position: absolute;
-  top: calc(50% + var(--mark) * 0.5 + 26px);
+  top: calc(50% + var(--mark) * 0.5 + 30px);
   right: 0;
   left: 0;
   margin: 0;
@@ -181,79 +193,96 @@
   animation: lineGrow 1900ms linear both;
 }
 
-@keyframes flash {
+@keyframes source {
   0%,
+  8% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.2);
+    animation-timing-function: cubic-bezier(0.2, 0.9, 0.3, 1.4);
+  }
   13% {
-    opacity: 0;
-  }
-  16% {
     opacity: 1;
-    animation-timing-function: ease-out;
+    transform: translate(-50%, -50%) scale(1.15);
   }
-  34%,
+  22% {
+    opacity: 0.9;
+    transform: translate(-50%, -50%) scale(0.8);
+  }
+  50%,
+  76% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.05);
+  }
   100% {
-    opacity: 0;
+    opacity: 0.55;
+    transform: translate(-50%, -50%) scale(1);
   }
 }
 
-@keyframes spot {
+@keyframes beam {
   0%,
-  13% {
+  12% {
     opacity: 0;
-    transform: translateX(-50%) scaleY(0.12);
-    animation-timing-function: cubic-bezier(0.2, 0.9, 0.25, 1);
+    transform: translateX(-50%) scale(0.5, 0);
+    animation-timing-function: cubic-bezier(0.3, 0.6, 0.3, 1);
   }
-  21% {
-    opacity: 1;
+  14% {
+    opacity: 0.55;
   }
-  40% {
-    opacity: 1;
-    transform: translateX(-50%) scaleY(1);
+  34% {
+    opacity: 0.6;
+    transform: translateX(-50%) scale(0.5, 1);
+    animation-timing-function: ease-out;
   }
+  52%,
   76% {
     opacity: 1;
-    transform: translateX(-50%) scaleY(1);
-    animation-timing-function: ease-in;
+    transform: translateX(-50%) scale(1, 1);
   }
   100% {
-    opacity: 0.5;
-    transform: translateX(-50%) scaleY(1);
+    opacity: 0.45;
+    transform: translateX(-50%) scale(1, 1);
   }
 }
 
 @keyframes pool {
   0%,
-  28% {
+  32% {
     opacity: 0;
+    transform: translate(-50%, -50%) scaleX(0.3);
     animation-timing-function: ease-out;
   }
-  50%,
+  58%,
   76% {
     opacity: 1;
+    transform: translate(-50%, -50%) scaleX(1);
   }
   100% {
     opacity: 0.4;
+    transform: translate(-50%, -50%) scaleX(1);
   }
 }
 
-@keyframes mark {
+@keyframes rings {
   0%,
-  24% {
+  44% {
     opacity: 0;
-    transform: translate(-50%, -50%) translateY(-6px);
-    filter: drop-shadow(0 0 0 rgba(150, 190, 255, 0)) brightness(0.5);
-    animation-timing-function: cubic-bezier(0.2, 0.8, 0.25, 1);
+    animation-timing-function: ease-out;
   }
-  47%,
+  70%,
   100% {
     opacity: 1;
-    transform: translate(-50%, -50%);
-    filter: drop-shadow(0 0 6px rgba(150, 190, 255, 0.7)) brightness(1);
   }
 }
 
 @keyframes arcTop {
   0%,
+  30% {
+    opacity: 0;
+    transform: none;
+    animation-timing-function: ease-out;
+  }
+  42%,
   76% {
     opacity: 1;
     transform: none;
@@ -268,8 +297,17 @@
 
 @keyframes arcBottom {
   0%,
+  38% {
+    opacity: 0;
+    transform: none;
+    animation-timing-function: ease-out;
+  }
+  58% {
+    opacity: 0.9;
+    transform: none;
+  }
   76% {
-    opacity: 1;
+    opacity: 0.9;
     transform: none;
     animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
   }
@@ -282,12 +320,12 @@
 
 @keyframes lineGrow {
   0%,
-  40% {
+  46% {
     width: 0;
     opacity: 0;
     animation-timing-function: cubic-bezier(0.3, 0, 0.2, 1);
   }
-  58%,
+  60%,
   76% {
     width: calc(var(--mark) * 0.6);
     opacity: 1;
@@ -314,12 +352,12 @@
 
 @keyframes tagline {
   0%,
-  52% {
+  54% {
     opacity: 0;
     transform: translateY(8px);
     animation-timing-function: ease-out;
   }
-  68%,
+  70%,
   100% {
     opacity: 1;
     transform: none;
