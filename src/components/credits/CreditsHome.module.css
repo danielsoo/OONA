@@ -1,9 +1,8 @@
-/* Credits home (/credits): the roll in the middle, the work on either side.
+/* Credits home (/credits and the first screen of "/"): the roll on the left,
+   one large screen on the right.
    Colors and type follow the cinematic home (CinematicHomePage.module.css). */
 .page {
   --page-pad: clamp(24px, 4.9vw, 76px);
-  --stage-h: clamp(480px, calc(100svh - 230px), 660px);
-  --line-h: 72px;
   --accent: #3d7dff;
   --eyebrow: #9bb9dc;
   min-height: 100svh;
@@ -42,46 +41,7 @@
   font-size: 14px;
 }
 
-/* A · B · C switch, for comparing the three demos. */
-.layoutSwitch {
-  display: inline-flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  padding: 4px;
-  border: 1px solid rgba(155, 185, 220, 0.24);
-  border-radius: 999px;
-}
-
-.layoutOption {
-  min-height: 40px;
-  padding: 0 16px;
-  border: 0;
-  border-radius: 999px;
-  background: transparent;
-  color: rgba(229, 235, 248, 0.72);
-  font: inherit;
-  font-size: 13px;
-  cursor: pointer;
-  transition: background 150ms ease, color 150ms ease;
-}
-
-.layoutOption:hover,
-.layoutOption:focus-visible {
-  color: #fff;
-}
-
-.layoutOptionOn {
-  background: #f2f4fb;
-  color: #07111b;
-  font-weight: 600;
-}
-
-.layoutOptionOn:hover,
-.layoutOptionOn:focus-visible {
-  color: #07111b;
-}
-
-/* A and B: the roll on the left, one large screen on the right. */
+/* The roll on the left, one large screen on the right. */
 .side {
   --side-roll-h: clamp(392px, calc(100svh - 300px), 504px);
   display: flex;
@@ -98,7 +58,6 @@
   gap: 16px;
 }
 
-/* Two classes: must beat .roll, which sets C's taller height later in this file. */
 .roll.sideRoll {
   height: var(--side-roll-h);
   -webkit-mask-image: linear-gradient(to bottom, transparent, #000 18%, #000 82%, transparent);
@@ -243,30 +202,6 @@ a.sideCardName:focus-visible {
   font-style: italic;
 }
 
-/* Three columns: work · roll · another work. */
-.stage {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(280px, 420px) minmax(0, 1fr);
-  gap: clamp(16px, 2vw, 28px);
-  align-items: start;
-}
-
-.screen {
-  position: relative;
-  display: block;
-  height: var(--stage-h);
-  overflow: hidden;
-  border-radius: 14px;
-  background: #000;
-  outline: 1px solid rgba(125, 171, 205, 0.14);
-  transition: outline-color 200ms ease;
-}
-
-.screen:hover,
-.screen:focus-visible {
-  outline: 2px solid var(--accent);
-}
-
 .layer {
   position: absolute;
   inset: 0;
@@ -288,18 +223,6 @@ a.sideCardName:focus-visible {
   animation: fadeIn 900ms ease both;
 }
 
-.caption {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 56px 22px 20px;
-  background: linear-gradient(to top, rgba(1, 8, 14, 0.9), rgba(1, 8, 14, 0));
-}
-
 .captionKicker {
   color: #8db0ff;
   font-size: 11px;
@@ -308,111 +231,13 @@ a.sideCardName:focus-visible {
   text-transform: uppercase;
 }
 
-.captionTitle {
-  color: #fff;
-  font-size: clamp(22px, 2vw, 30px);
-  font-style: italic;
-  line-height: 1.1;
-}
-
-.captionMeta {
-  color: rgba(229, 235, 248, 0.82);
-  font-size: 14px;
-}
-
-/* The roll. Names enter at the bottom edge and leave at the top, like a film. */
-.rollColumn {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  min-width: 0;
-}
-
 .roll {
   position: relative;
-  height: var(--stage-h);
   overflow: hidden;
-  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 20%, #000 80%, transparent);
-  mask-image: linear-gradient(to bottom, transparent, #000 20%, #000 80%, transparent);
-}
-
-.rollCenter {
-  position: absolute;
-  top: calc(50% - var(--line-h) / 2);
-  right: 12%;
-  left: 12%;
-  height: var(--line-h);
-  border-top: 1px solid rgba(155, 185, 220, 0.12);
-  border-bottom: 1px solid rgba(155, 185, 220, 0.12);
-  pointer-events: none;
 }
 
 .track {
   will-change: transform;
-}
-
-.copyHidden {
-  visibility: hidden;
-}
-
-.line {
-  display: flex;
-  height: var(--line-h);
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 3px;
-  padding: 0 8px;
-  text-align: center;
-}
-
-.role {
-  max-width: 100%;
-  overflow: hidden;
-  color: rgba(155, 185, 220, 0.72);
-  font-size: 11px;
-  letter-spacing: 0.22em;
-  text-overflow: ellipsis;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-.name {
-  max-width: 100%;
-  overflow: hidden;
-  color: rgba(229, 235, 248, 0.5);
-  font-size: 27px;
-  line-height: 1.12;
-  text-decoration: underline;
-  text-decoration-color: transparent;
-  text-decoration-thickness: 2px;
-  text-overflow: ellipsis;
-  text-underline-offset: 6px;
-  white-space: nowrap;
-  transition: color 350ms ease, text-decoration-color 150ms ease;
-}
-
-.nameOn,
-.name:hover,
-.name:focus-visible {
-  color: #fff;
-}
-
-.name:hover,
-.name:focus-visible {
-  outline: none;
-  text-decoration-color: var(--accent);
-}
-
-.rollFoot {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: 8px 14px;
-  color: rgba(229, 235, 248, 0.58);
-  font-size: 13px;
-  text-align: center;
 }
 
 .ghostButton {
@@ -623,24 +448,8 @@ a.creditCard:focus-visible {
   to { opacity: 1; transform: none; }
 }
 
-/* Narrow: the work on top, the roll under it; the second screen is dropped. */
+/* Narrow: the work on top, the roll under it. */
 @media (max-width: 1000px) {
-  .page {
-    --stage-h: 440px;
-  }
-
-  .stage {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .screen {
-    height: 260px;
-  }
-
-  .stageRight {
-    display: none;
-  }
-
   .side {
     --side-roll-h: 392px;
     gap: 24px;
@@ -663,18 +472,6 @@ a.creditCard:focus-visible {
   .sideCardWork {
     margin-bottom: 8px;
     font-size: 15px;
-  }
-}
-
-@media (max-width: 560px) {
-  .layoutSwitch {
-    flex-wrap: nowrap;
-  }
-
-  .layoutOption {
-    padding: 0 10px;
-    font-size: 12px;
-    white-space: nowrap;
   }
 }
 

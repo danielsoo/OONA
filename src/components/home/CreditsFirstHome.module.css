@@ -1,6 +1,5 @@
 /* "/" — the credits roll is the first screen; the cinematic home pops in below it. */
 section.first {
-  --stage-h: clamp(400px, calc(100svh - 340px), 640px);
   display: flex;
   min-height: 100svh;
   flex-direction: column;

@@ -7,44 +7,17 @@ import StreamHlsVideo from "@/components/shorts/StreamHlsVideo";
 import { useTranslations } from "@/context/LocaleContext";
 import { useRecordEngagementView } from "@/hooks/useRecordEngagementView";
 import { UPLOAD_HREF } from "@/lib/appNav";
-import { buildRollLines, pickSideWorks, rollLength, type RollLine } from "@/lib/credits-roll";
+import { buildRollLines, rollLength, type RollLine } from "@/lib/credits-roll";
 import { watchHref } from "@/lib/works/catalog-ui";
 import type { CreditsRollPerson, CreditsRollWork } from "@/types/creditsRoll";
 import styles from "./CreditsHome.module.css";
 
-const LINE_H_CENTERED = 72;
-const LINE_H_SIDE = 56;
+const LINE_H = 56;
 const SECONDS_PER_LINE = 2.2;
 const BLIND_FRAMES = 8;
 
 type Line = RollLine<CreditsRollPerson>;
 type Mode = { kind: "roll" } | { kind: "player"; workId: string; revealed: boolean };
-
-/** The three demos from the design canvas, kept side by side for comparison. */
-export type Layout = "stepped" | "continuous" | "centered";
-const LAYOUTS: { id: Layout; param: string; label: string }[] = [
-  { id: "stepped", param: "a", label: "A · Stepped" },
-  { id: "continuous", param: "b", label: "B · Continuous" },
-  { id: "centered", param: "c", label: "C · Centered" },
-];
-const DEFAULT_LAYOUT: Layout = "centered";
-
-/** The chosen layout lives in the URL (?layout=a|b|c) so a link opens that version. */
-export function useLayoutChoice(): [Layout, (layout: Layout) => void] {
-  const [layout, setLayoutState] = useState<Layout>(DEFAULT_LAYOUT);
-  useEffect(() => {
-    const param = new URLSearchParams(window.location.search).get("layout");
-    const found = LAYOUTS.find((l) => l.param === param);
-    if (found) setLayoutState(found.id);
-  }, []);
-  const setLayout = useCallback((next: Layout) => {
-    setLayoutState(next);
-    const url = new URL(window.location.href);
-    url.searchParams.set("layout", LAYOUTS.find((l) => l.id === next)!.param);
-    window.history.replaceState(window.history.state, "", url);
-  }, []);
-  return [layout, setLayout];
-}
 
 function usePrefersReducedMotion(): boolean {
   const [reduced, setReduced] = useState(false);
@@ -102,27 +75,13 @@ export function useCreditsRollFeed() {
   return { works, failed, retry };
 }
 
-/** "Stay for the credits", the A · B · C switch and the one-line note. */
-export function CreditsIntro({ layout, onLayout }: { layout: Layout; onLayout: (layout: Layout) => void }) {
-  const copy = useUiCopy();
+/** "Stay for the credits" and the one-line note. */
+export function CreditsIntro() {
   return (
     <div className={styles.intro}>
       <h1 className={styles.eyebrow}>
         <UiText text="Stay for the credits" />
       </h1>
-      <div className={styles.layoutSwitch} role="group" aria-label={copy("Credits layout")}>
-        {LAYOUTS.map((l) => (
-          <button
-            key={l.id}
-            type="button"
-            className={`${styles.layoutOption} ${layout === l.id ? styles.layoutOptionOn : ""}`}
-            aria-pressed={layout === l.id}
-            onClick={() => onLayout(l.id)}
-          >
-            {copy(l.label)}
-          </button>
-        ))}
-      </div>
       <p className={styles.introNote}>
         <UiText text="Every name here is a confirmed credit on a real OONA work." />
       </p>
@@ -131,15 +90,13 @@ export function CreditsIntro({ layout, onLayout }: { layout: Layout; onLayout: (
 }
 
 /**
- * Credits home: an end-credit roll of confirmed credits from real works, with
- * the credited work on the left and another work by the same person (else the
- * next work on the roll) on the right. Below it, a blind screening: frames
- * with no title or names until the film ends.
+ * Credits home: an end-credit roll of confirmed credits from real works, one
+ * name at a time, with that person's work on a large screen beside it. Below
+ * it, a blind screening: frames with no title or names until the film ends.
  */
 export default function CreditsHome() {
   const { works, failed, retry } = useCreditsRollFeed();
   const [mode, setMode] = useState<Mode>({ kind: "roll" });
-  const [layout, setLayout] = useLayoutChoice();
 
   const openBlind = useCallback((workId: string) => {
     setMode({ kind: "player", workId, revealed: false });
@@ -214,8 +171,8 @@ export default function CreditsHome() {
 
   return (
     <main className={styles.page}>
-      <CreditsIntro layout={layout} onLayout={setLayout} />
-      <CreditsRoll works={works} layout={layout} />
+      <CreditsIntro />
+      <CreditsRoll works={works} />
       <BlindRow works={works} onOpen={openBlind} />
     </main>
   );
@@ -224,25 +181,16 @@ export default function CreditsHome() {
 type RollData = {
   byId: Map<string, CreditsRollWork>;
   lines: Line[];
-  worksByPerson: Map<string, string[]>;
 };
 
 function useRollData(works: CreditsRollWork[]): RollData {
-  return useMemo(() => {
-    const worksByPerson = new Map<string, string[]>();
-    for (const w of works) {
-      for (const c of w.credits) {
-        const list = worksByPerson.get(c.userId) ?? [];
-        if (!list.includes(w.workId)) list.push(w.workId);
-        worksByPerson.set(c.userId, list);
-      }
-    }
-    return {
+  return useMemo(
+    () => ({
       byId: new Map(works.map((w) => [w.workId, w])),
       lines: buildRollLines(works, rollLength(works)),
-      worksByPerson,
-    };
-  }, [works]);
+    }),
+    [works]
+  );
 }
 
 /** Hover or keyboard focus inside the roll holds it still; leaving releases the pin. */
@@ -269,63 +217,7 @@ function useRollHold(setPinned: (index: number | null) => void) {
   return { holdRef, handlers };
 }
 
-/**
- * B and C: the roll moves outside React, one transform per frame, with a
- * state update only when the line at the center changes. The track holds
- * three copies of the lines so the loop never shows a seam.
- */
-function useContinuousRoll(lines: Line[], lineH: number, enabled: boolean, holdRef: React.RefObject<boolean>) {
-  const rollRef = useRef<HTMLDivElement>(null);
-  const trackRef = useRef<HTMLDivElement>(null);
-  const prevCopyRef = useRef<HTMLDivElement>(null);
-  const offsetRef = useRef<number | null>(null);
-  const [centerIndex, setCenterIndex] = useState(0);
-  const [paused, setPaused] = useState(false);
-  const pausedRef = useRef(false);
-  pausedRef.current = paused;
-
-  useEffect(() => {
-    if (!enabled || lines.length === 0) return;
-    const cycle = lines.length * lineH;
-    offsetRef.current = null;
-    let raf = 0;
-    let last: number | null = null;
-    let lastIndex = -1;
-    const step = (now: number) => {
-      const roll = rollRef.current;
-      const track = trackRef.current;
-      if (roll && track) {
-        const center = roll.clientHeight / 2;
-        // Start with the first name just inside the bottom fade, so it rises
-        // into an empty frame but reaches the center within a few seconds.
-        if (offsetRef.current === null) offsetRef.current = -center * 0.55;
-        if (last !== null && !holdRef.current && !pausedRef.current) {
-          offsetRef.current += (Math.min(100, now - last) / 1000) * (lineH / SECONDS_PER_LINE);
-        }
-        if (offsetRef.current >= cycle) offsetRef.current -= cycle;
-        // The copy above the main one fills the top after the first pass; it
-        // is revealed only once that region is off screen, so nothing pops in.
-        if (prevCopyRef.current && offsetRef.current > roll.clientHeight) {
-          prevCopyRef.current.classList.remove(styles.copyHidden);
-        }
-        track.style.transform = `translateY(${(center - lineH / 2 - offsetRef.current - cycle).toFixed(1)}px)`;
-        const index = offsetRef.current < 0 ? 0 : Math.round(offsetRef.current / lineH) % lines.length;
-        if (index !== lastIndex) {
-          lastIndex = index;
-          setCenterIndex(index);
-        }
-      }
-      last = now;
-      raf = requestAnimationFrame(step);
-    };
-    raf = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(raf);
-  }, [lines, lineH, enabled, holdRef]);
-
-  return { rollRef, trackRef, prevCopyRef, centerIndex, paused, setPaused };
-}
-
-/** A: one name holds the center, then the next steps in. */
+/** One name holds the center, then the next steps in. */
 function useSteppedRoll(lines: Line[], enabled: boolean, holdRef: React.RefObject<boolean>) {
   const [index, setIndex] = useState(0);
   const [jump, setJump] = useState(false);
@@ -350,36 +242,6 @@ function useSteppedRoll(lines: Line[], enabled: boolean, holdRef: React.RefObjec
   return { index, jump, paused, setPaused };
 }
 
-/** Three copies of the lines for a seamless loop; only the middle one is read out or focusable. */
-function ContinuousTrack({
-  lines,
-  trackRef,
-  prevCopyRef,
-  renderLine,
-}: {
-  lines: Line[];
-  trackRef: React.RefObject<HTMLDivElement | null>;
-  prevCopyRef: React.RefObject<HTMLDivElement | null>;
-  renderLine: (line: Line, index: number, repeat: boolean) => ReactNode;
-}) {
-  return (
-    <div ref={trackRef} className={styles.track}>
-      {[0, 1, 2].map((copyIndex) => (
-        <div
-          key={copyIndex}
-          ref={copyIndex === 0 ? prevCopyRef : undefined}
-          className={copyIndex === 0 ? styles.copyHidden : undefined}
-          aria-hidden={copyIndex === 1 ? undefined : true}
-        >
-          {lines.map((l, i) => (
-            <Fragment key={`${copyIndex}-${i}`}>{renderLine(l, i, copyIndex !== 1)}</Fragment>
-          ))}
-        </div>
-      ))}
-    </div>
-  );
-}
-
 function nameHref(line: Line, byId: Map<string, CreditsRollWork>): string {
   return line.credit.profileHref ?? watchHref(byId.get(line.workId)!.ownerUid, line.workId);
 }
@@ -393,129 +255,26 @@ function PauseButton({ paused, onToggle }: { paused: boolean; onToggle: () => vo
   );
 }
 
-export function CreditsRoll({ works, layout }: { works: CreditsRollWork[]; layout: Layout }) {
-  const data = useRollData(works);
-  if (data.lines.length === 0) return null;
-  // Keyed so switching layouts restarts the motion from the top.
-  return layout === "centered" ? (
-    <CenteredLayout key="centered" data={data} />
-  ) : (
-    <SideLayout key={layout} data={data} motion={layout} />
-  );
-}
-
-/** C: the roll in the middle, the credited work on the left, another work on the right. */
-function CenteredLayout({ data }: { data: RollData }) {
-  const { byId, lines, worksByPerson } = data;
-  const copy = useUiCopy();
-  const roleLabel = useRoleLabel();
-  const reducedMotion = usePrefersReducedMotion();
-  const [pinned, setPinned] = useState<number | null>(null);
-  const { holdRef, handlers } = useRollHold(setPinned);
-  const roll = useContinuousRoll(lines, LINE_H_CENTERED, !reducedMotion, holdRef);
-
-  const current = pinned ?? (reducedMotion ? 0 : roll.centerIndex);
-  const sides = pickSideWorks(lines, current, (uid) => worksByPerson.get(uid) ?? []);
-  const line = lines[current % lines.length];
-  if (!sides || !line) return null;
-
-  const leftWork = byId.get(sides.left)!;
-  const rightWork = byId.get(sides.right)!;
-  const rightLine = sides.rightIsSamePerson
-    ? null
-    : lines.slice(current + 1).concat(lines.slice(0, current + 1)).find((l) => l.workId === sides.right);
-  const personName = line.credit.displayName;
-  const rightCredit = sides.rightIsSamePerson
-    ? rightWork.credits.find((c) => c.userId === line.credit.userId)
-    : rightLine?.credit;
-
-  const renderLine = (l: Line, i: number, repeat: boolean) => (
-    <div className={styles.line}>
-      <span className={styles.role}>{roleLabel(l.credit)}</span>
-      <Link
-        href={nameHref(l, byId)}
-        prefetch={false}
-        tabIndex={repeat ? -1 : undefined}
-        className={`${styles.name} ${styles.serif} ${i === current ? styles.nameOn : ""}`}
-        onMouseEnter={() => setPinned(i)}
-        onFocus={() => setPinned(i)}
-      >
-        {l.credit.displayName}
-      </Link>
-    </div>
-  );
-
-  return (
-    <section className={styles.stage} aria-label={copy("Credits roll")}>
-      <Screen
-        work={leftWork}
-        kicker={copy("Now crediting")}
-        meta={`${personName} · ${roleLabel(line.credit)}`}
-        playVideo={!reducedMotion}
-      />
-
-      <div className={styles.rollColumn}>
-        <div ref={roll.rollRef} className={styles.roll} {...handlers}>
-          {reducedMotion ? (
-            lines.map((l, i) => <Fragment key={i}>{renderLine(l, i, false)}</Fragment>)
-          ) : (
-            <>
-              <div className={styles.rollCenter} aria-hidden="true" />
-              <ContinuousTrack
-                lines={lines}
-                trackRef={roll.trackRef}
-                prevCopyRef={roll.prevCopyRef}
-                renderLine={renderLine}
-              />
-            </>
-          )}
-        </div>
-        <div className={styles.rollFoot}>
-          <span>
-            <UiText text="Hover to pause. Click a name to see their work." />
-          </span>
-          {reducedMotion ? null : <PauseButton paused={roll.paused} onToggle={() => roll.setPaused((p) => !p)} />}
-        </div>
-      </div>
-
-      <div className={styles.stageRight}>
-        <Screen
-          work={rightWork}
-          kicker={sides.rightIsSamePerson ? copy("Also by {name}", { name: personName }) : copy("Up next")}
-          meta={rightCredit ? `${rightCredit.displayName} · ${roleLabel(rightCredit)}` : ""}
-          playVideo={!reducedMotion}
-        />
-      </div>
-    </section>
-  );
-}
-
 /**
- * A and B: the roll on the left, one large screen on the right showing the
- * work of the name at the center line. A steps one name at a time; B rolls
- * without stopping, like the end of a film.
+ * The roll on the left, one large screen on the right showing the work of the
+ * name at the center line. One name holds the center, then the next steps in.
  */
-function SideLayout({ data, motion }: { data: RollData; motion: "stepped" | "continuous" }) {
-  const { byId, lines } = data;
+export function CreditsRoll({ works }: { works: CreditsRollWork[] }) {
+  const { byId, lines } = useRollData(works);
   const copy = useUiCopy();
   const roleLabel = useRoleLabel();
   const reducedMotion = usePrefersReducedMotion();
   const [pinned, setPinned] = useState<number | null>(null);
   const { holdRef, handlers } = useRollHold(setPinned);
-  const continuous = useContinuousRoll(lines, LINE_H_SIDE, motion === "continuous" && !reducedMotion, holdRef);
-  const stepped = useSteppedRoll(lines, motion === "stepped" && !reducedMotion, holdRef);
+  const stepped = useSteppedRoll(lines, !reducedMotion, holdRef);
 
-  const auto = reducedMotion ? 0 : motion === "stepped" ? stepped.index : continuous.centerIndex;
-  const current = pinned ?? auto;
+  const current = pinned ?? (reducedMotion ? 0 : stepped.index);
   const line = lines[current % lines.length];
   if (!line) return null;
   const work = byId.get(line.workId)!;
-  const paused = motion === "stepped" ? stepped.paused : continuous.paused;
-  const togglePause = () => (motion === "stepped" ? stepped.setPaused((p) => !p) : continuous.setPaused((p) => !p));
-
-  const renderLine = (l: Line, i: number, repeat: boolean, distance?: number) => {
+  const renderLine = (l: Line, i: number, distance?: number) => {
     const on = i === current;
-    // A dims the names by distance from the center; B leaves that to the fade mask.
+    // Names dim with their distance from the center line.
     const opacity = distance === undefined ? undefined : distance === 0 ? 1 : distance === 1 ? 0.6 : distance <= 3 ? 0.34 : 0.2;
     return (
       <div className={styles.sideLine} style={opacity === undefined ? undefined : { opacity }}>
@@ -524,7 +283,6 @@ function SideLayout({ data, motion }: { data: RollData; motion: "stepped" | "con
           <Link
             href={nameHref(l, byId)}
             prefetch={false}
-            tabIndex={repeat ? -1 : undefined}
             className={`${styles.sideName} ${on ? styles.sideNameOn : ""}`}
             onMouseEnter={() => setPinned(i)}
             onFocus={() => setPinned(i)}
@@ -539,35 +297,23 @@ function SideLayout({ data, motion }: { data: RollData; motion: "stepped" | "con
 
   let rollBody: ReactNode;
   if (reducedMotion) {
-    rollBody = lines.map((l, i) => <Fragment key={i}>{renderLine(l, i, false)}</Fragment>);
-  } else if (motion === "stepped") {
+    rollBody = lines.map((l, i) => <Fragment key={i}>{renderLine(l, i)}</Fragment>);
+  } else {
     rollBody = (
       <>
         <div className={styles.sideCenter} aria-hidden="true" />
         <div
           className={styles.track}
           style={{
-            transform: `translateY(calc(50% - ${LINE_H_SIDE / 2}px - ${stepped.index * LINE_H_SIDE}px))`,
+            transform: `translateY(calc(50% - ${LINE_H / 2}px - ${stepped.index * LINE_H}px))`,
             transition: stepped.jump ? "none" : "transform 900ms cubic-bezier(0.3, 0, 0.2, 1)",
             height: "100%",
           }}
         >
           {lines.map((l, i) => (
-            <Fragment key={i}>{renderLine(l, i, false, Math.abs(i - current))}</Fragment>
+            <Fragment key={i}>{renderLine(l, i, Math.abs(i - current))}</Fragment>
           ))}
         </div>
-      </>
-    );
-  } else {
-    rollBody = (
-      <>
-        <div className={styles.sideCenter} aria-hidden="true" />
-        <ContinuousTrack
-          lines={lines}
-          trackRef={continuous.trackRef}
-          prevCopyRef={continuous.prevCopyRef}
-          renderLine={(l, i, repeat) => renderLine(l, i, repeat)}
-        />
       </>
     );
   }
@@ -575,20 +321,16 @@ function SideLayout({ data, motion }: { data: RollData; motion: "stepped" | "con
   return (
     <section className={styles.side} aria-label={copy("Credits roll")}>
       <div className={styles.sideRollColumn}>
-        <div
-          ref={motion === "continuous" ? continuous.rollRef : undefined}
-          className={`${styles.roll} ${styles.sideRoll}`}
-          {...handlers}
-        >
+        <div className={`${styles.roll} ${styles.sideRoll}`} {...handlers}>
           {rollBody}
         </div>
         <div className={styles.sideFoot}>
           <span>
-            {motion === "stepped"
-              ? copy("One name holds the center, then the next steps in. Every work gets a turn. Hover to pause.")
-              : copy("Names roll up without stopping, like the end of a film. The scene follows whoever crosses the line. Hover to pause.")}
+            <UiText text="One name holds the center, then the next steps in. Every work gets a turn. Hover to pause." />
           </span>
-          {reducedMotion ? null : <PauseButton paused={paused} onToggle={togglePause} />}
+          {reducedMotion ? null : (
+            <PauseButton paused={stepped.paused} onToggle={() => stepped.setPaused((p) => !p)} />
+          )}
         </div>
       </div>
 
@@ -653,36 +395,6 @@ function MediaLayers({ work, playVideo }: { work: CreditsRollWork; playVideo: bo
         );
       })}
     </>
-  );
-}
-
-/** C's side screen: the whole screen links to the work. */
-function Screen({
-  work,
-  kicker,
-  meta,
-  playVideo,
-}: {
-  work: CreditsRollWork;
-  kicker: string;
-  meta: string;
-  playVideo: boolean;
-}) {
-  const copy = useUiCopy();
-  return (
-    <Link
-      href={watchHref(work.ownerUid, work.workId)}
-      prefetch={false}
-      className={styles.screen}
-      aria-label={copy("Watch {title}", { title: work.title })}
-    >
-      <MediaLayers work={work} playVideo={playVideo} />
-      <span className={styles.caption}>
-        <span className={styles.captionKicker}>{kicker}</span>
-        <span className={`${styles.captionTitle} ${styles.serif}`}>{work.title}</span>
-        {meta ? <span className={styles.captionMeta}>{meta}</span> : null}
-      </span>
-    </Link>
   );
 }
 

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { buildRollLines, pickSideWorks, rollLength } from "./credits-roll.ts";
+import { buildRollLines, rollLength } from "./credits-roll.ts";
 
 const crew = (prefix: string, n: number) =>
   Array.from({ length: n }, (_, i) => ({ userId: `${prefix}${i}` }));
@@ -49,17 +49,5 @@ describe("credits roll", () => {
   it("skips works with no credits and handles an empty catalog", () => {
     assert.deepEqual(buildRollLines([], 10), []);
     assert.deepEqual(buildRollLines([{ workId: "x", credits: [] }], 10), []);
-  });
-
-  it("side screens: another work by the same person, else the next different work", () => {
-    const works = [
-      { workId: "a", credits: [{ userId: "kim" }, { userId: "lee" }] },
-      { workId: "b", credits: [{ userId: "park" }] },
-      { workId: "c", credits: [{ userId: "kim" }] },
-    ];
-    const lines = buildRollLines(works, 6);
-    const byUser = (uid: string) => works.filter((w) => w.credits.some((c) => c.userId === uid)).map((w) => w.workId);
-    assert.deepEqual(pickSideWorks(lines, 0, byUser), { left: "a", right: "c", rightIsSamePerson: true });
-    assert.deepEqual(pickSideWorks(lines, 1, byUser), { left: "b", right: "c", rightIsSamePerson: false });
   });
 });

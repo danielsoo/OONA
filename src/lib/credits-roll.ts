@@ -42,26 +42,3 @@ export function rollLength(works: readonly RollSourceWork<unknown>[]): number {
   // Round robin needs `longest` passes to reach a long work's last credit.
   return Math.min(240, Math.max(48, total, longest * works.length));
 }
-
-/**
- * What the side screens show for the line at `index`: the work being
- * credited, and another work by the same person, else the next different
- * work coming up on the roll.
- */
-export function pickSideWorks<C extends { userId: string }>(
-  lines: readonly RollLine<C>[],
-  index: number,
-  creditedWorkIds: (userId: string) => readonly string[]
-): { left: string; right: string; rightIsSamePerson: boolean } | null {
-  if (lines.length === 0) return null;
-  const line = lines[((index % lines.length) + lines.length) % lines.length]!;
-  const other = creditedWorkIds(line.credit.userId).find((id) => id !== line.workId);
-  if (other) return { left: line.workId, right: other, rightIsSamePerson: true };
-  for (let step = 1; step < lines.length; step += 1) {
-    const candidate = lines[(index + step) % lines.length]!;
-    if (candidate.workId !== line.workId) {
-      return { left: line.workId, right: candidate.workId, rightIsSamePerson: false };
-    }
-  }
-  return { left: line.workId, right: line.workId, rightIsSamePerson: false };
-}

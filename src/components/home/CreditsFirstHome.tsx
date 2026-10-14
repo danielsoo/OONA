@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, type RefObject } from "react";
-import { CreditsIntro, CreditsRoll, useCreditsRollFeed, useLayoutChoice } from "@/components/credits/CreditsHome";
+import { CreditsIntro, CreditsRoll, useCreditsRollFeed } from "@/components/credits/CreditsHome";
 import creditsStyles from "@/components/credits/CreditsHome.module.css";
 import UiText, { useUiCopy } from "@/components/i18n/UiText";
 import CinematicHomePage from "./CinematicHomePage";
@@ -118,7 +118,6 @@ function DownIcon() {
 export default function CreditsFirstHome() {
   const copy = useUiCopy();
   const { works } = useCreditsRollFeed();
-  const [layout, setLayout] = useLayoutChoice();
   const loading = works === null;
   const hasCredits = !loading && works.length > 0;
 
@@ -138,8 +137,8 @@ export default function CreditsFirstHome() {
           <div ref={innerRef} className={styles.firstInner}>
             {hasCredits ? (
               <>
-                <CreditsIntro layout={layout} onLayout={setLayout} />
-                <CreditsRoll works={works} layout={layout} />
+                <CreditsIntro />
+                <CreditsRoll works={works} />
                 <button type="button" className={styles.cue} onClick={scrollToHome}>
                   <UiText text="Explore OONA" />
                   <DownIcon />
