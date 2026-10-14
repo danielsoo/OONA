@@ -9,6 +9,7 @@ import CinematicAppHeader from "@/components/layout/CinematicAppHeader";
 import WatchRoutePrefetcher from "@/components/watch/WatchRoutePrefetcher";
 import { HeroWaveLayoutProvider } from "@/context/HeroWaveLayoutContext";
 import { NotificationProvider } from "@/context/NotificationContext";
+import { useVisitClock } from "@/hooks/useVisitClock";
 import { APP_SIDEBAR_WIDTH, shouldHideAppShell } from "@/lib/appNav";
 import { MOCKUP_HOME } from "@/lib/mockupHomeSpec";
 import { APP_CONTENT_BOUNDARY_INSET_PX } from "@/lib/mockupLayout";
@@ -47,6 +48,7 @@ function usesCinematicAppShell(pathname: string): boolean {
 export default function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  useVisitClock();
 
   if (usesCinematicAppShell(pathname)) {
     return (

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState, type Mutable
 import { CreditsIntro, CreditsRoll, useCreditsRollFeed } from "@/components/credits/CreditsHome";
 import creditsStyles from "@/components/credits/CreditsHome.module.css";
 import UiText, { useUiCopy } from "@/components/i18n/UiText";
+import { isNewVisit, markActive, readLastActiveAt } from "@/lib/visit-clock";
 import CinematicHomePage from "./CinematicHomePage";
 import CreditsLightIntro from "./CreditsLightIntro";
 import styles from "./CreditsFirstHome.module.css";
@@ -15,11 +16,7 @@ const POP_AT = 0.35;
 /** After a glide or a stop at an edge, the rest of that scroll gesture is swallowed. */
 const HOLD_MIN_MS = 450;
 const HOLD_MAX_MS = 1400;
-/**
- * The light intro plays once per page load: opening the site or reloading
- * it, not coming back to "/" from another page of the app (this survives
- * client-side navigation, not a reload). "/?intro" always plays it.
- */
+/** Set once the intro has played, so coming back to "/" in the app doesn't replay it. */
 let introPlayedThisLoad = false;
 
 function prefersReducedMotion(): boolean {
@@ -353,14 +350,34 @@ function useHomeHeaderState(homeRef: RefObject<HTMLElement | null>) {
   }, [homeRef]);
 }
 
-/** Whether to play the light intro: once per page load, or whenever asked for with "?intro". */
+/** Whether this page load began at "/" (not a later in-app move to it). */
+function loadStartedAtHome(): boolean {
+  const entry = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined;
+  if (!entry) return true;
+  try {
+    return new URL(entry.name).pathname === "/";
+  } catch {
+    return true;
+  }
+}
+
+/**
+ * Whether to play the light intro. Like an app's intro on a fresh launch: it
+ * plays when someone arrives at "/" after being away a while (lib/visit-clock),
+ * not on a reload or a new tab mid-visit, nor on coming back to "/" from
+ * another page. "/?intro" always plays it.
+ */
 function useIntroOnce(): [boolean, () => void] {
   const [playing, setPlaying] = useState(false);
   // Before paint, so the page doesn't flash before the intro covers it.
   useLayoutEffect(() => {
     const asked = new URLSearchParams(window.location.search).has("intro");
-    if (!asked && (introPlayedThisLoad || prefersReducedMotion() || window.location.hash)) return;
+    if (!asked) {
+      if (introPlayedThisLoad || prefersReducedMotion() || window.location.hash || !loadStartedAtHome()) return;
+      if (!isNewVisit(readLastActiveAt(), Date.now())) return;
+    }
     introPlayedThisLoad = true;
+    markActive();
     // A reload would otherwise put the page back where it was scrolled to.
     window.history.scrollRestoration = "manual";
     window.scrollTo(0, 0);
