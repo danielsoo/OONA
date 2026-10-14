@@ -22,6 +22,18 @@
   backdrop-filter: none;
 }
 
+/* "/": stays on screen over the credits and the home (CreditsFirstHome sets
+   data-home-header), turning solid once the rows pass under it. */
+.homeHeader {
+  position: fixed;
+  transition: background-color 240ms ease, border-color 240ms ease;
+}
+
+:global(html[data-home-header="solid"]) .homeHeader {
+  border-bottom-color: rgba(125, 171, 205, 0.12);
+  background: rgba(8, 8, 8, 0.94);
+}
+
 .schoolHeader {
   border-bottom-color: transparent;
   background: #010913;
