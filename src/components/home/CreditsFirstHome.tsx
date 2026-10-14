@@ -16,11 +16,13 @@ const GLIDE_MS = 820;
 const POP_AT = 0.35;
 /**
  * After a glide or a stop at an edge, the rest of that scroll gesture (a
- * trackpad's momentum) is swallowed, up to HOLD_MAX_MS. A new gesture (a
- * pause in the wheel events, or a harder push) gets through at once.
+ * trackpad's momentum, which only ever fades) is swallowed, up to
+ * HOLD_MAX_MS. Anything that isn't fading momentum gets through at once: a
+ * pause in the wheel events, a change of direction, or a push that grows
+ * again (a new swipe, even one that cuts the momentum short).
  */
-const HOLD_MAX_MS = 2000;
-const NEW_GESTURE_GAP_MS = 120;
+const HOLD_MAX_MS = 1200;
+const NEW_GESTURE_GAP_MS = 90;
 /** Set once the intro has played, so coming back to "/" in the app doesn't replay it. */
 let introPlayedThisLoad = false;
 
@@ -133,6 +135,7 @@ function useCreditsToHome(
     };
     let lastWheelAt = 0;
     let lastWheelSize = 0;
+    let lastWheelSign = 0;
     const glide = (to: number) => {
       const from = window.scrollY;
       if (Math.abs(to - from) < 2) return;
@@ -170,9 +173,11 @@ function useCreditsToHome(
       const now = performance.now();
       const dy = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaMode === 2 ? e.deltaY * window.innerHeight : e.deltaY;
       const size = Math.abs(dy);
-      const newGesture = now - lastWheelAt > NEW_GESTURE_GAP_MS || size > lastWheelSize * 2 + 6;
+      const sign = Math.sign(dy);
+      const newGesture = now - lastWheelAt > NEW_GESTURE_GAP_MS || sign !== lastWheelSign || size > lastWheelSize + 3;
       lastWheelAt = now;
       lastWheelSize = size;
+      lastWheelSign = sign;
       if (gliding) {
         e.preventDefault();
         return;
