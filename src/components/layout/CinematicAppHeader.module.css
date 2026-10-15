@@ -171,6 +171,17 @@
 
 @keyframes pulse { from { opacity: 0.45; } to { opacity: 0.85; } }
 
+/* Big screens: the bar keeps its height, but its type and spacing grow with
+   the window, instead of staying laptop-sized in a sea of empty space. */
+@media (min-width: 1440px) {
+  .header { gap: clamp(28px, 2vw, 48px); grid-template-columns: minmax(170px, 1fr) auto minmax(420px, 1fr); }
+  .logo { width: clamp(128px, 8vw, 156px); }
+  .nav { gap: clamp(42px, 3vw, 64px); font-size: clamp(13px, 0.8vw, 17px); }
+  .search { width: clamp(306px, 17vw, 380px); height: 42px; }
+  .search input { font-size: 13px; }
+  .signIn { height: 38px; padding: 0 18px; font-size: 13px; }
+}
+
 @media (max-width: 1180px) {
   .header { grid-template-columns: 145px auto minmax(320px, 1fr); gap: 16px; }
   .nav { gap: 21px; }

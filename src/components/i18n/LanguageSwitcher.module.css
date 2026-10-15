@@ -140,6 +140,14 @@
   }
 }
 
+/* Big screens: in step with the header's larger type (CinematicAppHeader). */
+@media (min-width: 1440px) {
+  .button {
+    height: 38px;
+    font-size: 13px;
+  }
+}
+
 /* Narrow headers: the globe and the language code only. */
 @media (max-width: 600px) {
   .button {
