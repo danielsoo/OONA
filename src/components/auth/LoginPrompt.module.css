@@ -23,7 +23,7 @@
   color: #a6b0ba;
   font-size: 24px;
 }
-.eyebrow { margin: 0 0 18px; color: #89adbe; font-size: 10px; letter-spacing: 0.2em; }
+.eyebrow { margin: 0 0 18px; color: #89adbe; font-size: 12px; letter-spacing: 0.2em; }
 .panel h2 { margin: 0; font-size: 24px; font-weight: 500; line-height: 1.4; letter-spacing: -0.035em; text-wrap: balance; }
 .description { margin: 14px 0 26px; color: #abb7c2; font-size: 14px; line-height: 1.8; word-break: keep-all; }
 .actions { display: grid; gap: 6px; }

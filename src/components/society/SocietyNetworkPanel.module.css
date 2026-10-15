@@ -118,7 +118,9 @@
 
 .creatorGrid { margin-top: 23px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px 14px; }
 .personCard { min-width: 0; background: #090a0b; border: 1px solid rgba(190, 199, 207, 0.12); transition: border-color 160ms ease; }
-.personCard:hover, .selectedCard { border-color: rgba(151, 183, 207, 0.34); }
+.personCard:hover { border-color: rgba(151, 183, 207, 0.34); }
+.selectedCard, .selectedCard:hover { border-color: var(--cyan); box-shadow: 0 0 0 1px var(--cyan); }
+.selectedCard .personName { color: #fff; }
 .cardPortrait { position: relative; width: 100%; aspect-ratio: 1.1 / 1; display: block; overflow: hidden; border: 0; background: #111315; cursor: pointer; }
 .cardPortrait > img { object-fit: cover; object-position: center 38%; filter: grayscale(34%) saturate(0.68) brightness(0.68); transform: scale(1.04); transition: transform 420ms ease, filter 300ms ease; }
 .personCard:hover .cardPortrait > img { transform: scale(1.075); filter: grayscale(18%) saturate(0.74) brightness(0.75); }
@@ -251,4 +253,27 @@ button.primaryButton, .primaryButton { border-color: #dadde0; background: #e9eae
 
 @media (prefers-reduced-motion: reduce) {
   .cardPortrait > img { transition: none; }
+}
+
+/* A failed action (connect, message), shown without replacing the list. */
+.notice {
+  max-width: 1540px;
+  margin: 18px auto 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 16px;
+  border: 1px solid rgba(240, 200, 120, 0.3);
+  background: rgba(60, 44, 14, 0.35);
+  color: rgba(250, 226, 180, 0.92);
+  font-size: 14px;
+}
+.notice button {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
 }

@@ -1,7 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import SocietyProfileBody from "@/components/society/SocietyProfileBody";
+import Link from "next/link";
+import UiText from "@/components/i18n/UiText";
+import { ProfileWorksSection } from "@/components/society/SocietyProfileBody";
+import styles from "@/components/society/EditorialProfile.module.css";
 import type { PeopleProfilePayload } from "@/components/profile/PeopleProfileView";
 import { useAuth } from "@/context/AuthContext";
 import { useTranslations } from "@/context/LocaleContext";
@@ -59,9 +62,15 @@ export default function SocietySelfProfileSection() {
   if (loading && !data) {
     return <p className="mb-8 px-4 text-sm text-white/40 lg:px-12">{t("common.loading")}</p>;
   }
-  if (!data?.profile.handle) return null;
+  // No public profile yet (no handle), or it couldn't load: say so instead of showing nothing.
+  if (!data?.profile.handle) {
+    return (
+      <div className={styles.emptyWorks}>
+        <p><UiText text={"Set up your profile so collaborators can see your work."} /></p>
+        <Link href="/account?tab=profile&section=about"><UiText text={"Edit profile"} /></Link>
+      </div>
+    );
+  }
 
-  const works = [...data.directed, ...data.credited];
-
-  return <SocietyProfileBody works={works} isSelf />;
+  return <ProfileWorksSection works={[...data.directed, ...data.credited]} isSelf ownerUid={data.profile.uid} />;
 }

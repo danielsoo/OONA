@@ -127,4 +127,16 @@ export function invalidateCache(prefix?: string): void {
   for (const key of inFlight.keys()) {
     if (key.startsWith(prefix)) inFlight.delete(key);
   }
+  // Copies kept in localStorage that this page never read back are stale too.
+  if (typeof window !== "undefined" && isPersistentKey(prefix)) {
+    try {
+      const stored = persistentStorageKey(prefix);
+      for (let i = localStorage.length - 1; i >= 0; i -= 1) {
+        const key = localStorage.key(i);
+        if (key?.startsWith(stored)) localStorage.removeItem(key);
+      }
+    } catch {
+      // Browser storage can be unavailable; the memory cache is already cleared.
+    }
+  }
 }

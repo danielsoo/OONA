@@ -45,3 +45,8 @@ export function setCachedBusinessInvites(
 ) {
   cache.set(key(uid, box), { items, expiresAt: Date.now() + TTL_MS });
 }
+
+/** Forget a cached list, so the next load fetches it (e.g. after sending an invite). */
+export function invalidateBusinessInvites(uid: string, box: InviteBox) {
+  cache.delete(key(uid, box));
+}

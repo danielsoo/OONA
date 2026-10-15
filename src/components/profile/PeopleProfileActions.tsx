@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
+import { useUiCopy } from "@/components/i18n/UiText";
 import BusinessInviteComposerModal from "@/components/messages/BusinessInviteComposerModal";
 import { useAuth } from "@/context/AuthContext";
 import { useTranslations } from "@/context/LocaleContext";
@@ -13,7 +15,14 @@ type Props = {
   displayName?: string;
   isSelf: boolean;
   initialFollowing: boolean;
+  /** Called after a follow or unfollow goes through, e.g. to update a follower count. */
+  onFollowChange?: (following: boolean) => void;
 };
+
+/** Dialogs go to <body>, so the styles of wherever the buttons sit don't reach into them. */
+function Portal({ children }: { children: ReactNode }) {
+  return typeof document === "undefined" ? null : createPortal(children, document.body);
+}
 
 export default function PeopleProfileActions({
   profileUid,
@@ -21,9 +30,12 @@ export default function PeopleProfileActions({
   displayName,
   isSelf,
   initialFollowing,
+  onFollowChange,
 }: Props) {
   const { user, loading: authLoading } = useAuth();
   const { t } = useTranslations();
+  const copy = useUiCopy();
+  const [notice, setNotice] = useState<string | null>(null);
   const router = useRouter();
   const [following, setFollowing] = useState(initialFollowing);
   const [busy, setBusy] = useState(false);
@@ -49,7 +61,9 @@ export default function PeopleProfileActions({
             </button>
           ))}
         </div>
-        <SocietyLoginDialog open={!authLoading && loginOpen} onClose={() => setLoginOpen(false)} returnTo={`/people/${encodeURIComponent(handle)}`} />
+        <Portal>
+          <SocietyLoginDialog open={!authLoading && loginOpen} onClose={() => setLoginOpen(false)} returnTo={`/people/${encodeURIComponent(handle)}`} />
+        </Portal>
       </div>
     );
   }
@@ -57,6 +71,7 @@ export default function PeopleProfileActions({
   const toggleFollow = async () => {
     if (!user || authLoading) return;
     setBusy(true);
+    setNotice(null);
     try {
       const token = await user.getIdToken();
       const method = following ? "DELETE" : "POST";
@@ -64,7 +79,14 @@ export default function PeopleProfileActions({
         method,
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (res.ok) setFollowing(!following);
+      if (res.ok) {
+        setFollowing(!following);
+        onFollowChange?.(!following);
+      } else {
+        setNotice(copy("That didn't go through. Please try again."));
+      }
+    } catch {
+      setNotice(copy("That didn't go through. Please try again."));
     } finally {
       setBusy(false);
     }
@@ -73,6 +95,7 @@ export default function PeopleProfileActions({
   const startDm = async () => {
     if (!user || authLoading) return;
     setBusy(true);
+    setNotice(null);
     try {
       const token = await user.getIdToken();
       const res = await fetch("/api/me/dm/threads", {
@@ -83,10 +106,16 @@ export default function PeopleProfileActions({
         },
         body: JSON.stringify({ targetUid: profileUid }),
       });
-      const data = (await res.json()) as { threadId?: string; message?: string };
+      const data = (await res.json().catch(() => ({}))) as { threadId?: string; error?: string };
       if (res.ok && data.threadId) {
         router.push(`/messages/${data.threadId}`);
+      } else if (data.error === "blocked") {
+        setNotice(copy("You can't message this person."));
+      } else {
+        setNotice(copy("Couldn't open the conversation. Please try again."));
       }
+    } catch {
+      setNotice(copy("Couldn't open the conversation. Please try again."));
     } finally {
       setBusy(false);
     }
@@ -100,6 +129,7 @@ export default function PeopleProfileActions({
       <button
         type="button"
         disabled={busy}
+        aria-pressed={following}
         onClick={() => void toggleFollow()}
         className={following ? btnOutline : "px-4 py-2 rounded-lg text-sm font-medium bg-xiio-accent text-white disabled:opacity-40"}
       >
@@ -116,11 +146,18 @@ export default function PeopleProfileActions({
       >
         {t("dm.invites.composerTitle")}
       </button>
+      {notice ? <p role="status" className="w-full text-[13px] text-amber-200/90">{notice}</p> : null}
       {inviteComposerOpen && (
-        <BusinessInviteComposerModal
-          presetRecipient={{ uid: profileUid, handle, displayName: displayName || handle }}
-          onClose={() => setInviteComposerOpen(false)}
-        />
+        <Portal>
+          <BusinessInviteComposerModal
+            presetRecipient={{ uid: profileUid, handle, displayName: displayName || handle }}
+            onClose={() => setInviteComposerOpen(false)}
+            onSent={() => {
+              setInviteComposerOpen(false);
+              setNotice(copy("Invitation sent. You can follow it in Society → Sent."));
+            }}
+          />
+        </Portal>
       )}
     </div>
   );

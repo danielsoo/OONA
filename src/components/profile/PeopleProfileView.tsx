@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useTranslations } from "@/context/LocaleContext";
-import SocietyProfileBody from "@/components/society/SocietyProfileBody";
+import SocietyProfileBody, { type ProfileTab } from "@/components/society/SocietyProfileBody";
 import SocietyPublicProfileHero from "@/components/society/SocietyPublicProfileHero";
 import type { HeroBackgroundId } from "@/lib/heroBackgroundPresets";
 import type { DirectorNameChangeRequest } from "@/types/user";
@@ -54,12 +54,33 @@ type Props = {
   handle: string;
 };
 
+const TAB_HASHES: Record<string, ProfileTab> = { "#works": "works", "#about": "about", "#credits": "credits" };
+
+/** The profile's tab, kept in the URL hash (#works, #about, #credits) so it can be linked to. */
+function useProfileTab(): [ProfileTab, (tab: ProfileTab) => void] {
+  const [tab, setTab] = useState<ProfileTab>("works");
+  useEffect(() => {
+    const fromHash = () => setTab(TAB_HASHES[window.location.hash] ?? "works");
+    fromHash();
+    window.addEventListener("hashchange", fromHash);
+    return () => window.removeEventListener("hashchange", fromHash);
+  }, []);
+  const choose = useCallback((next: ProfileTab) => {
+    setTab(next);
+    const url = new URL(window.location.href);
+    url.hash = next === "works" ? "" : next;
+    window.history.replaceState(window.history.state, "", url.toString());
+  }, []);
+  return [tab, choose];
+}
+
 export default function PeopleProfileView({ handle }: Props) {
   const { t } = useTranslations();
   const { user } = useAuth();
   const [data, setData] = useState<PeopleProfilePayload | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [tab, setTab] = useProfileTab();
 
   const load = useCallback(async () => {
     if (!handle) return;
@@ -98,7 +119,6 @@ export default function PeopleProfileView({ handle }: Props) {
   }
 
   const isSelf = !!user && data.viewer?.uid === user.uid && data.profile.uid === user.uid;
-  const works = [...data.directed, ...data.credited];
 
   return (
     <main className={styles.page}>
@@ -119,8 +139,17 @@ export default function PeopleProfileView({ handle }: Props) {
         profileUid={data.profile.uid}
         isSelf={isSelf}
         isFollowing={!!user && data.viewer?.uid === user.uid && !!data.viewer.isFollowing}
+        tab={tab}
+        onTab={setTab}
+        counts={{ works: data.directed.length, credits: data.credited.length }}
       />
-        <SocietyProfileBody works={works} isSelf={isSelf} />
+        <SocietyProfileBody
+          tab={tab}
+          works={data.directed}
+          credits={data.credited}
+          profile={data.profile}
+          isSelf={isSelf}
+        />
       </div>
     </main>
   );

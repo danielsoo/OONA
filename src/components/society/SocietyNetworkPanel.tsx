@@ -3,6 +3,7 @@
 import Image, { type StaticImageData } from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { invalidateCache } from "@/lib/feedCache";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import BusinessInviteComposerModal, {
   type PresetRecipient,
@@ -19,7 +20,7 @@ import {
   primaryRoleLabelKey,
 } from "@/lib/societyMockData";
 import { loadFollowingUids, loadSocietyPeople, updateFollowingUid } from "@/lib/societyPeopleCache";
-import { loadBusinessInvites, setCachedBusinessInvites, type InviteBox } from "@/lib/societyInviteCache";
+import { invalidateBusinessInvites, loadBusinessInvites, setCachedBusinessInvites, type InviteBox } from "@/lib/societyInviteCache";
 import type { SocietyPerson } from "@/lib/societyTypes";
 import type { BusinessInviteListItem } from "@/types/business-invite";
 import type { ProfileRoleTag } from "@/types/portfolio";
@@ -150,6 +151,8 @@ export default function SocietyNetworkPanel({ activeTab, onTabChange }: Props) {
   const [invites, setInvites] = useState<BusinessInviteListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // A failed action (connect, message) shows here, without replacing the list.
+  const [notice, setNotice] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [role, setRole] = useState<"" | ProfileRoleTag>("");
@@ -181,8 +184,10 @@ export default function SocietyNetworkPanel({ activeTab, onTabChange }: Props) {
         loadSocietyPeople(user, { followingOnly }),
         user ? loadFollowingUids(user) : Promise.resolve([]),
       ]);
-      setPeople(result.people);
-      setSelectedUid((current) => current && result.people.some((person) => person.uid === current) ? current : result.people[0]?.uid ?? null);
+      // You aren't someone to discover or connect with.
+      const others = result.people.filter((person) => person.uid !== user?.uid);
+      setPeople(others);
+      setSelectedUid((current) => current && others.some((person) => person.uid === current) ? current : others[0]?.uid ?? null);
       if (user) setFollowing(new Set(followingUids));
     } catch {
       setError("We couldn’t load the creator directory. Please try again.");
@@ -232,8 +237,16 @@ export default function SocietyNetworkPanel({ activeTab, onTabChange }: Props) {
 
   const selected = filteredPeople.find((person) => person.uid === selectedUid) ?? filteredPeople[0] ?? null;
 
+  // Wide screens show the person in the side panel; narrow ones have no side
+  // panel in view (it falls below the whole grid), so open their profile.
+  const selectPerson = (person: SocietyPerson) => {
+    if (window.matchMedia("(max-width: 820px)").matches) router.push(`/people/${person.handle}`);
+    else setSelectedUid(person.uid);
+  };
+
   const toggleConnection = async (person: SocietyPerson) => {
     if (!requireUser() || !user) return;
+    setNotice(null);
     const connected = following.has(person.uid);
     const previousFollowing = following;
     const previousPeople = people;
@@ -255,11 +268,13 @@ export default function SocietyNetworkPanel({ activeTab, onTabChange }: Props) {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!response.ok) throw new Error("connection_failed");
+      // My Connections is cached; make it fetch the new list next time.
+      invalidateCache(`society:people:following:${user.uid}`);
     } catch {
       setFollowing(previousFollowing);
       setPeople(previousPeople);
       updateFollowingUid(user.uid, person.uid, connected);
-      setError("That connection could not be updated. Please try again.");
+      setNotice(_copy("That didn't go through. Please try again."));
     } finally {
       setBusyId(null);
     }
@@ -268,6 +283,7 @@ export default function SocietyNetworkPanel({ activeTab, onTabChange }: Props) {
   const startMessage = async (uid: string) => {
     if (!requireUser() || !user) return;
     setBusyId(uid);
+    setNotice(null);
     try {
       const token = await user.getIdToken();
       const response = await fetch("/api/me/dm/threads", {
@@ -275,8 +291,12 @@ export default function SocietyNetworkPanel({ activeTab, onTabChange }: Props) {
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify({ targetUid: uid }),
       });
-      const data = (await response.json()) as { threadId?: string };
+      const data = (await response.json().catch(() => ({}))) as { threadId?: string; error?: string };
       if (response.ok && data.threadId) router.push(`/messages/${data.threadId}`);
+      else if (data.error === "blocked") setNotice(_copy("You can't message this person."));
+      else setNotice(_copy("Couldn't open the conversation. Please try again."));
+    } catch {
+      setNotice(_copy("Couldn't open the conversation. Please try again."));
     } finally {
       setBusyId(null);
     }
@@ -355,6 +375,8 @@ export default function SocietyNetworkPanel({ activeTab, onTabChange }: Props) {
         ))}
       </nav>
 
+      {notice ? <p role="status" className={styles.notice}>{notice}<button type="button" onClick={() => setNotice(null)} aria-label={_copy("Dismiss")}>×</button></p> : null}
+
       {(activeTab === "discover" || activeTab === "connections") ? (
         <>
           <div className={styles.toolbar}>
@@ -374,7 +396,7 @@ export default function SocietyNetworkPanel({ activeTab, onTabChange }: Props) {
                 <div className={styles.sectionHeading}><div><p><UiText text={"CURATED FOR YOU"} /></p><h2><UiText text={"Discover creators"} /></h2></div><span>{filteredPeople.length}{" "}<UiText text={"people"} /></span></div>
                 {loading ? <div className={styles.loading}><UiText text={"Finding creators…"} /></div> : error ? <EmptyState title={_copy("Directory unavailable")} body={error} /> : filteredPeople.length === 0 ? <EmptyState title={_copy("No matches yet")} body={_copy("Try a broader search or remove one of the filters.")} /> : (
                   <div className={styles.creatorGrid}>
-                    {filteredPeople.map((person, index) => <PersonCard key={person.uid} person={person} index={index} selected={selected?.uid === person.uid} connected={following.has(person.uid)} busy={busyId === person.uid} canInteract={canInteract} authLoading={authLoading} onSelect={() => setSelectedUid(person.uid)} onConnect={() => void toggleConnection(person)} />)}
+                    {filteredPeople.map((person, index) => <PersonCard key={person.uid} person={person} index={index} selected={selected?.uid === person.uid} connected={following.has(person.uid)} busy={busyId === person.uid} canInteract={canInteract} authLoading={authLoading} onSelect={() => selectPerson(person)} onConnect={() => void toggleConnection(person)} />)}
                   </div>
                 )}
               </div>
@@ -400,7 +422,7 @@ export default function SocietyNetworkPanel({ activeTab, onTabChange }: Props) {
               ) : null}
             </div>
           ) : (
-            <ConnectionsView people={filteredPeople} available={availableConnections} others={otherConnections} loading={loading} error={error} busyId={busyId} onMessage={startMessage} onInvite={openInvite} onRemove={toggleConnection} requireUser={requireUser} />
+            <ConnectionsView people={filteredPeople} available={availableConnections} others={otherConnections} loading={loading} error={error} busyId={busyId} onMessage={startMessage} onInvite={openInvite} onRemove={toggleConnection} requireUser={requireUser} signedIn={Boolean(user)} onFindCreators={() => onTabChange("discover")} />
           )}
         </>
       ) : activeTab === "requests" || activeTab === "sent" ? (
@@ -413,7 +435,13 @@ export default function SocietyNetworkPanel({ activeTab, onTabChange }: Props) {
       )}
 
       <SocietyLoginDialog open={!authLoading && !user && loginReturnTo !== null} returnTo={loginReturnTo ?? "/society"} onClose={() => setLoginReturnTo(null)} />
-      {canInteract && inviteRecipient ? <BusinessInviteComposerModal presetRecipient={inviteRecipient} onClose={() => setInviteRecipient(null)} onSent={() => { setInviteRecipient(null); onTabChange("sent"); }} /> : null}
+      {canInteract && inviteRecipient ? <BusinessInviteComposerModal presetRecipient={inviteRecipient} onClose={() => setInviteRecipient(null)} onSent={() => {
+        setInviteRecipient(null);
+        // Show the new invite: drop the cached Sent list, and reload if already there.
+        if (user) invalidateBusinessInvites(user.uid, "sent");
+        if (activeTab === "sent") void loadInvites();
+        else onTabChange("sent");
+      }} /> : null}
     </section>
   );
 }
@@ -429,6 +457,8 @@ function ConnectionsView({
   onInvite,
   onRemove,
   requireUser,
+  signedIn,
+  onFindCreators,
 }: {
   people: SocietyPerson[];
   available: SocietyPerson[];
@@ -440,11 +470,13 @@ function ConnectionsView({
   onInvite: (person: SocietyPerson) => void;
   onRemove: (person: SocietyPerson) => Promise<void>;
   requireUser: () => boolean;
+  signedIn: boolean;
+  onFindCreators: () => void;
 }) {
   const _copy = useUiCopy();
   if (loading) return <div className={styles.loading}><UiText text={"Loading your connections…"} /></div>;
   if (error) return <EmptyState title={_copy("Connections unavailable")} body={error} />;
-  if (people.length === 0) return <EmptyState title={_copy("Your circle starts here")} body={_copy("Follow creators in Discover and they’ll appear here for quick collaboration.")} action={<button className={styles.primaryButton} type="button" onClick={requireUser}><UiText text={"Sign in to connect"} /></button>} />;
+  if (people.length === 0) return <EmptyState title={_copy("Your circle starts here")} body={_copy("Follow creators in Discover and they’ll appear here for quick collaboration.")} action={signedIn ? <button className={styles.primaryButton} type="button" onClick={onFindCreators}><UiText text={"Find creators"} /></button> : <button className={styles.primaryButton} type="button" onClick={requireUser}><UiText text={"Sign in to connect"} /></button>} />;
 
   const renderRows = (rows: SocietyPerson[]) => rows.map((person) => (
     <article className={styles.connectionRow} key={person.uid}>

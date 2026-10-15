@@ -54,7 +54,11 @@ export async function loadSocietyPeople(
       }
 
       const suffix = params.size > 0 ? `?${params.toString()}` : "";
-      const response = await fetch(`/api/discover/people${suffix}`, { headers });
+      const response = await fetch(`/api/discover/people${suffix}`, {
+        headers,
+        // The following-only list changes as you connect; don't let the browser reuse an old copy.
+        cache: options.followingOnly ? "no-store" : "default",
+      });
       if (!response.ok) throw new Error("society_people_failed");
       const body = (await response.json()) as { people?: SocietyPerson[] };
       return { people: body.people ?? [] };

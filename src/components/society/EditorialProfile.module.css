@@ -33,12 +33,14 @@
   padding: 52px 0 42px;
 }
 .titleColumn > p,
-.worksSection > header p {
+.worksSection > header p,
+.aboutSection > header p {
   margin: 0 0 16px;
   color: #8195a3;
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.28em;
+  text-transform: uppercase;
 }
 .titleColumn h1 {
   margin: 0;
@@ -159,9 +161,14 @@
   font: inherit !important;
   font-size: 13px !important;
 }
-.heroActions .primary {
+.heroActions .primary,
+.heroActions button[aria-pressed="false"] {
   border-color: #72d8f6 !important;
   color: #92e7ff !important;
+}
+.heroActions a:hover,
+.heroActions button:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.05) !important;
 }
 .external {
   margin-top: 18px;
@@ -174,16 +181,31 @@
   border-top: 1px solid rgba(181, 196, 210, 0.15);
   border-bottom: 1px solid rgba(181, 196, 210, 0.15);
 }
-.profileTabs a {
+.profileTabs button {
   position: relative;
-  padding: 15px 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 0;
+  border: 0;
+  background: transparent;
   color: #7e8991;
+  font: inherit;
   font-size: 14px;
+  cursor: pointer;
+  transition: color 150ms ease;
 }
-.profileTabs a:first-child {
+.profileTabs button:hover {
+  color: #c9d1d6;
+}
+.profileTabs button:focus-visible {
+  outline: 2px solid #70d8f6;
+  outline-offset: 2px;
+}
+.profileTabs .profileTabOn {
   color: #edf0f2;
 }
-.profileTabs a:first-child:after {
+.profileTabs .profileTabOn:after {
   content: "";
   position: absolute;
   left: 0;
@@ -192,10 +214,15 @@
   height: 1px;
   background: #70d8f6;
 }
+.tabCount {
+  color: #6f7c85;
+  font-size: 12px;
+}
 .worksSection {
   padding: 46px 0;
 }
-.worksSection > header {
+.worksSection > header,
+.aboutSection > header {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
@@ -203,20 +230,23 @@
   padding-bottom: 17px;
   border-bottom: 1px solid rgba(181, 196, 210, 0.15);
 }
-.worksSection > header p {
+.worksSection > header p,
+.aboutSection > header p {
   margin-bottom: 9px;
 }
-.worksSection > header h2 {
+.worksSection > header h2,
+.aboutSection > header h2 {
   margin: 0;
   font-family: var(--font-serif), Georgia, serif;
   font-size: 42px;
   font-weight: 400;
 }
-.worksSection > header > div:last-child {
+.worksActions {
   display: flex;
   gap: 8px;
 }
-.worksSection > header a {
+.worksSection > header a,
+.aboutSection > header a {
   padding: 10px 14px;
   border: 1px solid rgba(184, 200, 211, 0.22);
   color: #bdc6cc;
@@ -275,6 +305,50 @@
   color: #83d5eb;
   font-size: 12px;
 }
+.aboutSection {
+  padding: 46px 0;
+}
+.aboutGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(240px, 1fr);
+  gap: clamp(28px, 5vw, 80px);
+  padding-top: 32px;
+}
+.aboutBio {
+  margin: 0;
+  color: #d6dadd;
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: 22px;
+  line-height: 1.55;
+  white-space: pre-line;
+}
+.aboutFacts {
+  display: grid;
+  align-content: start;
+  gap: 0;
+  margin: 0;
+  border-top: 1px solid rgba(181, 196, 210, 0.15);
+}
+.aboutFacts > div {
+  padding: 16px 0;
+  border-bottom: 1px solid rgba(181, 196, 210, 0.15);
+}
+.aboutFacts dt {
+  margin-bottom: 6px;
+  color: #7f8a92;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.aboutFacts dd {
+  margin: 0;
+  color: #e4e8ea;
+  font-size: 15px;
+  line-height: 1.5;
+}
+.aboutFacts a {
+  color: #78d9f4;
+}
 .emptyWorks {
   min-height: 240px;
   display: grid;
@@ -288,6 +362,9 @@
   font-size: 13px;
 }
 @media (max-width: 980px) {
+  .aboutGrid {
+    grid-template-columns: 1fr;
+  }
   .hero {
     grid-template-columns: 0.8fr 1.2fr;
   }

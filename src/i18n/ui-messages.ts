@@ -1823,5 +1823,53 @@ export const uiMessages: Record<string, readonly [string, string]> = {
   "explore oona": [
     "OONA 둘러보기",
     "OONAを見てまわる"
+  ],
+  "links": [
+    "링크",
+    "リンク"
+  ],
+  "profile sections": [
+    "프로필 섹션",
+    "プロフィールのセクション"
+  ],
+  "credited on other works": [
+    "다른 작품에 오른 크레딧",
+    "ほかの作品のクレジット"
+  ],
+  "no credits on other works yet.": [
+    "아직 다른 작품에 오른 크레딧이 없어요.",
+    "ほかの作品のクレジットはまだありません。"
+  ],
+  "no introduction yet.": [
+    "아직 소개가 없어요.",
+    "まだ自己紹介がありません。"
+  ],
+  "set up your profile so collaborators can see your work.": [
+    "프로필을 만들면 함께할 사람들이 내 작품을 볼 수 있어요.",
+    "プロフィールを作ると、共同制作の相手があなたの作品を見られます。"
+  ],
+  "that didn't go through. please try again.": [
+    "처리되지 않았어요. 다시 시도해 주세요.",
+    "うまくいきませんでした。もう一度お試しください。"
+  ],
+  "you can't message this person.": [
+    "이 사람에게는 메시지를 보낼 수 없어요.",
+    "この人にはメッセージを送れません。"
+  ],
+  "couldn't open the conversation. please try again.": [
+    "대화를 열지 못했어요. 다시 시도해 주세요.",
+    "会話を開けませんでした。もう一度お試しください。"
+  ],
+  "invitation sent. you can follow it in society → sent.": [
+    "초대를 보냈어요. Society → 보낸 초대에서 확인할 수 있어요.",
+    "招待を送りました。Society → 送信済みで確認できます。"
+  ],
+  "find creators": [
+    "크리에이터 찾기",
+    "クリエイターを探す"
+  ],
+  "dismiss": [
+    "닫기",
+    "閉じる"
   ]
 };
