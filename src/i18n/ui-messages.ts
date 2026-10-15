@@ -1824,6 +1824,10 @@ export const uiMessages: Record<string, readonly [string, string]> = {
     "OONA 둘러보기",
     "OONAを見てまわる"
   ],
+  "now showing on oona": [
+    "지금 OONA에서 상영 중",
+    "OONAで上映中"
+  ],
   "links": [
     "링크",
     "リンク"

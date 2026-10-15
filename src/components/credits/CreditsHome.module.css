@@ -43,7 +43,8 @@
 
 /* The roll on the left, one large screen on the right. */
 .side {
-  --side-roll-h: clamp(392px, calc(100svh - 300px), 504px);
+  /* "/" sets --home-roll-h to leave room for its row of works. */
+  --side-roll-h: var(--home-roll-h, clamp(392px, calc(100svh - 300px), 504px));
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -152,6 +153,11 @@
   line-height: 1.5;
 }
 
+/* "/" hides the note on short screens (CreditsFirstHome.module.css). */
+.sideFoot > span {
+  display: var(--side-foot-note, inline);
+}
+
 .sideScreenWrap {
   position: relative;
   flex: 999 1 640px;
@@ -160,6 +166,9 @@
 
 .sideScreen {
   position: relative;
+  /* Full width always; "/" may cap the height, and the picture crops. */
+  width: 100%;
+  max-height: var(--side-screen-max, none);
   aspect-ratio: 16 / 9;
   overflow: hidden;
   border-radius: 14px;

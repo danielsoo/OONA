@@ -7,6 +7,7 @@ import UiText, { useUiCopy } from "@/components/i18n/UiText";
 import { HOME_TO_TOP_EVENT } from "@/lib/home-events";
 import { isNewVisit, markActive, readLastActiveAt } from "@/lib/visit-clock";
 import CinematicHomePage from "./CinematicHomePage";
+import HomeWorksStrip from "./HomeWorksStrip";
 import CreditsLightIntro from "./CreditsLightIntro";
 import styles from "./CreditsFirstHome.module.css";
 
@@ -421,7 +422,8 @@ function DownIcon() {
 
 /**
  * The main home: the credits roll fills the first screen ("Stay for the
- * credits"), and one scroll down glides to the cinematic home, which pops in.
+ * credits") over a row of many small works, and one scroll down glides to the
+ * cinematic home, which pops in.
  * With no credits yet (or if they fail to load) the cinematic home shows as before.
  */
 export default function CreditsFirstHome() {
@@ -463,10 +465,16 @@ export default function CreditsFirstHome() {
               <>
                 <CreditsIntro />
                 <CreditsRoll works={works} held={intro} />
-                <button type="button" className={styles.cue} onClick={scrollToHome}>
-                  <UiText text="Explore OONA" />
-                  <DownIcon />
-                </button>
+                <div className={styles.stripSlot}>
+                  <HomeWorksStrip
+                    action={
+                      <button type="button" className={styles.cue} onClick={scrollToHome}>
+                        <UiText text="Explore OONA" />
+                        <DownIcon />
+                      </button>
+                    }
+                  />
+                </div>
               </>
             ) : (
               <p className={styles.loading} role="status">

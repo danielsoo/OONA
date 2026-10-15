@@ -7,6 +7,22 @@ section.first {
   padding-top: 104px;
   padding-bottom: 24px;
   overflow: hidden;
+  /* The roll and the large screen give up height so the row of works below
+     them fits on the first screen too (read by CreditsHome.module.css and
+     HomeWorksStrip.module.css). */
+  --strip-thumb-w: clamp(150px, 11.5vw, 236px);
+  --strip-thumb-h: calc(var(--strip-thumb-w) * 0.5625);
+  --side-screen-max: max(220px, calc(100svh - 316px - var(--strip-thumb-h)));
+  --home-roll-h: clamp(200px, calc(100svh - 444px - var(--strip-thumb-h)), 504px);
+}
+
+/* Short screens: the roll's note goes (the pause button stays) to keep the
+   row of works in view. */
+@media (max-height: 860px) {
+  section.first {
+    --side-foot-note: none;
+    --home-roll-h: clamp(200px, calc(100svh - 380px - var(--strip-thumb-h)), 504px);
+  }
 }
 
 .firstInner {
@@ -17,13 +33,19 @@ section.first {
   will-change: transform, opacity;
 }
 
+/* The row of works sits at the bottom of the first screen. */
+.stripSlot {
+  margin-top: auto;
+  padding-top: 22px;
+}
+
 .cue {
   display: inline-flex;
   min-height: 44px;
+  flex-shrink: 0;
   align-items: center;
   gap: 8px;
-  align-self: center;
-  margin-top: auto;
+  margin-right: -18px;
   padding: 8px 18px;
   border: 0;
   border-radius: 999px;
