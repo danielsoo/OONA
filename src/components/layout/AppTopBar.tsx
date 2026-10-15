@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { useTranslations } from "@/context/LocaleContext";
 import ProfileAvatar from "@/components/ProfileAvatar";
@@ -11,8 +11,6 @@ import { useAdminAccess } from "@/hooks/useAdminAccess";
 import { getUserProfile } from "@/lib/userProfile";
 import { MOCKUP_HOME } from "@/lib/mockupHomeSpec";
 import XiioWordmark from "@/components/layout/XiioWordmark";
-import TopBarSearch from "@/components/search/TopBarSearch";
-import { AppNavIconSvg } from "@/components/layout/AppNavIcon";
 import { ButtonLink } from "@/components/ui/Button";
 import { UPLOAD_HREF } from "@/lib/appNav";
 import type { UserProfileDoc } from "@/types/user";
@@ -26,8 +24,6 @@ export default function AppTopBar({ onMenuOpen }: Props) {
   const { user, logout } = useAuth();
   const { isAdmin, checked: adminChecked } = useAdminAccess();
   const router = useRouter();
-  const pathname = usePathname();
-  const onSearchPage = pathname === "/search" || pathname.startsWith("/search/");
   const [profile, setProfile] = useState<UserProfileDoc | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -75,20 +71,7 @@ export default function AppTopBar({ onMenuOpen }: Props) {
         <XiioWordmark className="!h-[14px]" />
       </Link>
 
-      {!onSearchPage ? (
-        <TopBarSearch className={`mx-auto hidden md:block ${MOCKUP_HOME.searchBar}`} />
-      ) : null}
-
       <div className="ml-auto flex items-center gap-1 shrink-0">
-        {!onSearchPage ? (
-          <Link
-            href="/search"
-            className="md:hidden p-2 text-ink-2 hover:text-ink"
-            aria-label={t("ui.shell.openSearch")}
-          >
-            <AppNavIconSvg icon="search" className="w-5 h-5" />
-          </Link>
-        ) : null}
         <ButtonLink
           href={user ? UPLOAD_HREF : "/login"}
           variant="accent"

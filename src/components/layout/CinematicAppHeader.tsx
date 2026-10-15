@@ -5,7 +5,6 @@ import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import ProfileAvatar from "@/components/ProfileAvatar";
 import NotificationBell from "@/components/notifications/NotificationBell";
-import TopBarSearch from "@/components/search/TopBarSearch";
 import XiioWordmark from "@/components/layout/XiioWordmark";
 import { useAuth } from "@/context/AuthContext";
 import { useDmUnreadCount } from "@/context/DmUnreadContext";
@@ -37,15 +36,6 @@ const mobileExtras = [
 
 function isActive(pathname: string, matches: readonly string[]): boolean {
   return matches.some((path) => path === "/" ? pathname === "/" : pathname === path || pathname.startsWith(`${path}/`));
-}
-
-function SearchIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" className={styles.icon}>
-      <circle cx="11" cy="11" r="6.5" />
-      <path d="m16 16 4 4" />
-    </svg>
-  );
 }
 
 function UploadIcon() {
@@ -159,8 +149,6 @@ export default function CinematicAppHeader() {
       </nav>
 
       <div className={styles.actions}>
-        <TopBarSearch className={styles.search} />
-        <Link href="/search" className={styles.mobileSearch} aria-label={_copy("Search")}><SearchIcon /></Link>
         <div className={styles.notification}><NotificationBell /></div>
         {authLoading ? (
           <span className={styles.avatarSkeleton} aria-hidden="true" />

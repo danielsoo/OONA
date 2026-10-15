@@ -7,8 +7,7 @@
   height: 82px;
   display: grid;
   /* Logo | nav | actions with equal side columns, so the nav sits in the
-     middle of the page; the search box narrows (down to 160px) before the
-     nav would run into it, and only on narrow screens does the nav give way. */
+     middle of the page. */
   grid-template-columns: minmax(min-content, 1fr) auto minmax(min-content, 1fr);
   align-items: center;
   gap: clamp(36px, 3.6vw, 56px);
@@ -83,24 +82,8 @@
 }
 
 .actions { justify-self: end; display: flex; align-items: center; gap: 11px; min-width: 0; width: 100%; justify-content: flex-end; }
-.actions > :not(.search) { flex-shrink: 0; }
+.actions > * { flex-shrink: 0; }
 .signIn { white-space: nowrap; }
-.search { width: 160px; max-width: min(306px, 24vw); flex: 1 1 auto; min-width: 0; height: 39px; color: #d6e4f7; }
-.search > label { display: block; width: 100%; height: 100%; }
-.search input {
-  width: 100%;
-  height: 100%;
-  min-width: 0;
-  border: 1px solid rgba(135, 189, 226, 0.25);
-  border-radius: 999px;
-  outline: 0;
-  background: rgba(10, 10, 10, 0.82);
-  color: white;
-  font: inherit;
-  font-size: 12px;
-}
-.search input::placeholder { color: rgba(215, 226, 242, 0.62); }
-.search:focus-within input { border-color: rgba(116, 199, 255, 0.6); box-shadow: 0 0 24px rgba(46, 134, 205, 0.12); }
 
 .icon {
   width: 19px;
@@ -111,7 +94,6 @@
   stroke-linecap: round;
   stroke-linejoin: round;
 }
-.mobileSearch { display: none; width: 34px; height: 34px; place-items: center; border-radius: 50%; color: #e6edf8; }
 .notification { color: #e6edf8; }
 .notification > div > button { width: 36px; height: 36px; display: grid; place-items: center; padding: 0; }
 .notification > div > button svg { width: 19px; height: 19px; }
@@ -181,15 +163,12 @@
   .header { gap: clamp(44px, 3.2vw, 72px); }
   .logo { width: clamp(128px, 8vw, 156px); }
   .nav { gap: clamp(42px, 3vw, 64px); font-size: clamp(13px, 0.8vw, 17px); }
-  .search { max-width: clamp(306px, 17vw, 380px); height: 42px; }
-  .search input { font-size: 13px; }
   .signIn { height: 38px; padding: 0 18px; font-size: 13px; }
 }
 
 @media (max-width: 1180px) {
   .header { gap: 28px; }
   .nav { gap: 21px; }
-  .search { width: 140px; }
 }
 
 @media (max-width: 1040px) {
@@ -235,15 +214,13 @@
   .mobileExtras { display: flex; flex-direction: column; gap: 2px; margin-top: 7px; padding-top: 7px; border-top: 1px solid rgba(130, 182, 221, 0.14); }
   .mobileExtras a { display: flex; align-items: center; justify-content: space-between; padding: 11px 13px; }
   .mobileExtras .icon { width: 15px; height: 15px; }
-  .search { display: none; }
-  .mobileSearch { display: grid; }
 }
 
 @media (max-width: 600px) {
   .header { --header-pad: 20px; }
   .menuButton, .notification { display: none; }
   .actions { gap: 5px; }
-  .mobileSearch, .notification > div > button { width: 32px; height: 32px; }
+  .notification > div > button { width: 32px; height: 32px; }
   .signIn { width: 32px; height: 32px; overflow: hidden; padding: 0; border-radius: 50%; font-size: 0; }
   .signIn::after { content: "→"; font-size: 15px; }
 }
