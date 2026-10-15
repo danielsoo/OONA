@@ -10,7 +10,8 @@ section.first {
   /* The roll and the large screen give up height so the row of works below
      them fits on the first screen too (read by CreditsHome.module.css and
      HomeWorksStrip.module.css). */
-  --strip-thumb-w: clamp(150px, 11.5vw, 236px);
+  /* Six thumbnails across the page (HomeWorksStrip.module.css: 14px gaps). */
+  --strip-thumb-w: calc((100vw - 2 * var(--page-pad) - 70px) / 6);
   --strip-thumb-h: calc(var(--strip-thumb-w) * 0.5625);
   --side-screen-max: max(220px, calc(100svh - 316px - var(--strip-thumb-h)));
   --home-roll-h: clamp(200px, calc(100svh - 444px - var(--strip-thumb-h)), 504px);
@@ -21,7 +22,7 @@ section.first {
 @media (max-height: 860px) {
   section.first {
     --side-foot-note: none;
-    --home-roll-h: clamp(200px, calc(100svh - 380px - var(--strip-thumb-h)), 504px);
+    --home-roll-h: clamp(176px, calc(100svh - 380px - var(--strip-thumb-h)), 504px);
   }
 }
 

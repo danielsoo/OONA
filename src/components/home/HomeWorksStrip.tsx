@@ -11,9 +11,8 @@ import type { CatalogFeedItem } from "@/types/work";
 import UiText, { useUiCopy } from "@/components/i18n/UiText";
 import styles from "./HomeWorksStrip.module.css";
 
-const STRIP_MAX = 24;
-/** Placeholders while the feeds load, so the first screen doesn't jump. */
-const SKELETON_COUNT = 10;
+/** Six works fit side by side on the first screen. */
+const STRIP_MAX = 6;
 
 const fallbackImages = [
   "/images/hero/home-under-water.png",
@@ -34,10 +33,10 @@ function rank(seed: string, id: string): number {
 }
 
 /**
- * The first screen's bottom row: many works, small, so a visitor sees there is
+ * The first screen's bottom row: up to six works, so a visitor sees there is
  * plenty here before scrolling. Each work shows once (no repeats to pad the
- * row); the order is shuffled once per visit (like the credits) and stays put
- * while the three feeds arrive.
+ * row); which six, and their order, is shuffled once per visit (like the
+ * credits) and stays put while the three feeds arrive.
  */
 export default function HomeWorksStrip({ action }: { action?: ReactNode }) {
   const copy = useUiCopy();
@@ -69,7 +68,7 @@ export default function HomeWorksStrip({ action }: { action?: ReactNode }) {
       </div>
       <div className={styles.rail}>
         {works.length === 0
-          ? Array.from({ length: SKELETON_COUNT }, (_, i) => (
+          ? Array.from({ length: STRIP_MAX }, (_, i) => (
               <span key={i} className={styles.card} aria-hidden="true">
                 <span className={`${styles.thumb} ${styles.skeleton}`} />
                 <span className={styles.cardTitle}>&nbsp;</span>
@@ -91,7 +90,7 @@ function StripCard({ work, index }: { work: CatalogFeedItem; index: number }) {
           alt=""
           fill
           unoptimized={image.startsWith("http://") || image.startsWith("https://")}
-          sizes="236px"
+          sizes="(max-width: 480px) 50vw, (max-width: 760px) 33vw, 17vw"
           className={styles.image}
           style={work.thumbnailCrop ? promoCropToVideoStyle(work.thumbnailCrop) : undefined}
         />

@@ -1,8 +1,5 @@
-/* "/" — the row of small works at the bottom of the credits screen. */
-.strip {
-  --thumb-w: var(--strip-thumb-w, clamp(150px, 11.5vw, 236px));
-}
-
+/* "/" — the row of works at the bottom of the credits screen: up to six,
+   side by side across the full width, all on screen at once. */
 .head {
   display: flex;
   align-items: center;
@@ -21,30 +18,20 @@
 }
 
 .rail {
-  display: flex;
+  /* Keep in step with --strip-thumb-w in CreditsFirstHome.module.css. */
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 14px;
-  overflow-x: auto;
   padding: 2px 0 4px;
-  scroll-snap-type: x proximity;
-  scrollbar-width: none;
-  /* The row runs on past the edge: there is more to the right. */
-  -webkit-mask-image: linear-gradient(90deg, #000 88%, transparent);
-  mask-image: linear-gradient(90deg, #000 88%, transparent);
-}
-
-.rail::-webkit-scrollbar {
-  display: none;
 }
 
 .card {
   display: flex;
-  flex: 0 0 var(--thumb-w);
   min-width: 0;
   flex-direction: column;
   gap: 8px;
   color: rgba(229, 235, 248, 0.74);
   font-size: 13px;
-  scroll-snap-align: start;
   transition: color 150ms ease;
 }
 
@@ -95,6 +82,20 @@
   display: flex;
   justify-content: center;
   margin-top: auto;
+}
+
+/* Narrow screens (the row is below the credits there): three, then two, a row. */
+@media (max-width: 760px) {
+  .rail {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    row-gap: 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .rail {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @keyframes pulse {
