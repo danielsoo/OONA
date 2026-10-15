@@ -6,10 +6,11 @@ import { useTranslations } from "@/context/LocaleContext";
 import styles from "./LanguageSwitcher.module.css";
 
 /**
- * The language picker: a pill showing the current language that opens a
- * small menu of the others (a listbox: arrow keys, Enter, Escape).
+ * The language picker: a pill showing the current language (or, with
+ * variant "icon", just a globe) that opens a small menu of the others (a
+ * listbox: arrow keys, Enter, Escape).
  */
-export default function LanguageSwitcher() {
+export default function LanguageSwitcher({ variant = "pill" }: { variant?: "pill" | "icon" }) {
   const { locale, setLocale, t } = useTranslations();
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -62,7 +63,7 @@ export default function LanguageSwitcher() {
       <button
         ref={buttonRef}
         type="button"
-        className={`${styles.button} ${open ? styles.buttonOpen : ""}`}
+        className={`${styles.button} ${variant === "icon" ? styles.iconButton : ""} ${open ? styles.buttonOpen : ""}`}
         aria-label={`${t("settings.language")}: ${current.label}`}
         aria-haspopup="listbox"
         aria-expanded={open}
@@ -116,6 +117,29 @@ export default function LanguageSwitcher() {
           })}
         </ul>
       ) : null}
+    </div>
+  );
+}
+
+/** The language choice as a row of three, for menus (the header's account menu). */
+export function LanguageMenuRow() {
+  const { locale, setLocale, t } = useTranslations();
+  return (
+    <div className={styles.menuRow} role="group" aria-label={t("settings.language")}>
+      <span className={styles.menuRowLabel}>
+        <svg className={styles.globe} viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="9" />
+          <path d="M3 12h18M12 3c2.6 2.5 3.9 5.5 3.9 9s-1.3 6.5-3.9 9c-2.6-2.5-3.9-5.5-3.9-9S9.4 5.5 12 3z" />
+        </svg>
+        {t("settings.language")}
+      </span>
+      <div className={styles.menuRowOptions}>
+        {LOCALES.map(({ code, label }) => (
+          <button key={code} type="button" lang={code} aria-pressed={code === locale} onClick={() => setLocale(code)}>
+            {label}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }

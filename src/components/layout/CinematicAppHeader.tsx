@@ -17,7 +17,7 @@ import { getUserProfile } from "@/lib/userProfile";
 import type { UserProfileDoc } from "@/types/user";
 import styles from "./CinematicAppHeader.module.css";
 import UiText, { useUiCopy } from "@/components/i18n/UiText";
-import LanguageSwitcher from "@/components/i18n/LanguageSwitcher";
+import LanguageSwitcher, { LanguageMenuRow } from "@/components/i18n/LanguageSwitcher";
 
 const navItems = [
   { label: "Home", href: "/", match: ["/"] },
@@ -159,7 +159,6 @@ export default function CinematicAppHeader() {
       </nav>
 
       <div className={styles.actions}>
-        <LanguageSwitcher />
         <TopBarSearch className={styles.search} />
         <Link href="/search" className={styles.mobileSearch} aria-label={_copy("Search")}><SearchIcon /></Link>
         <div className={styles.notification}><NotificationBell /></div>
@@ -194,6 +193,7 @@ export default function CinematicAppHeader() {
                 <Link href="/settings"><UiText text={"Settings"} /></Link>
                 <Link href="/about"><UiText text={"About OONA"} /></Link>
                 {adminChecked && isAdmin ? <Link href="/admin"><UiText text={"Admin Panel"} /></Link> : null}
+                <LanguageMenuRow />
                 <button
                   type="button"
                   onClick={() => void logout().then(() => router.push("/"))}
@@ -202,7 +202,11 @@ export default function CinematicAppHeader() {
             ) : null}
           </div>
         ) : (
-          <Link href="/login" className={styles.signIn}><UiText text={"Sign in"} /></Link>
+          <>
+            {/* Guests get a globe; signed in, the language is in the account menu. */}
+            <LanguageSwitcher variant="icon" />
+            <Link href="/login" className={styles.signIn}><UiText text={"Sign in"} /></Link>
+          </>
         )}
       </div>
     </header>

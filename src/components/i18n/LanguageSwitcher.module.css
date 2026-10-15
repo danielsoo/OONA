@@ -35,6 +35,19 @@
   outline-offset: 2px;
 }
 
+/* Icon variant: a round globe button (signed-out header). */
+.iconButton {
+  width: 35px;
+  justify-content: center;
+  padding: 0;
+}
+
+.iconButton .full,
+.iconButton .short,
+.iconButton .chevron {
+  display: none !important;
+}
+
 .globe,
 .chevron {
   flex-shrink: 0;
@@ -140,11 +153,59 @@
   }
 }
 
+/* The account menu's row: label, then the three languages side by side. */
+.menuRow {
+  margin-top: 4px;
+  padding: 10px 10px 8px;
+  border-top: 1px solid rgba(143, 177, 207, 0.14);
+}
+
+.menuRowLabel {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 8px;
+  color: rgba(208, 220, 235, 0.62);
+  font-size: 12px;
+}
+
+.menuRowOptions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.menuRowOptions button {
+  height: 32px;
+  border: 1px solid rgba(140, 186, 222, 0.2);
+  border-radius: 7px;
+  background: transparent;
+  color: rgba(230, 237, 247, 0.78);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.menuRowOptions button:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+}
+
+.menuRowOptions button[aria-pressed="true"] {
+  border-color: #7cc6ff;
+  background: rgba(124, 198, 255, 0.12);
+  color: #fff;
+}
+
 /* Big screens: in step with the header's larger type (CinematicAppHeader). */
 @media (min-width: 1440px) {
   .button {
     height: 38px;
     font-size: 13px;
+  }
+
+  .iconButton {
+    width: 38px;
   }
 }
 
