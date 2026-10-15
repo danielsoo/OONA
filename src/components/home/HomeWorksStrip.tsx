@@ -4,16 +4,16 @@ import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState, type ReactNode } from "react";
 import { useCatalogFeed } from "@/hooks/useCatalogFeed";
-import { fillCatalogItems, uniqueCatalogItems } from "@/lib/showcaseCatalog";
+import { uniqueCatalogItems } from "@/lib/showcaseCatalog";
 import { promoCropToVideoStyle } from "@/lib/works/promo-crop-interaction";
 import { watchHref } from "@/lib/works/catalog-ui";
 import type { CatalogFeedItem } from "@/types/work";
 import UiText, { useUiCopy } from "@/components/i18n/UiText";
 import styles from "./HomeWorksStrip.module.css";
 
-/** Enough small screens to read as "there is a lot to watch here". */
-const STRIP_MIN = 10;
 const STRIP_MAX = 24;
+/** Placeholders while the feeds load, so the first screen doesn't jump. */
+const SKELETON_COUNT = 10;
 
 const fallbackImages = [
   "/images/hero/home-under-water.png",
@@ -35,8 +35,9 @@ function rank(seed: string, id: string): number {
 
 /**
  * The first screen's bottom row: many works, small, so a visitor sees there is
- * plenty here before scrolling. The order is shuffled once per visit (like the
- * credits) and stays put while the three feeds arrive.
+ * plenty here before scrolling. Each work shows once (no repeats to pad the
+ * row); the order is shuffled once per visit (like the credits) and stays put
+ * while the three feeds arrive.
  */
 export default function HomeWorksStrip({ action }: { action?: ReactNode }) {
   const copy = useUiCopy();
@@ -46,12 +47,13 @@ export default function HomeWorksStrip({ action }: { action?: ReactNode }) {
   const loading = moviesLoading || seriesLoading || showsLoading;
   const [seed] = useState(() => Math.random().toString(36).slice(2));
 
-  const works = useMemo(() => {
-    const unique = uniqueCatalogItems([...movies, ...series, ...shows])
-      .sort((a, b) => rank(seed, a.id) - rank(seed, b.id))
-      .slice(0, STRIP_MAX);
-    return unique.length < STRIP_MIN ? fillCatalogItems(unique, STRIP_MIN) : unique;
-  }, [movies, series, shows, seed]);
+  const works = useMemo(
+    () =>
+      uniqueCatalogItems([...movies, ...series, ...shows])
+        .sort((a, b) => rank(seed, a.id) - rank(seed, b.id))
+        .slice(0, STRIP_MAX),
+    [movies, series, shows, seed]
+  );
 
   if (!loading && works.length === 0) {
     return action ? <div className={styles.actionOnly}>{action}</div> : null;
@@ -67,7 +69,7 @@ export default function HomeWorksStrip({ action }: { action?: ReactNode }) {
       </div>
       <div className={styles.rail}>
         {works.length === 0
-          ? Array.from({ length: STRIP_MIN }, (_, i) => (
+          ? Array.from({ length: SKELETON_COUNT }, (_, i) => (
               <span key={i} className={styles.card} aria-hidden="true">
                 <span className={`${styles.thumb} ${styles.skeleton}`} />
                 <span className={styles.cardTitle}>&nbsp;</span>
