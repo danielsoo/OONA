@@ -24,6 +24,16 @@
   backdrop-filter: none;
 }
 
+/* Society's Discover opens on a full-bleed picture (SocietyDiscover sets
+   data-society-hero while it is on screen). */
+:global(html[data-society-hero]) .header {
+  position: absolute;
+  border-bottom-color: transparent;
+  background: linear-gradient(180deg, rgba(1, 8, 15, 0.7) 0%, rgba(1, 8, 15, 0.22) 68%, transparent 100%);
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
 /* "/": stays on screen over the credits and the home (CreditsFirstHome sets
    data-home-header), turning solid once the rows pass under it. */
 .homeHeader {

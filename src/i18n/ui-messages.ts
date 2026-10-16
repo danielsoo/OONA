@@ -2032,4 +2032,92 @@ export const uiMessages: Record<string, readonly [string, string]> = {
     "창작자 {count}명",
     "{count}人のクリエイター"
   ],
+  "creator in focus": [
+    "주목할 크리에이터",
+    "注目のクリエイター"
+  ],
+  "one creator.": [
+    "한 사람.",
+    "ひとりの人。"
+  ],
+  "their work.": [
+    "그 사람의 작품.",
+    "その作品。"
+  ],
+  "their story.": [
+    "그리고 이야기.",
+    "そして物語。"
+  ],
+  "1 work on oona": [
+    "OONA 작품 1편",
+    "OONAの作品 1本"
+  ],
+  "{count} works on oona": [
+    "OONA 작품 {count}편",
+    "OONAの作品 {count}本"
+  ],
+  "credited on {title}.": [
+    "{title}에 참여했어요.",
+    "『{title}』に参加しました。"
+  ],
+  "credited on {first} and {second}.": [
+    "{first}, {second}에 참여했어요.",
+    "『{first}』『{second}』に参加しました。"
+  ],
+  "open to a new project.": [
+    "지금 새 프로젝트를 함께할 수 있어요.",
+    "いま新しいプロジェクトに参加できます。"
+  ],
+  "ask to work together": [
+    "함께 작업 제안하기",
+    "一緒に制作を提案する"
+  ],
+  "show creator {number}": [
+    "{number}번째 크리에이터 보기",
+    "{number}人目のクリエイターを見る"
+  ],
+  "in focus": [
+    "인 포커스",
+    "インフォーカス"
+  ],
+  "seen in": [
+    "참여작",
+    "参加作品"
+  ],
+  "read their story": [
+    "이야기 더 보기",
+    "ストーリーを読む"
+  ],
+  "meet the society": [
+    "Society 사람들",
+    "Societyのメンバー"
+  ],
+  "search people": [
+    "사람 찾기",
+    "人を探す"
+  ],
+  "filter people": [
+    "사람 거르기",
+    "絞り込み"
+  ],
+  "everyone": [
+    "전체",
+    "すべて"
+  ],
+  "open to work": [
+    "함께할 수 있는 사람",
+    "参加できる人"
+  ],
+  "no one matches yet.": [
+    "아직 맞는 사람이 없어요.",
+    "該当する人はまだいません。"
+  ],
+  "a society": [
+    "OONA Society,",
+    "OONA Society、"
+  ],
+  "different schools.": [
+    "서로 다른 학교에서,",
+    "学校は違っても、"
+  ],
 };

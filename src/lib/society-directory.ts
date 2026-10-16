@@ -4,10 +4,10 @@ import type { SocietyPerson } from "@/lib/societyTypes";
 import type { ProfileRoleTag } from "@/types/portfolio";
 
 /**
- * The Society directory the design variants draw from: the people in
- * Discover, joined with the confirmed credits on published works (the same
- * feed as the credits roll), so each person comes with what they made, with
- * whom, and at which school. Nothing here is mock data.
+ * The Society directory: the people in Discover, joined with the confirmed
+ * credits on published works (the same feed as the credits roll), so each
+ * person comes with what they made, with whom, and at which school. Nothing
+ * here is mock data.
  */
 
 export type DirWork = {
