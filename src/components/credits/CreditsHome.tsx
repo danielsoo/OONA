@@ -5,9 +5,10 @@ import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type React
 import UiText, { useUiCopy } from "@/components/i18n/UiText";
 import StreamHlsVideo from "@/components/shorts/StreamHlsVideo";
 import { useTranslations } from "@/context/LocaleContext";
+import { useCreditsRollFeed } from "@/hooks/useCreditsRollFeed";
 import { useRecordEngagementView } from "@/hooks/useRecordEngagementView";
 import { UPLOAD_HREF } from "@/lib/appNav";
-import { buildRollLines, rollLength, shuffleForVisit, type RollLine } from "@/lib/credits-roll";
+import { buildRollLines, rollLength, type RollLine } from "@/lib/credits-roll";
 import { watchHref } from "@/lib/works/catalog-ui";
 import type { CreditsRollPerson, CreditsRollWork } from "@/types/creditsRoll";
 import styles from "./CreditsHome.module.css";
@@ -44,39 +45,7 @@ function useRoleLabel() {
   );
 }
 
-/** Works with confirmed credits (GET /api/feed/credits-roll); `works` is null while loading. */
-export function useCreditsRollFeed() {
-  const [works, setWorks] = useState<CreditsRollWork[] | null>(null);
-  const [failed, setFailed] = useState(false);
-  const [attempt, setAttempt] = useState(0);
-
-  useEffect(() => {
-    let cancelled = false;
-    setWorks(null);
-    setFailed(false);
-    fetch("/api/feed/credits-roll")
-      .then(async (res) => {
-        if (!res.ok) throw new Error(`credits_roll_${res.status}`);
-        return (await res.json()) as { works?: CreditsRollWork[] };
-      })
-      .then((data) => {
-        // A new order each visit, so the same names don't always lead.
-        if (!cancelled) setWorks(shuffleForVisit(data.works ?? []));
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setFailed(true);
-          setWorks([]);
-        }
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [attempt]);
-
-  const retry = useCallback(() => setAttempt((n) => n + 1), []);
-  return { works, failed, retry };
-}
+export { useCreditsRollFeed };
 
 /** "Stay for the credits" and the one-line note. */
 export function CreditsIntro() {

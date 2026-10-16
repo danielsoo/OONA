@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useMemo, useState, type ReactNode } from "react";
 import { useCatalogFeed } from "@/hooks/useCatalogFeed";
 import { uniqueCatalogItems } from "@/lib/showcaseCatalog";
+import { newVisitSeed, visitRank } from "@/lib/visit-order";
 import { promoCropToVideoStyle } from "@/lib/works/promo-crop-interaction";
 import { watchHref } from "@/lib/works/catalog-ui";
 import type { CatalogFeedItem } from "@/types/work";
@@ -22,16 +23,6 @@ const fallbackImages = [
   "/images/hero/campus-wave3.png",
 ];
 
-/** FNV-1a: a stable rank for each work within one visit. */
-function rank(seed: string, id: string): number {
-  let h = 0x811c9dc5;
-  for (const ch of `${seed}:${id}`) {
-    h ^= ch.charCodeAt(0);
-    h = Math.imul(h, 0x01000193);
-  }
-  return h >>> 0;
-}
-
 /**
  * The first screen's bottom row: up to six works, so a visitor sees there is
  * plenty here before scrolling. Each work shows once (no repeats to pad the
@@ -44,12 +35,12 @@ export default function HomeWorksStrip({ action }: { action?: ReactNode }) {
   const { items: series, loading: seriesLoading } = useCatalogFeed("series", 12);
   const { items: shows, loading: showsLoading } = useCatalogFeed("entertainment", 12);
   const loading = moviesLoading || seriesLoading || showsLoading;
-  const [seed] = useState(() => Math.random().toString(36).slice(2));
+  const [seed] = useState(newVisitSeed);
 
   const works = useMemo(
     () =>
       uniqueCatalogItems([...movies, ...series, ...shows])
-        .sort((a, b) => rank(seed, a.id) - rank(seed, b.id))
+        .sort((a, b) => visitRank(seed, a.id) - visitRank(seed, b.id))
         .slice(0, STRIP_MAX),
     [movies, series, shows, seed]
   );

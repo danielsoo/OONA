@@ -1,0 +1,79 @@
+/* Society design variants: what they share (page, sections bar, portraits). */
+.page {
+  --pad: clamp(20px, 4.9vw, 76px);
+  --ink: #f2f4fb;
+  --muted: rgba(229, 235, 248, 0.64);
+  --faint: rgba(229, 235, 248, 0.42);
+  --eyebrow: #9bb9dc;
+  --accent: #7cc6ff;
+  --line: rgba(135, 189, 226, 0.16);
+  min-height: calc(100svh - 82px);
+  padding-bottom: 120px;
+  background: #05090f;
+  color: var(--ink);
+}
+
+.sections {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  padding: 12px var(--pad);
+  border-bottom: 1px solid var(--line);
+  scrollbar-width: none;
+}
+
+.sections::-webkit-scrollbar {
+  display: none;
+}
+
+.sections button {
+  flex-shrink: 0;
+  padding: 9px 15px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.sections button:hover {
+  color: #fff;
+}
+
+.sections button[aria-current="page"] {
+  background: var(--ink);
+  color: #07111b;
+  font-weight: 500;
+}
+
+.status {
+  padding: 120px var(--pad);
+  color: var(--muted);
+  font-size: 15px;
+  text-align: center;
+}
+
+.portrait,
+.still {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  background: #0b1420;
+}
+
+.portraitImage {
+  object-fit: cover;
+}
+
+.portraitInitial {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: rgba(242, 244, 251, 0.2);
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: 4.2em;
+  line-height: 1;
+}

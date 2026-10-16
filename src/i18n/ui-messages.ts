@@ -1875,5 +1875,161 @@ export const uiMessages: Record<string, readonly [string, string]> = {
   "dismiss": [
     "닫기",
     "閉じる"
-  ]
+  ],
+  "actors & performers": [
+    "배우·출연진",
+    "俳優・出演者"
+  ],
+  "also credited on": [
+    "다른 크레딧",
+    "ほかの参加作品"
+  ],
+  "a–z": [
+    "이름순",
+    "名前順"
+  ],
+  "cast": [
+    "출연",
+    "出演"
+  ],
+  "close the design toggle": [
+    "디자인 토글 닫기",
+    "デザイン切り替えを閉じる"
+  ],
+  "constellation": [
+    "별자리",
+    "星座"
+  ],
+  "contact sheet": [
+    "컨택트 시트",
+    "コンタクトシート"
+  ],
+  "creators and the works that connect them": [
+    "창작자들과 그들을 잇는 작품",
+    "クリエイターと、彼らをつなぐ作品"
+  ],
+  "current design": [
+    "현재 디자인",
+    "現在のデザイン"
+  ],
+  "designs": [
+    "디자인",
+    "デザイン"
+  ],
+  "directed by": [
+    "감독",
+    "監督"
+  ],
+  "each star is a creator; each line, a work two of them made together.": [
+    "별 하나는 창작자, 선 하나는 두 사람이 함께 만든 작품이에요.",
+    "星はひとりのクリエイター、線はふたりが一緒に作った作品です。"
+  ],
+  "end credits": [
+    "엔딩 크레딧",
+    "エンドクレジット"
+  ],
+  "every frame is a creator. the circled ones are open to a new project.": [
+    "프레임 하나하나가 창작자예요. 동그라미 친 사람은 새 프로젝트를 함께할 수 있어요.",
+    "一コマずつがクリエイターです。丸印の人は新しいプロジェクトに参加できます。"
+  ],
+  "every name, a to z.": [
+    "모든 이름을 한눈에.",
+    "すべての名前を、ひと目で。"
+  ],
+  "everyone in society": [
+    "소사이어티의 모든 사람",
+    "Societyのみんな"
+  ],
+  "everyone in the credits.": [
+    "크레딧에 오른 모든 사람.",
+    "クレジットに名を連ねる、すべての人。"
+  ],
+  "filter": [
+    "필터",
+    "絞り込み"
+  ],
+  "fold the design toggle": [
+    "디자인 토글 접기",
+    "デザイン切り替えをたたむ"
+  ],
+  "in the spotlight": [
+    "스포트라이트",
+    "スポットライト"
+  ],
+  "index": [
+    "인덱스",
+    "インデックス"
+  ],
+  "jump to a letter": [
+    "글자로 이동",
+    "文字へ移動"
+  ],
+  "most credits": [
+    "크레딧 많은 순",
+    "クレジットの多い順"
+  ],
+  "next creator": [
+    "다음 창작자",
+    "次のクリエイター"
+  ],
+  "night catalog": [
+    "밤의 카탈로그",
+    "夜のカタログ"
+  ],
+  "no creators to show yet.": [
+    "아직 보여줄 창작자가 없어요.",
+    "まだ表示できるクリエイターがいません。"
+  ],
+  "no credits yet": [
+    "아직 크레딧이 없어요",
+    "まだクレジットはありません"
+  ],
+  "now": [
+    "현재",
+    "現在"
+  ],
+  "pick a name to see what they made, and who they made it with.": [
+    "이름을 고르면 무엇을, 누구와 만들었는지 보여요.",
+    "名前を選ぶと、何を誰と作ったかが見られます。"
+  ],
+  "pick your crew.": [
+    "함께할 사람을 골라보세요.",
+    "仲間を選ぼう。"
+  ],
+  "previous creator": [
+    "이전 창작자",
+    "前のクリエイター"
+  ],
+  "search names or schools": [
+    "이름이나 학교 검색",
+    "名前や学校で検索"
+  ],
+  "search, sort, and go straight to anyone.": [
+    "검색하고, 정렬하고, 바로 찾아가세요.",
+    "検索して、並べ替えて、すぐに見つけましょう。"
+  ],
+  "society designs": [
+    "소사이어티 디자인",
+    "Societyのデザイン"
+  ],
+  "sort": [
+    "정렬",
+    "並べ替え"
+  ],
+  "who made what, together.": [
+    "누가 누구와 무엇을 만들었는지.",
+    "誰が誰と何を作ったか。"
+  ],
+  "worked with": [
+    "함께 작업한 사람",
+    "一緒に作った人"
+  ],
+  "{count} creator": [
+    "창작자 {count}명",
+    "{count}人のクリエイター"
+  ],
+  "{count} creators": [
+    "창작자 {count}명",
+    "{count}人のクリエイター"
+  ],
 };

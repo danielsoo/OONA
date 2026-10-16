@@ -1,0 +1,267 @@
+/* C · Constellation */
+.wrap {
+  padding: 34px var(--pad) 0;
+}
+
+.head {
+  margin-bottom: 22px;
+}
+
+.eyebrow {
+  margin: 0 0 10px;
+  color: var(--eyebrow);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.28em;
+}
+
+.head h1 {
+  margin: 0;
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: clamp(36px, 3.4vw, 50px);
+  font-weight: 400;
+  line-height: 1.05;
+}
+
+.sub {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 15px;
+}
+
+/* The sky, and the picked creator's card beside it. */
+.sky {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: radial-gradient(ellipse 70% 60% at 40% 40%, #0d1a2b, #03060b 75%);
+}
+
+.svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.dust {
+  fill: #cfe6ff;
+}
+
+.edge {
+  stroke: rgba(124, 198, 255, 0.18);
+  stroke-width: 1;
+}
+
+.edgeLit {
+  stroke: rgba(160, 214, 255, 0.85);
+  stroke-width: 1.6;
+}
+
+.star {
+  cursor: pointer;
+  outline: none;
+  transition: opacity 300ms ease;
+}
+
+.dim {
+  opacity: 0.35;
+}
+
+.hit {
+  fill: transparent;
+}
+
+.halo {
+  fill: rgba(120, 220, 249, 0.16);
+}
+
+.core {
+  fill: #dbeeff;
+  filter: drop-shadow(0 0 4px rgba(150, 210, 255, 0.8));
+}
+
+.coreOn {
+  fill: #fff;
+  filter: drop-shadow(0 0 8px rgba(170, 220, 255, 1));
+}
+
+.ring {
+  fill: none;
+  stroke: rgba(124, 198, 255, 0.7);
+  stroke-width: 1;
+}
+
+.star:focus-visible .ring,
+.star:focus-visible .core {
+  stroke: #7cc6ff;
+  stroke-width: 2;
+}
+
+.label,
+.labelOn {
+  fill: rgba(229, 235, 248, 0.72);
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: 14px;
+  text-anchor: middle;
+  pointer-events: none;
+}
+
+.labelOn {
+  fill: #fff;
+  font-size: 17px;
+}
+
+.panel {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 14px;
+  padding: 22px 20px;
+  border-left: 1px solid var(--line);
+  background: rgba(5, 10, 17, 0.72);
+}
+
+.panelHead {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.panelPortrait {
+  width: 56px;
+  height: 56px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  font-size: 8px;
+}
+
+.panelHead > div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.panelHead strong {
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: 24px;
+  font-weight: 400;
+  line-height: 1.1;
+}
+
+.panelHead span {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.open {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #bfe9ff !important;
+  font-size: 12px !important;
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #78dcf9;
+  box-shadow: 0 0 10px #78dcf9;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 12px 0 0;
+  border-top: 1px solid var(--line);
+  list-style: none;
+}
+
+.list li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 14px;
+}
+
+.list a {
+  overflow: hidden;
+  font-family: var(--font-serif), Georgia, serif;
+  font-style: italic;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.list a:hover {
+  color: #fff;
+  text-decoration: underline;
+}
+
+.list span {
+  flex-shrink: 0;
+  color: var(--faint);
+  font-size: 12px;
+}
+
+.quiet {
+  margin: 0;
+  color: var(--faint);
+  font-size: 14px;
+}
+
+.with {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.with > span {
+  margin-right: 4px;
+  color: rgba(155, 185, 220, 0.85);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.with button {
+  padding: 5px 10px;
+  border: 1px solid rgba(135, 189, 226, 0.22);
+  border-radius: 999px;
+  background: transparent;
+  color: #dfe6f1;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.with button:hover {
+  border-color: var(--accent);
+}
+
+.profile {
+  align-self: flex-start;
+  padding: 9px 16px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: #07111b !important;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+@media (max-width: 900px) {
+  .sky {
+    grid-template-columns: 1fr;
+  }
+
+  .panel {
+    border-top: 1px solid var(--line);
+    border-left: 0;
+  }
+}
