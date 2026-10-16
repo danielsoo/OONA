@@ -140,6 +140,7 @@ function useCreditsToHome(
     const glide = (to: number) => {
       const from = window.scrollY;
       if (Math.abs(to - from) < 2) return;
+      arm(true); // input during the glide is held back (see below)
       // Going down, the screen it lands on pops in again every time.
       const arriving = to > from ? screenAt(to) : [];
       arriving.forEach((el) => {
@@ -291,22 +292,43 @@ function useCreditsToHome(
       }, 160);
     };
 
-    window.addEventListener("wheel", onWheel, { passive: false });
+    // Wheel and touchmove listeners that can cancel the scroll make the browser
+    // wait for this script before every scroll step, so they're attached only
+    // near the credits (up to a screen into the home), where a glide or an edge
+    // stop can happen. Deeper in the home, scrolling is the browser's own.
+    let armed = false;
+    function arm(on: boolean) {
+      if (on === armed) return;
+      armed = on;
+      if (on) {
+        window.addEventListener("wheel", onWheel, { passive: false });
+        window.addEventListener("touchmove", onTouchMove, { passive: false });
+      } else {
+        window.removeEventListener("wheel", onWheel);
+        window.removeEventListener("touchmove", onTouchMove);
+      }
+    }
+    const rearm = () => arm(gliding || window.scrollY <= edges().top + window.innerHeight);
+    const onScrollArm = () => rearm();
+
+    rearm();
     window.addEventListener("keydown", onKeyDown);
     window.addEventListener("touchstart", onTouchStart, { passive: true });
-    window.addEventListener("touchmove", onTouchMove, { passive: false });
     window.addEventListener("touchend", onTouchEnd, { passive: true });
     window.addEventListener("touchcancel", onTouchEnd, { passive: true });
     window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("scroll", onScrollArm, { passive: true });
+    window.addEventListener("resize", onScrollArm);
 
     return () => {
-      window.removeEventListener("wheel", onWheel);
+      arm(false);
       window.removeEventListener("keydown", onKeyDown);
       window.removeEventListener("touchstart", onTouchStart);
-      window.removeEventListener("touchmove", onTouchMove);
       window.removeEventListener("touchend", onTouchEnd);
       window.removeEventListener("touchcancel", onTouchEnd);
       window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("scroll", onScrollArm);
+      window.removeEventListener("resize", onScrollArm);
       window.clearTimeout(settleTimer);
       cancelAnimationFrame(raf);
       glideRef.current = null;
@@ -359,7 +381,8 @@ function useHomeHeaderState(homeRef: RefObject<HTMLElement | null>) {
       const hero = home.querySelector<HTMLElement>(":scope > main > section");
       const header = document.querySelector<HTMLElement>("header");
       const heroBottom = home.getBoundingClientRect().top + (hero?.offsetHeight ?? 0);
-      root.dataset.homeHeader = heroBottom < (header?.offsetHeight ?? 82) ? "solid" : "clear";
+      const mode = heroBottom < (header?.offsetHeight ?? 82) ? "solid" : "clear";
+      if (root.dataset.homeHeader !== mode) root.dataset.homeHeader = mode;
     };
     const onChange = () => {
       if (!raf) raf = requestAnimationFrame(update);

@@ -102,12 +102,15 @@
   flex-direction: column;
 }
 
+/* Names are set at the centre line's size and scaled down off it: growing
+   with transform, unlike font-size, doesn't lay the roll out again on every
+   frame of each step. */
 .sideName {
   display: block;
   max-width: 100%;
   overflow: hidden;
   color: #d8dde8;
-  font-size: 18px;
+  font-size: 24px;
   font-weight: 500;
   line-height: 1.15;
   text-decoration: underline;
@@ -116,12 +119,15 @@
   text-overflow: ellipsis;
   text-underline-offset: 5px;
   white-space: nowrap;
-  transition: color 300ms ease, font-size 400ms ease, text-decoration-color 150ms ease;
+  transform: scale(0.75);
+  transform-origin: 0 100%;
+  /* No color transition: animating color restyles and repaints every frame. */
+  transition: transform 400ms ease, text-decoration-color 150ms ease;
 }
 
 .sideNameOn {
   color: #fff;
-  font-size: 24px;
+  transform: none;
 }
 
 .sideName:hover,
@@ -218,6 +224,20 @@ a.sideCardName:focus-visible {
 
 .layerEnter {
   animation: fadeIn 1400ms ease both;
+}
+
+/* While the roll moves, the still drifts closer (a cheap, composited zoom). */
+.still {
+  animation: drift 9s ease-out both;
+}
+
+@keyframes drift {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.06);
+  }
 }
 
 .media {
@@ -487,6 +507,7 @@ a.creditCard:focus-visible {
 @media (prefers-reduced-motion: reduce) {
   .layerEnter,
   .video,
+  .still,
   .rise {
     animation: none;
   }

@@ -14,6 +14,8 @@ import type { CreditsRollPerson, CreditsRollWork } from "@/types/creditsRoll";
 import styles from "./CreditsHome.module.css";
 
 const LINE_H = 56;
+/** Lines kept rendered either side of the centre (the roll shows about nine). */
+const LINE_WINDOW = 7;
 const SECONDS_PER_LINE = 2.2;
 const BLIND_FRAMES = 8;
 
@@ -194,7 +196,8 @@ function useSteppedRoll(
   lines: Line[],
   enabled: boolean,
   holdRef: React.RefObject<boolean>,
-  heldRef: React.RefObject<boolean>
+  heldRef: React.RefObject<boolean>,
+  hiddenRef: React.RefObject<boolean>
 ) {
   const [index, setIndex] = useState(0);
   const [jump, setJump] = useState(false);
@@ -205,7 +208,7 @@ function useSteppedRoll(
   useEffect(() => {
     if (!enabled || lines.length === 0) return;
     const timer = window.setInterval(() => {
-      if (holdRef.current || heldRef.current || pausedRef.current) return;
+      if (holdRef.current || heldRef.current || hiddenRef.current || pausedRef.current) return;
       setIndex((i) => {
         // Back to the top without animating through every line.
         const next = i + 1 >= lines.length ? 0 : i + 1;
@@ -214,9 +217,33 @@ function useSteppedRoll(
       });
     }, SECONDS_PER_LINE * 1000);
     return () => window.clearInterval(timer);
-  }, [lines, enabled, holdRef, heldRef]);
+  }, [lines, enabled, holdRef, heldRef, hiddenRef]);
 
   return { index, jump, paused, setPaused };
+}
+
+/** True while the element is off screen or the tab is in the background. */
+function useHiddenRef(targetRef: React.RefObject<HTMLElement | null>) {
+  const hiddenRef = useRef(false);
+  useEffect(() => {
+    const target = targetRef.current;
+    if (!target) return;
+    let offscreen = false;
+    const update = () => {
+      hiddenRef.current = offscreen || document.hidden;
+    };
+    const observer = new IntersectionObserver(([entry]) => {
+      offscreen = !entry?.isIntersecting;
+      update();
+    });
+    observer.observe(target);
+    document.addEventListener("visibilitychange", update);
+    return () => {
+      observer.disconnect();
+      document.removeEventListener("visibilitychange", update);
+    };
+  }, [targetRef]);
+  return hiddenRef;
 }
 
 function nameHref(line: Line, byId: Map<string, CreditsRollWork>): string {
@@ -246,7 +273,13 @@ export function CreditsRoll({ works, held = false }: { works: CreditsRollWork[];
   const { holdRef, handlers } = useRollHold(setPinned);
   const heldRef = useRef(held);
   heldRef.current = held;
-  const stepped = useSteppedRoll(lines, !reducedMotion, holdRef, heldRef);
+  // Scrolled away (into the home below) or in a background tab: the roll waits.
+  const rootRef = useRef<HTMLElement>(null);
+  const hiddenRef = useHiddenRef(rootRef);
+  const stepped = useSteppedRoll(lines, !reducedMotion, holdRef, heldRef, hiddenRef);
+  // Video only for a name the roll is stopped on (hovered, focused or paused):
+  // while it rolls, the work changes every step, and a new player each time stutters.
+  const settled = pinned !== null || stepped.paused;
 
   const current = pinned ?? (reducedMotion ? 0 : stepped.index);
   const line = lines[current % lines.length];
@@ -256,8 +289,11 @@ export function CreditsRoll({ works, held = false }: { works: CreditsRollWork[];
     const on = i === current;
     // Names dim with their distance from the center line.
     const opacity = distance === undefined ? undefined : distance === 0 ? 1 : distance === 1 ? 0.6 : distance <= 3 ? 0.34 : 0.2;
+    // On the moving track, each line sits at its own place (only those near the
+    // centre are rendered); in the reduced-motion list they simply stack.
+    const style = distance === undefined ? undefined : { opacity, position: "absolute" as const, top: i * LINE_H, left: 0, right: 0 };
     return (
-      <div className={styles.sideLine} style={opacity === undefined ? undefined : { opacity }}>
+      <div className={styles.sideLine} style={style}>
         <span className={styles.sideRole}>{roleLabel(l.credit)}</span>
         <span className={styles.sideNameCell}>
           <Link
@@ -288,18 +324,23 @@ export function CreditsRoll({ works, held = false }: { works: CreditsRollWork[];
             transform: `translateY(calc(50% - ${LINE_H / 2}px - ${stepped.index * LINE_H}px))`,
             transition: stepped.jump ? "none" : "transform 900ms cubic-bezier(0.3, 0, 0.2, 1)",
             height: "100%",
+            position: "relative",
           }}
         >
-          {lines.map((l, i) => (
-            <Fragment key={i}>{renderLine(l, i, Math.abs(i - current))}</Fragment>
-          ))}
+          {/* Up to 240 lines; only the ones in and near view are in the page,
+              so each step restyles a dozen rows rather than all of them. */}
+          {lines.map((l, i) =>
+            Math.abs(i - stepped.index) <= LINE_WINDOW ? (
+              <Fragment key={i}>{renderLine(l, i, Math.abs(i - current))}</Fragment>
+            ) : null
+          )}
         </div>
       </>
     );
   }
 
   return (
-    <section className={styles.side} aria-label={copy("Credits roll")}>
+    <section ref={rootRef} className={styles.side} aria-label={copy("Credits roll")}>
       <div className={styles.sideRollColumn}>
         <div className={`${styles.roll} ${styles.sideRoll}`} {...handlers}>
           {rollBody}
@@ -316,7 +357,7 @@ export function CreditsRoll({ works, held = false }: { works: CreditsRollWork[];
 
       <div className={styles.sideScreenWrap}>
         <div className={styles.sideScreen}>
-          <MediaLayers work={work} playVideo={!reducedMotion} />
+          <MediaLayers work={work} playVideo={!reducedMotion && settled} />
         </div>
         <div className={styles.sideCard}>
           <span className={styles.captionKicker}>{roleLabel(line.credit)}</span>
@@ -358,7 +399,7 @@ function MediaLayers({ work, playVideo }: { work: CreditsRollWork; playVideo: bo
         return (
           <span key={w.workId} className={`${styles.layer} ${top && layers.length > 1 ? styles.layerEnter : ""}`}>
             {/* eslint-disable-next-line @next/next/no-img-element -- Stream thumbnails are already sized */}
-            <img src={w.stillUrl} alt="" className={styles.media} />
+            <img src={w.stillUrl} alt="" className={`${styles.media} ${styles.still}`} />
             {top && playVideo && w.previewUrl ? (
               <StreamHlsVideo
                 key={w.previewUrl}

@@ -16,6 +16,20 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Korean and Japanese readers: the page waits (blank) for their language
+   instead of flashing the server's English first (src/i18n/locale-boot.ts);
+   it shows after 2.5s regardless, should scripts never run. */
+html[data-locale-pending] body > * {
+  visibility: hidden;
+  animation: locale-reveal 0s linear 2.5s forwards;
+}
+
+@keyframes locale-reveal {
+  to {
+    visibility: visible;
+  }
+}
+
 h1,
 h2,
 h3 {

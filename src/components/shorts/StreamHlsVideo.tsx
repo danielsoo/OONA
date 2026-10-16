@@ -423,7 +423,8 @@ const StreamHlsVideo = forwardRef(function StreamHlsVideo(
       }}
       onDurationChange={(event) => setDuration(event.currentTarget.duration || 0)}
       onTimeUpdate={(event) => {
-        setCurrentTime(event.currentTarget.currentTime);
+        // Only the controls' progress bar shows the time; previews skip the re-render.
+        if (controls) setCurrentTime(event.currentTarget.currentTime);
         onTimeUpdate?.(event);
       }}
       onPause={(event) => {

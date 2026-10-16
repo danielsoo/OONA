@@ -5,6 +5,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useState,
   type ReactNode,
@@ -91,9 +92,13 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
     [locale, setLocale, timezone, setTimezone, dateLocale, formatDateTime, t]
   );
 
-  useEffect(() => {
+  // Before paint: the reader's language is now on screen, so the page can show
+  // (it was held back by the boot script, src/i18n/locale-boot.ts).
+  useLayoutEffect(() => {
     if (!ready) return;
-    document.documentElement.lang = locale;
+    const root = document.documentElement;
+    root.lang = locale;
+    root.removeAttribute("data-locale-pending");
   }, [locale, ready]);
 
   return <LocaleContext.Provider value={value}>{children}</LocaleContext.Provider>;

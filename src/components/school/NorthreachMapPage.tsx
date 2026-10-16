@@ -19,7 +19,6 @@ import GeoWorldMap, {
 } from "@/components/school/GeoWorldMap";
 import { useSchoolsFeed } from "@/hooks/useSchoolsFeed";
 import { useShowcaseCatalog } from "@/hooks/useShowcaseCatalog";
-import { SERIES_MOCK_VIDEO_URLS } from "@/data/seriesMockMedia";
 import { promoCropToVideoStyle } from "@/lib/works/promo-crop-interaction";
 import { watchHref } from "@/lib/works/catalog-ui";
 import type { SchoolListItem } from "@/types/school";
@@ -578,10 +577,9 @@ export default function NorthreachMapPage() {
               <p><UiText text={"Now screening"} /></p>
               <h2 id="campus-screenings-title"><UiText text={"Stories from across OONA"} /></h2>
             </div>
-            <span><UiText text={"Hover a film to preview"} /></span>
           </div>
           <div className="campus-screenings-grid">
-            {campusStories.map((item, index) => (
+            {campusStories.map((item) => (
               <WorkCard
                 key={item.id}
                 href={watchHref(item.ownerUid, item.workId)}
@@ -589,9 +587,6 @@ export default function NorthreachMapPage() {
                 meta={item.approvedSchoolName || item.director || item.approvedCategory || "OONA"}
                 imageUrl={item.thumbnailUrl}
                 imageStyle={item.thumbnailCrop ? promoCropToVideoStyle(item.thumbnailCrop) : undefined}
-                videoUrl={SERIES_MOCK_VIDEO_URLS[index % SERIES_MOCK_VIDEO_URLS.length]}
-                videoEnabled
-                videoPreviewMode="hover"
               />
             ))}
           </div>

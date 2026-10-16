@@ -14,7 +14,6 @@ import { useCatalogFeed } from "@/hooks/useCatalogFeed";
 import { useContinueWatching } from "@/hooks/useContinueWatching";
 import { usePromoFeed } from "@/hooks/usePromoFeed";
 import { useSchoolsFeed } from "@/hooks/useSchoolsFeed";
-import { SERIES_MOCK_VIDEO_URLS } from "@/data/seriesMockMedia";
 import { UPLOAD_HREF } from "@/lib/appNav";
 import { peopleProfileHref } from "@/lib/dm/peopleProfileHref";
 import { formatCompactStat } from "@/lib/formatStat";
@@ -44,7 +43,6 @@ type DisplayCard = {
   meta: string;
   image: string;
   href: string;
-  videoUrl?: string;
   imageStyle?: CSSProperties;
   progressPercent?: number;
   spaced?: boolean;
@@ -132,7 +130,6 @@ function catalogToCard(item: CatalogFeedItem, index: number, copy: ReturnType<ty
     meta: views > 0 ? copy(views === 1 ? "{count} view" : "{count} views", { count: formatCompactStat(views) }) : item.director?.trim() || (item.approvedCategory ? copy(item.approvedCategory) : "OONA"),
     image: item.thumbnailUrl || fallbackImage(index),
     href: watchHref(item.ownerUid, item.workId),
-    videoUrl: SERIES_MOCK_VIDEO_URLS[index % SERIES_MOCK_VIDEO_URLS.length],
     imageStyle: item.thumbnailCrop ? promoCropToVideoStyle(item.thumbnailCrop) : undefined,
   };
 }
@@ -153,7 +150,6 @@ function promoToCard(item: PromoShort, index: number, copy: ReturnType<typeof us
     meta: item.director?.trim() || copy("Short"),
     image: item.thumbnailUrl || fallbackImage(index + 2),
     href: watchHref(item.ownerUid, item.workId),
-    videoUrl: SERIES_MOCK_VIDEO_URLS[index % SERIES_MOCK_VIDEO_URLS.length],
     imageStyle: item.frameCrop ? promoCropToVideoStyle(item.frameCrop) : undefined,
   };
 }
@@ -208,19 +204,11 @@ function FilmSection({
   );
 }
 
+// No hover video: catalog items carry no preview clip of their own (the
+// placeholder sample clips that played here were not the works).
 function PreviewFilmCard({ item }: { item: DisplayCard }) {
-  const [previewing, setPreviewing] = useState(false);
-
   return (
-    <Link
-      href={item.href}
-      prefetch={false}
-      className={styles.filmCard}
-      onPointerEnter={() => setPreviewing(true)}
-      onPointerLeave={() => setPreviewing(false)}
-      onFocus={() => setPreviewing(true)}
-      onBlur={() => setPreviewing(false)}
-    >
+    <Link href={item.href} prefetch={false} className={styles.filmCard}>
       <Image
         src={item.image}
         alt=""
@@ -230,19 +218,6 @@ function PreviewFilmCard({ item }: { item: DisplayCard }) {
         className={styles.cardImage}
         style={item.imageStyle}
       />
-      {previewing && item.videoUrl ? (
-        <video
-          src={item.videoUrl}
-          poster={item.image}
-          className={styles.cardVideo}
-          style={item.imageStyle}
-          muted
-          loop
-          playsInline
-          autoPlay
-          preload="metadata"
-        />
-      ) : null}
       <span className={styles.cardShade} aria-hidden="true" />
       <span className={`${styles.cardTitle} ${item.spaced ? styles.spacedTitle : ""}`}>{item.title}</span>
       <span className={styles.duration}>{item.meta}</span>
