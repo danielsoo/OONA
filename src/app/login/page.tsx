@@ -160,7 +160,7 @@ function LoginForm() {
 
       <div className={styles.artwork} aria-hidden="true">
         <Image
-          src="/images/home/home_main_wave6-2x.png"
+          src="/images/home/home_portal_night.png"
           alt=""
           fill
           priority

@@ -1,6 +1,6 @@
 # Home hero foreground extension
 
-The original `public/images/home/home_main_wave6-2x.png` remains unchanged. The live home page uses the bounded hero image frame from commit `fc65ade`: `object-fit: cover`, the original responsive image position, the original hero height, copy, pager, and content overlap. A narrow 80–112px CSS gradient blends the displayed lower edge into the page color. The image never extends behind entire content rows. There is no blur or canvas diffusion.
+The artwork is `public/images/home/home_portal_night.png`: the original `home_main_wave6-2x.png` with the upscaler's scale-like texture taken out of the water and rocks (outlines, the portal, its glitter path and the stars kept). The live home page uses the bounded hero image frame from commit `fc65ade`: `object-fit: cover`, the original responsive image position, the original hero height, copy, pager, and content overlap. A narrow 80–112px CSS gradient blends the displayed lower edge into the page color. The image never extends behind entire content rows. There is no blur or canvas diffusion.
 
 `public/images/home/home-rocks-extension-v1.png` is an unused design experiment generated with the built-in image generation tool. It is retained for reference and is not loaded by the home page. The generation prompt below documents that experiment, not the live rendering.
 

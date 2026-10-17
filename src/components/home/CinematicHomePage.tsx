@@ -53,7 +53,7 @@ const heroSlides: HeroSlide[] = [
     eyebrow: "Emerging creators",
     title: "Ideas\nin Motion.",
     body: "Watch. Share. Be part of what’s next.",
-    image: "/images/home/home_main_wave6-2x.png",
+    image: "/images/home/home_portal_night.png",
     href: "/movies",
     cta: "Explore Films",
   },
