@@ -2120,4 +2120,52 @@ export const uiMessages: Record<string, readonly [string, string]> = {
     "서로 다른 학교에서,",
     "学校は違っても、"
   ],
+  "look up.": [
+    "고개를 들어 보세요.",
+    "見上げてみて。"
+  ],
+  "above the same sea, everyone who makes something on oona is a star, and every work they made together is a constellation.": [
+    "같은 바다 위, OONA에서 무언가를 만드는 사람은 모두 별이에요. 함께 만든 작품 하나하나가 별자리가 돼요.",
+    "同じ海の上、OONAで何かをつくる人はみんな星。一緒につくった作品が、ひとつひとつ星座になります。"
+  ],
+  "scroll to look up": [
+    "스크롤해서 하늘 보기",
+    "スクロールして空を見上げる"
+  ],
+  "constellations": [
+    "별자리",
+    "星座"
+  ],
+  "every work is": [
+    "모든 작품은",
+    "すべての作品は"
+  ],
+  "a constellation.": [
+    "하나의 별자리.",
+    "ひとつの星座。"
+  ],
+  "lines join the people who made a work together. the brightest stars are open to work.": [
+    "선은 작품을 함께 만든 사람들을 이어요. 가장 밝은 별은 지금 함께 작업할 수 있는 사람이에요.",
+    "線は一緒に作品をつくった人たちをつなぎます。いちばん明るい星は、いま一緒に制作できる人です。"
+  ],
+  "point at a star to meet them. pick a title to see its crew.": [
+    "별에 마우스를 올리면 그 사람을, 제목을 누르면 함께 만든 사람들을 볼 수 있어요.",
+    "星にカーソルを合わせるとその人を、タイトルを押すと制作メンバーを見られます。"
+  ],
+  "when people here make something together, their stars join into a constellation.": [
+    "여기 있는 사람들이 함께 무언가를 만들면, 그 별들이 이어져 별자리가 돼요.",
+    "ここにいる人たちが一緒に何かをつくると、その星がつながって星座になります。"
+  ],
+  "{count} people made this together": [
+    "{count}명이 함께 만든 작품",
+    "{count}人で一緒につくった作品"
+  ],
+  "previous work": [
+    "이전 작품",
+    "前の作品"
+  ],
+  "next work": [
+    "다음 작품",
+    "次の作品"
+  ],
 };

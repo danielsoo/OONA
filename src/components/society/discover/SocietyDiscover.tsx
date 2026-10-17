@@ -11,16 +11,9 @@ import { useAuth } from "@/context/AuthContext";
 import { useTranslations } from "@/context/LocaleContext";
 import { primaryRole, type DirCredit, type DirPerson } from "@/lib/society-directory";
 import { invalidateBusinessInvites } from "@/lib/societyInviteCache";
+import SocietySky from "./SocietySky";
 import { useSocietyDirectory } from "./useSocietyDirectory";
 import styles from "./SocietyDiscover.module.css";
-
-const SECTIONS: { id: SocietyTabId; label: string }[] = [
-  { id: "discover", label: "Discover" },
-  { id: "connections", label: "My Connections" },
-  { id: "requests", label: "Requests" },
-  { id: "sent", label: "Sent" },
-  { id: "works", label: "My Works" },
-];
 
 type Filter = "everyone" | "director" | "cast" | "crew" | "available";
 
@@ -115,9 +108,10 @@ function Chevron({ left = false }: { left?: boolean }) {
 }
 
 /**
- * Society's Discover: one creator at a time in the large picture, one in
- * focus with their own words, then everyone else. It follows the cinematic
- * home (CinematicHomePage.module.css); the other sections (connections,
+ * Society's Discover: the sky above the home's sea (SocietySky), then one
+ * creator at a time in the large picture, one in focus with their own
+ * words, and everyone else. It follows the cinematic home
+ * (CinematicHomePage.module.css); the other sections (connections,
  * invitations, your works) are SocietyNetworkPanel.
  */
 export default function SocietyDiscover({ onTabChange }: { onTabChange: (tab: SocietyTabId) => void }) {
@@ -226,6 +220,8 @@ export default function SocietyDiscover({ onTabChange }: { onTabChange: (tab: So
 
   return (
     <div className={styles.page}>
+      <SocietySky people={directory?.people ?? null} onOpenSection={openSection} />
+
       <section
         className={styles.hero}
         aria-label={copy("Creator in focus")}
@@ -238,31 +234,19 @@ export default function SocietyDiscover({ onTabChange }: { onTabChange: (tab: So
           key={hero?.uid ?? "none"}
           src={hero ? stillOf(hero) ?? hero.avatarUrl ?? FALLBACK_PICTURE : FALLBACK_PICTURE}
           sizes="100vw"
-          priority
           className={styles.heroImage}
         />
         <span className={styles.heroShade} aria-hidden="true" />
+        <span className={styles.heroTopFade} aria-hidden="true" />
         <span className={styles.heroFade} aria-hidden="true" />
 
-        <nav className={styles.sections} aria-label={copy("Society sections")}>
-          {SECTIONS.map((section) => (
-            <button
-              key={section.id}
-              type="button"
-              aria-current={section.id === "discover" ? "page" : undefined}
-              onClick={() => openSection(section.id)}
-            >
-              {copy(section.label)}
-            </button>
-          ))}
-        </nav>
 
         {hero ? (
           <div className={styles.heroCopy} key={hero.uid}>
             <p className={styles.eyebrow}><UiText text="Creator in focus" /></p>
-            <h1 className={styles.name}>
+            <h2 className={styles.name}>
               {nameLines(hero.name).map((line) => <span key={line}>{line}</span>)}
-            </h1>
+            </h2>
             <p className={styles.meta}>{heroMeta(hero)}</p>
             {heroBody(hero) ? <p className={styles.body}>{heroBody(hero)}</p> : null}
             <div className={styles.actions}>
