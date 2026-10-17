@@ -57,6 +57,17 @@ export default function SocietySky({
   const [awake, setAwake] = useState(false);
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [hovered, setHovered] = useState<string | null>(null);
+  // Leaving a star, its card stays a moment so the pointer can move onto it.
+  const leaveTimer = useRef(0);
+  const enter = useCallback((uid: string) => {
+    window.clearTimeout(leaveTimer.current);
+    setHovered(uid);
+  }, []);
+  const leave = useCallback((uid: string) => {
+    window.clearTimeout(leaveTimer.current);
+    leaveTimer.current = window.setTimeout(() => setHovered((h) => (h === uid ? null : h)), 220);
+  }, []);
+  useEffect(() => () => window.clearTimeout(leaveTimer.current), []);
 
   const byUid = useMemo(() => new Map((people ?? []).map((p) => [p.uid, p])), [people]);
   // A phone's sky holds fewer figures, so their names have room.
@@ -235,10 +246,10 @@ export default function SocietySky({
                 </span>
               ) : null;
               const events = {
-                onMouseEnter: () => setHovered(s.uid),
-                onMouseLeave: () => setHovered((h) => (h === s.uid ? null : h)),
-                onFocus: () => setHovered(s.uid),
-                onBlur: () => setHovered((h) => (h === s.uid ? null : h)),
+                onMouseEnter: () => enter(s.uid),
+                onMouseLeave: () => leave(s.uid),
+                onFocus: () => enter(s.uid),
+                onBlur: () => leave(s.uid),
                 tabIndex: awake ? 0 : -1,
               };
               return person.handle ? (
@@ -252,23 +263,34 @@ export default function SocietySky({
               );
             })}
 
-            {tip && tipStar ? (
-              <div
-                className={`${styles.tip} ${tipStar.x > 0.62 ? styles.tipLeft : ""} ${tipStar.y > 0.62 ? styles.tipUp : ""}`}
-                style={{ left: `${tipStar.x * 100}%`, top: `${tipStar.y * 100}%` }}
-                role="status"
-              >
-                <strong>{tip.name}</strong>
-                <small>{[roleOf(tip), tip.schools[0]].filter(Boolean).join(" · ")}</small>
-                {tipStar.works.length > 0 ? (
-                  <p>{tipStar.works.map((k) => sky.constellations.find((c) => c.work.key === k)?.work.title).filter(Boolean).join(", ")}</p>
-                ) : null}
-                <em>
-                  {tip.available ? <><UiText text="Open to work" /> · </> : null}
-                  {tip.handle ? <UiText text="View profile" /> : null}
-                </em>
-              </div>
-            ) : null}
+            {tip && tipStar ? (() => {
+              const className = `${styles.tip} ${tipStar.x > 0.62 ? styles.tipLeft : ""} ${tipStar.y > 0.62 ? styles.tipUp : ""}`;
+              const style = { left: `${tipStar.x * 100}%`, top: `${tipStar.y * 100}%` };
+              const card = (
+                <>
+                  <strong>{tip.name}</strong>
+                  <small>{[roleOf(tip), tip.schools[0]].filter(Boolean).join(" · ")}</small>
+                  {tipStar.works.length > 0 ? (
+                    <p>{tipStar.works.map((k) => sky.constellations.find((c) => c.work.key === k)?.work.title).filter(Boolean).join(", ")}</p>
+                  ) : null}
+                  <em>
+                    {tip.available ? <><UiText text="Open to work" /> · </> : null}
+                    {tip.handle ? <UiText text="View profile" /> : null}
+                  </em>
+                </>
+              );
+              const keep = { onMouseEnter: () => enter(tip.uid), onMouseLeave: () => leave(tip.uid) };
+              // The whole card opens their profile too.
+              return tip.handle ? (
+                <Link href={`/people/${tip.handle}`} className={className} style={style} tabIndex={-1} {...keep}>
+                  {card}
+                </Link>
+              ) : (
+                <div className={className} style={style} {...keep}>
+                  {card}
+                </div>
+              );
+            })() : null}
           </div>
         </div>
 

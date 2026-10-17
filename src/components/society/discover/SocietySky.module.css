@@ -237,9 +237,15 @@
 }
 
 .awake .star,
-.awake .title {
+.awake .title,
+.awake .name,
+.awake .tip {
   pointer-events: auto;
 }
+
+/* A star's name is part of its link: pointing at it lights the star too. */
+.awake .name { cursor: pointer; }
+.awake .star:hover .name { color: #fff; }
 
 /* Arriving in the sky: each star flares up in turn, then the names settle. */
 .awake .star::before {
@@ -287,7 +293,10 @@
   background: rgba(4, 12, 20, 0.9);
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.42);
   pointer-events: none;
+  transition: border-color 160ms ease;
 }
+
+a.tip:hover { border-color: rgba(119, 203, 255, 0.6); }
 
 .tipLeft {
   transform: translateX(calc(-100% - 36px));
