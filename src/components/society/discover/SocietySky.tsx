@@ -10,6 +10,7 @@ import { primaryRole, type DirPerson } from "@/lib/society-directory";
 import { buildSky } from "@/lib/society-sky";
 import { drawStarfield } from "./starfield";
 import styles from "./SocietySky.module.css";
+import { useSkyGlide } from "./useSkyGlide";
 
 const SECTIONS: { id: SocietyTabId; label: string }[] = [
   { id: "discover", label: "Discover" },
@@ -27,7 +28,7 @@ const CREW_MAX = 8;
 
 const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
 const ramp = (p: number, a: number, b: number) => clamp((p - a) / (b - a), 0, 1);
-const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
+const smooth = (t: number) => t * t * (3 - 2 * t);
 
 /**
  * Society's first screen: the home's portal sea. Scrolling tilts the view up
@@ -70,6 +71,9 @@ export default function SocietySky({
     },
     [copy, t]
   );
+
+  // One scroll on the sea glides up into the sky, as the credits glide to the home.
+  useSkyGlide(sectionRef, !still);
 
   // Reduced motion: no tilt, just the sky.
   useEffect(() => {
@@ -123,7 +127,7 @@ export default function SocietySky({
       const h = stage.clientHeight;
       const rect = section.getBoundingClientRect();
       const p = still ? 1 : clamp(-rect.top / Math.max(1, rect.height - h), 0, 1);
-      world.style.transform = `translate3d(0, ${-h * SKY_SHARE * (1 - ease(ramp(p, 0, 0.7)))}px, 0)`;
+      world.style.transform = `translate3d(0, ${-h * SKY_SHARE * (1 - smooth(ramp(p, 0, 0.7)))}px, 0)`;
       section.style.setProperty("--intro", String(1 - ramp(p, 0.02, 0.22)));
       section.style.setProperty("--glow", String(ramp(p, 0.15, 0.65)));
       section.style.setProperty("--labels", String(ramp(p, 0.78, 0.94)));
@@ -204,12 +208,12 @@ export default function SocietySky({
               </g>
             </svg>
 
-            {sky.constellations.map((c) => (
+            {sky.constellations.map((c, ci) => (
               <button
                 key={c.work.key}
                 type="button"
                 className={`${styles.title} ${lit(c.work.key) ? styles.titleLit : ""}`}
-                style={{ left: `${c.labelX * 100}%`, top: `${c.labelY * 100}%` }}
+                style={{ left: `${c.labelX * 100}%`, top: `${c.labelY * 100}%`, "--i": ci } as CSSProperties}
                 onClick={() => setSelectedKey(c.work.key)}
                 tabIndex={awake ? 0 : -1}
               >
@@ -217,13 +221,13 @@ export default function SocietySky({
               </button>
             ))}
 
-            {sky.stars.map((s) => {
+            {sky.stars.map((s, i) => {
               const person = byUid.get(s.uid);
               if (!person) return null;
               const credits = new Set(person.credits.map((c) => c.work.key)).size;
               const inLit = s.works.some(lit);
               const className = [styles.star, person.available ? styles.open : "", s.works.length === 0 ? styles.lone : "", inLit ? styles.starLit : ""].join(" ");
-              const style = { left: `${s.x * 100}%`, top: `${s.y * 100}%`, "--size": `${3 + Math.min(credits, 5) * 1.1}px` } as CSSProperties;
+              const style = { left: `${s.x * 100}%`, top: `${s.y * 100}%`, "--size": `${3 + Math.min(credits, 5) * 1.1}px`, "--i": i } as CSSProperties;
               const label = named.has(s.uid) ? (
                 <span className={`${styles.name} ${s.x > 0.72 ? styles.nameLeft : ""}`}>
                   {person.name}

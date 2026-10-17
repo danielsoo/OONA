@@ -241,6 +241,41 @@
   pointer-events: auto;
 }
 
+/* Arriving in the sky: each star flares up in turn, then the names settle. */
+.awake .star::before {
+  animation: starPop 900ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: calc(var(--i, 0) * 45ms);
+}
+
+.awake .title {
+  animation: titlePop 700ms ease both;
+  animation-delay: calc(260ms + var(--i, 0) * 80ms);
+}
+
+.awake .name {
+  animation: namePop 600ms ease both;
+  animation-delay: calc(220ms + var(--i, 0) * 45ms);
+}
+
+@keyframes starPop {
+  0% { transform: translate(-50%, -50%) scale(0.2); }
+  45% {
+    transform: translate(-50%, -50%) scale(1.7);
+    box-shadow: 0 0 calc(var(--size) * 4) calc(var(--size) * 1) rgba(185, 237, 255, 0.55);
+  }
+  100% { transform: translate(-50%, -50%) scale(1); }
+}
+
+@keyframes titlePop {
+  from { transform: translate(-50%, calc(-50% + 8px)); }
+  to { transform: translate(-50%, -50%); }
+}
+
+@keyframes namePop {
+  from { transform: translate(-6px, -62%); }
+  to { transform: translate(0, -62%); }
+}
+
 .tip {
   position: absolute;
   z-index: 5;
@@ -600,6 +635,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .cue i { animation: none; }
+  .cue i,
+  .awake .star::before,
+  .awake .title,
+  .awake .name { animation: none; }
   .watch:hover { transform: none; }
 }
