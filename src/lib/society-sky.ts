@@ -1,20 +1,23 @@
 import type { DirPerson, DirWork } from "@/lib/society-directory";
 
 /**
- * Society's sky: each person is a star, and each work that two or more of
- * them made together is a constellation joining them. Positions come from
- * the people and works alone (not the visit), so the sky stays the same
- * from one visit to the next, the way a real one does.
+ * Society's sky: each person sits on a real star of the sky photograph, and
+ * works that two or more of them made together are constellations joining
+ * their stars, each a small figure of its own with open sky around it. The
+ * sky (and its stars) is fixed; who sits where comes from the people and
+ * works alone, so it's the same on every visit.
  *
- * Coordinates are 0–1 across the box the sky is drawn in; `aspect` is that
- * box's width / height, so spacing looks even on any screen.
+ * Everything is in pixels of the area the sky is drawn in.
  */
+
+/** A real star in the photograph: where it is, and how bright (0–1). */
+export type Seat = { x: number; y: number; b: number };
 
 export type SkyStar = {
   uid: string;
   x: number;
   y: number;
-  /** Works it belongs to in this sky; none for a lone star. */
+  /** The figure it belongs to in this sky (at most one); none for a lone star. */
   works: string[];
 };
 
@@ -30,9 +33,17 @@ export type SkyConstellation = {
 
 export type Sky = { stars: SkyStar[]; constellations: SkyConstellation[] };
 
-export const SKY_MAX_CONSTELLATIONS = 9;
+export const SKY_MAX_CONSTELLATIONS = 7;
 export const SKY_MAX_MEMBERS = 60;
 export const SKY_MAX_LONE = 28;
+
+export type SkyOptions = {
+  maxConstellations?: number;
+  /** Least distance between two people's stars (room for a name). */
+  spacing?: number;
+  /** How far a figure's stars sit from its middle. */
+  reach?: number;
+};
 
 /** FNV-1a: a stable number for a string. */
 export function hashString(value: string): number {
@@ -43,21 +54,6 @@ export function hashString(value: string): number {
   }
   return h >>> 0;
 }
-
-/** A small seeded generator (mulberry32), 0 ≤ n < 1. */
-export function seeded(seed: number): () => number {
-  let a = seed >>> 0;
-  return () => {
-    a = (a + 0x6d2b79f5) >>> 0;
-    let t = a;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
-const MARGIN_X = 0.05;
-const MARGIN_Y = 0.08;
 
 /** Prim's minimum spanning tree over points: a constellation's stick figure. */
 export function spanningLines(points: { id: string; x: number; y: number }[]): [string, string][] {
@@ -85,11 +81,113 @@ export function spanningLines(points: { id: string; x: number; y: number }[]): [
   return lines;
 }
 
-export function buildSky(
-  people: readonly DirPerson[],
-  { aspect = 1.7, maxConstellations = SKY_MAX_CONSTELLATIONS }: { aspect?: number; maxConstellations?: number } = {}
-): Sky {
-  const byUid = new Map(people.map((person) => [person.uid, person]));
+const dist = (a: { x: number; y: number }, b: { x: number; y: number }) => Math.hypot(a.x - b.x, a.y - b.y);
+
+type Node = { id: string; x: number; y: number; dx: number; dy: number; work: number };
+
+/**
+ * Where everyone in a figure would ideally be: a small force layout. Each
+ * work is a hidden point its people are tied to, so its figure stays small;
+ * works push each other apart and people keep out of figures they're not in,
+ * so every figure has open sky around it.
+ */
+function layOut(crews: { members: string[] }[], seats: readonly Seat[], spacing: number, reach: number) {
+  const xs = seats.map((s) => s.x);
+  const ys = seats.map((s) => s.y);
+  const box = { left: Math.min(...xs), right: Math.max(...xs), top: Math.min(...ys), bottom: Math.max(...ys) };
+  const cx = (box.left + box.right) / 2;
+  const cy = (box.top + box.bottom) / 2;
+  const unit = (seed: string) => (hashString(seed) % 1000) / 1000 - 0.5;
+
+  // A bigger crew gets a slightly bigger figure; all of them shrink together
+  // when they wouldn't fit the area.
+  const grow = crews.map((c) => 0.8 + 0.2 * Math.sqrt(c.members.length));
+  const need = grow.reduce((sum, g) => sum + Math.PI * (1.3 * g) ** 2, 0);
+  const fit = Math.sqrt((0.6 * (box.right - box.left) * (box.bottom - box.top)) / need);
+  const tie = grow.map((g) => Math.max(spacing * 0.75, Math.min(reach, fit)) * g);
+
+  // Each figure starts in the emptiest part of the area left.
+  const hubs: Node[] = [];
+  crews.forEach((_, i) => {
+    let best = { x: cx, y: cy };
+    let bestRoom = -Infinity;
+    for (let gx = 0; gx <= 12; gx += 1) {
+      for (let gy = 0; gy <= 8; gy += 1) {
+        const x = box.left + ((box.right - box.left) * gx) / 12;
+        const y = box.top + ((box.bottom - box.top) * gy) / 8;
+        const edge = Math.min(x - box.left, box.right - x, y - box.top, box.bottom - y) * 2;
+        const room = Math.min(edge, ...hubs.map((h) => Math.hypot(h.x - x, h.y - y) - tie[h.work]!)) - Math.hypot(x - cx, y - cy) * 0.05;
+        if (room > bestRoom) {
+          bestRoom = room;
+          best = { x, y };
+        }
+      }
+    }
+    hubs.push({ id: `#${i}`, ...best, dx: 0, dy: 0, work: i });
+  });
+  const people: Node[] = crews.flatMap((c, i) =>
+    c.members.map((uid) => ({ id: uid, x: hubs[i]!.x + unit(`${uid}x`) * tie[i]!, y: hubs[i]!.y + unit(`${uid}y`) * tie[i]!, dx: 0, dy: 0, work: i }))
+  );
+  const nodes = [...hubs, ...people];
+  const isHub = (n: Node) => n.id.startsWith("#");
+
+  const STEPS = 300;
+  for (let step = 0; step < STEPS; step += 1) {
+    for (const n of nodes) {
+      n.dx = (cx - n.x) * 0.006;
+      n.dy = (cy - n.y) * 0.006;
+    }
+    for (let i = 0; i < nodes.length; i += 1) {
+      for (let j = i + 1; j < nodes.length; j += 1) {
+        const a = nodes[i]!;
+        const b = nodes[j]!;
+        // How much room the two want between them.
+        let room: number;
+        if (isHub(a) && isHub(b)) room = (tie[a.work]! + tie[b.work]!) * 1.5;
+        else if (isHub(a) || isHub(b)) {
+          if (a.work === b.work) continue;
+          room = tie[(isHub(a) ? a : b).work]! * 1.7;
+        } else room = a.work === b.work ? spacing * 1.4 : spacing * 2.2;
+        let ddx = a.x - b.x;
+        let ddy = a.y - b.y;
+        let d = Math.hypot(ddx, ddy);
+        if (d >= room) continue;
+        if (d < 0.01) {
+          ddx = unit(a.id + b.id);
+          ddy = unit(b.id + a.id);
+          d = Math.hypot(ddx, ddy) || 1;
+        }
+        const push = (room - d) * 0.5;
+        a.dx += (ddx / d) * push;
+        a.dy += (ddy / d) * push;
+        b.dx -= (ddx / d) * push;
+        b.dy -= (ddy / d) * push;
+      }
+    }
+    for (const person of people) {
+      const hub = hubs[person.work]!;
+      const ddx = hub.x - person.x;
+      const ddy = hub.y - person.y;
+      const d = Math.hypot(ddx, ddy) || 1;
+      const pull = (d - tie[person.work]!) * 0.3;
+      person.dx += (ddx / d) * pull;
+      person.dy += (ddy / d) * pull;
+      hub.dx -= (ddx / d) * pull * 0.6;
+      hub.dy -= (ddy / d) * pull * 0.6;
+    }
+    const cap = spacing * 0.6 * (1 - step / STEPS) + 1;
+    for (const n of nodes) {
+      const len = Math.hypot(n.dx, n.dy);
+      const k = len > cap ? cap / len : 1;
+      n.x = Math.min(box.right, Math.max(box.left, n.x + n.dx * k));
+      n.y = Math.min(box.bottom, Math.max(box.top, n.y + n.dy * k));
+    }
+  }
+  return people;
+}
+
+export function buildSky(people: readonly DirPerson[], seats: readonly Seat[], options: SkyOptions = {}): Sky {
+  const { maxConstellations = SKY_MAX_CONSTELLATIONS, spacing = 64, reach = spacing * 1.5 } = options;
 
   // Works with two or more people here, biggest first.
   const crews = new Map<string, { work: DirWork; members: string[] }>();
@@ -100,139 +198,137 @@ export function buildSky(
       crews.set(credit.work.key, crew);
     }
   }
-  const chosen: { work: DirWork; members: string[] }[] = [];
-  const memberSet = new Set<string>();
-  for (const crew of [...crews.values()]
+  const candidates = [...crews.values()]
     .filter((c) => c.members.length >= 2)
-    .sort((a, b) => b.members.length - a.members.length || hashString(a.work.key) - hashString(b.work.key))) {
+    .sort((a, b) => b.members.length - a.members.length || hashString(a.work.key) - hashString(b.work.key));
+  // As in the real sky, a star belongs to one figure: a work that shares
+  // someone with a bigger one already up there isn't drawn, so figures stay
+  // apart instead of joining into one web.
+  let chosen: { work: DirWork; members: string[] }[] = [];
+  const members = new Set<string>();
+  for (const crew of candidates) {
     if (chosen.length >= maxConstellations) break;
-    const members = crew.members.sort((a, b) => hashString(a) - hashString(b));
-    const added = members.filter((uid) => !memberSet.has(uid));
-    if (memberSet.size + added.length > SKY_MAX_MEMBERS) continue;
-    added.forEach((uid) => memberSet.add(uid));
-    chosen.push({ work: crew.work, members });
+    if (crew.members.some((uid) => members.has(uid))) continue;
+    // No more people in figures than the sky has stars for (each needs room).
+    if (members.size + crew.members.length > Math.min(SKY_MAX_MEMBERS, seats.length * 0.5)) continue;
+    chosen.push({ work: crew.work, members: [...crew.members].sort((a, b) => hashString(a) - hashString(b)) });
+    for (const uid of crew.members) members.add(uid);
   }
 
-  // Work at a time, in a space where x runs 0..aspect so distances are even.
-  const W = aspect;
-  const n = chosen.length;
-  const cols = Math.max(1, Math.ceil(Math.sqrt(n * aspect)));
-  const rows = Math.max(1, Math.ceil(n / cols));
-  const cellW = (W * (1 - 2 * MARGIN_X)) / cols;
-  const cellH = (1 - 2 * MARGIN_Y) / rows;
-  const centers = new Map<string, { x: number; y: number }>();
-  chosen.forEach((crew, i) => {
-    const rand = seeded(hashString(crew.work.key));
-    const col = i % cols;
-    const row = Math.floor(i / cols);
-    // Stagger rows so the figures don't line up like a table.
-    const shift = row % 2 ? cellW * 0.3 : 0;
-    centers.set(crew.work.key, {
-      x: W * MARGIN_X + cellW * (col + 0.5) + shift * (col === cols - 1 ? -1 : 1) + (rand() - 0.5) * cellW * 0.35,
-      y: MARGIN_Y + cellH * (row + 0.5) + (rand() - 0.5) * cellH * 0.35,
-    });
-  });
+  // Everyone in a figure takes the real star nearest where the layout wants
+  // them, brighter stars preferred.
+  const pool = [...seats].sort((a, b) => b.b - a.b);
+  const taken: Seat[] = [];
+  const seatOf = new Map<string, Seat>();
+  const isFree = (s: Seat, gap: number) => taken.every((t) => t !== s && dist(t, s) >= gap);
+  if (chosen.length && pool.length) {
+    for (const node of layOut(chosen, pool, spacing, reach)) {
+      let best: Seat | null = null;
+      let bestCost = Infinity;
+      for (const s of pool) {
+        if (!isFree(s, spacing)) continue;
+        const cost = dist(s, node) / spacing - 0.5 * s.b;
+        if (cost < bestCost) {
+          bestCost = cost;
+          best = s;
+        }
+      }
+      if (!best) continue;
+      taken.push(best);
+      seatOf.set(node.id, best);
+    }
+    // A figure that lost people to a full sky keeps those who got a star.
+    chosen = chosen
+      .map((crew) => ({ ...crew, members: crew.members.filter((uid) => seatOf.has(uid)) }))
+      .filter((crew) => crew.members.length >= 2);
+  }
 
   const worksOf = new Map<string, string[]>();
   for (const crew of chosen) for (const uid of crew.members) worksOf.set(uid, [...(worksOf.get(uid) ?? []), crew.work.key]);
+  const stars: SkyStar[] = [...seatOf].map(([uid, seat]) => ({ uid, x: seat.x, y: seat.y, works: worksOf.get(uid) ?? [] }));
 
-  const reach = Math.min(cellW, cellH) * 0.42;
-  const pos = new Map<string, { x: number; y: number }>();
-  for (const [uid, works] of worksOf) {
-    const rand = seeded(hashString(uid));
-    const cx = works.reduce((s, k) => s + centers.get(k)!.x, 0) / works.length;
-    const cy = works.reduce((s, k) => s + centers.get(k)!.y, 0) / works.length;
-    const angle = rand() * Math.PI * 2;
-    const r = reach * (0.35 + rand() * 0.65);
-    pos.set(uid, { x: cx + Math.cos(angle) * r, y: cy + Math.sin(angle) * r });
-  }
-
-  // Relax: stars keep a little apart, and stay near the works they're in.
-  const ids = [...pos.keys()];
-  // About a name label's height apart, so labels don't sit on each other.
-  const minD = 0.17;
-  for (let step = 0; step < 220; step += 1) {
-    for (let i = 0; i < ids.length; i += 1) {
-      const a = pos.get(ids[i]!)!;
-      for (let j = i + 1; j < ids.length; j += 1) {
-        const b = pos.get(ids[j]!)!;
-        const dx = b.x - a.x;
-        const dy = b.y - a.y;
-        const d = Math.hypot(dx, dy) || 1e-6;
-        if (d < minD) {
-          const push = ((minD - d) / d) * 0.5;
-          a.x -= dx * push;
-          a.y -= dy * push;
-          b.x += dx * push;
-          b.y += dy * push;
-        }
-      }
-    }
-    for (const uid of ids) {
-      const p = pos.get(uid)!;
-      for (const key of worksOf.get(uid)!) {
-        const c = centers.get(key)!;
-        p.x += (c.x - p.x) * 0.012;
-        p.y += (c.y - p.y) * 0.012;
-      }
-      p.x = Math.min(W * (1 - MARGIN_X), Math.max(W * MARGIN_X, p.x));
-      p.y = Math.min(1 - MARGIN_Y, Math.max(MARGIN_Y, p.y));
-    }
-  }
-
-  const stars: SkyStar[] = ids.map((uid) => ({ uid, x: pos.get(uid)!.x / W, y: pos.get(uid)!.y, works: worksOf.get(uid)! }));
-
-  // Everyone else shines alone, away from the figures.
-  const placed = stars.map((s) => ({ x: s.x * W, y: s.y }));
-  const lone = people.filter((p) => !worksOf.has(p.uid)).sort((a, b) => hashString(a.uid) - hashString(b.uid)).slice(0, SKY_MAX_LONE);
-  for (const person of lone) {
-    const rand = seeded(hashString(`lone:${person.uid}`));
-    let best = { x: 0, y: 0 };
-    let bestD = -1;
-    for (let k = 0; k < 14; k += 1) {
-      const c = { x: W * (MARGIN_X + rand() * (1 - 2 * MARGIN_X)), y: MARGIN_Y + rand() * (1 - 2 * MARGIN_Y) };
-      const d = placed.reduce((m, p) => Math.min(m, Math.hypot(p.x - c.x, p.y - c.y)), Infinity);
-      if (d > bestD) {
-        bestD = d;
-        best = c;
-      }
-    }
-    placed.push(best);
-    stars.push({ uid: person.uid, x: best.x / W, y: best.y, works: [] });
+  // Everyone else shines alone on a bright star, clear of the figures.
+  const lone = people
+    .filter((p) => !seatOf.has(p.uid))
+    .sort((a, b) => hashString(a.uid) - hashString(b.uid))
+    .slice(0, SKY_MAX_LONE);
+  let li = 0;
+  for (const s of pool) {
+    if (li >= lone.length) break;
+    if (!isFree(s, spacing * 1.3)) continue;
+    const uid = lone[li++]!.uid;
+    taken.push(s);
+    seatOf.set(uid, s);
+    stars.push({ uid, x: s.x, y: s.y, works: [] });
   }
 
   const constellations: SkyConstellation[] = chosen.map((crew) => {
-    const points = crew.members.map((uid) => ({ id: uid, x: pos.get(uid)!.x, y: pos.get(uid)!.y }));
-    const top = Math.min(...points.map((p) => p.y));
-    const xs = points.map((p) => p.x);
-    return {
-      work: crew.work,
-      members: crew.members.filter((uid) => byUid.has(uid)),
-      lines: spanningLines(points),
-      labelX: (Math.min(...xs) + Math.max(...xs)) / 2 / W,
-      labelY: Math.max(0.02, top - 0.07),
-    };
+    const points = crew.members.map((uid) => ({ id: uid, x: seatOf.get(uid)!.x, y: seatOf.get(uid)!.y }));
+    return { work: crew.work, members: crew.members, lines: spanningLines(points), labelX: 0, labelY: 0 };
   });
-
-  // Keep the works' names off each other (widths are a rough guess from length).
-  const halfWidth = (c: SkyConstellation) => (c.work.title.length * 0.0075) / aspect + 0.01;
-  for (let step = 0; step < 30; step += 1) {
-    let moved = false;
-    for (let i = 0; i < constellations.length; i += 1) {
-      for (let j = i + 1; j < constellations.length; j += 1) {
-        const a = constellations[i]!;
-        const b = constellations[j]!;
-        if (Math.abs(a.labelX - b.labelX) < halfWidth(a) + halfWidth(b) && Math.abs(a.labelY - b.labelY) < 0.06) {
-          const lower = a.labelY > b.labelY ? a : b;
-          lower.labelY = Math.min(0.98, lower.labelY + 0.03);
-          const upper = lower === a ? b : a;
-          upper.labelY = Math.max(0.02, upper.labelY - 0.03);
-          moved = true;
-        }
-      }
-    }
-    if (!moved) break;
-  }
+  placeTitles(constellations, stars, pool);
 
   return { stars, constellations };
+}
+
+type Box = { left: number; right: number; top: number; bottom: number };
+
+/**
+ * Each work's name goes where it covers the fewest stars, lines and other
+ * names: above its figure if that's clear, else below, beside or inside it.
+ * Widths are a rough guess from the title's length.
+ */
+function placeTitles(constellations: SkyConstellation[], stars: SkyStar[], seats: readonly Seat[]) {
+  if (!constellations.length) return;
+  const at = new Map(stars.map((s) => [s.uid, s]));
+  const xs = seats.map((s) => s.x);
+  const ys = seats.map((s) => s.y);
+  const bounds = { left: Math.min(...xs) - 20, right: Math.max(...xs) + 20, top: Math.min(...ys) - 30, bottom: Math.max(...ys) + 30 };
+  const segments = constellations.flatMap((c) => c.lines.map(([a, b]) => [at.get(a)!, at.get(b)!] as const));
+  const placed: Box[] = [];
+  const overlap = (a: Box, b: Box) =>
+    Math.max(0, Math.min(a.right, b.right) - Math.max(a.left, b.left)) * Math.max(0, Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top));
+
+  for (const c of constellations) {
+    const points = c.members.map((uid) => at.get(uid)!);
+    const minX = Math.min(...points.map((p) => p.x));
+    const maxX = Math.max(...points.map((p) => p.x));
+    const minY = Math.min(...points.map((p) => p.y));
+    const maxY = Math.max(...points.map((p) => p.y));
+    const midX = (minX + maxX) / 2;
+    const midY = points.reduce((sum, p) => sum + p.y, 0) / points.length;
+    const halfW = c.work.title.length * 4.1 + 10;
+    const halfH = 12;
+    // Candidates, in order of preference.
+    const spots: [number, number][] = [
+      [midX, minY - 30],
+      [midX, maxY + 30],
+      [minX - halfW - 14, midY],
+      [maxX + halfW + 14, midY],
+      [points.reduce((sum, p) => sum + p.x, 0) / points.length, midY],
+      [midX, minY - 54],
+      [midX, maxY + 54],
+    ];
+    let best = spots[0]!;
+    let bestCost = Infinity;
+    spots.forEach(([x, y], rank) => {
+      const box = { left: x - halfW, right: x + halfW, top: y - halfH, bottom: y + halfH };
+      let cost = rank * 0.6;
+      const inside = (p: { x: number; y: number }, pad = 0) =>
+        p.x > box.left - pad && p.x < box.right + pad && p.y > box.top - pad && p.y < box.bottom + pad;
+      for (const s of stars) if (inside(s, 8)) cost += 6;
+      for (const [a, b] of segments) {
+        for (let k = 1; k < 12; k += 1) if (inside({ x: a.x + ((b.x - a.x) * k) / 12, y: a.y + ((b.y - a.y) * k) / 12 })) cost += 1;
+      }
+      for (const other of placed) cost += overlap(box, other) / 60;
+      cost += (overlap(box, bounds) < (box.right - box.left) * (box.bottom - box.top) - 1 ? 20 : 0);
+      if (cost < bestCost) {
+        bestCost = cost;
+        best = [x, y];
+      }
+    });
+    c.labelX = best[0];
+    c.labelY = best[1];
+    placed.push({ left: best[0] - halfW, right: best[0] + halfW, top: best[1] - halfH, bottom: best[1] + halfH });
+  }
 }

@@ -44,57 +44,41 @@
   will-change: transform;
 }
 
-.skyBg {
+/* One photograph, the sky above the sea: its sea fills the screen's height
+   (the sky is --sky-h above it), and on screens wider than the photo it
+   fills the width instead, keeping the sea at the bottom. */
+.scene {
   position: absolute;
-  top: 0;
-  right: 0;
-  left: 0;
-  height: calc(var(--sky-h) + 4px);
-  background: linear-gradient(180deg, #01040a 0%, #020812 55%, #040e1c 100%);
+  inset: 0;
+  background: #02060d;
 }
 
-.sea {
-  position: absolute;
-  top: var(--sky-h);
-  right: 0;
-  left: 0;
-  height: var(--screen);
-}
-
-.seaImage {
+.sceneImage {
   object-fit: cover;
   /* Keeps the portal a little right of centre on any screen shape. */
-  object-position: 64% 50%;
+  object-position: 64% 100%;
 }
 
-/* The photo's top melts into the sky above it. */
-.seam {
+/* In the sky, the panel's side of it is a little darker so its text reads. */
+.scrim {
   position: absolute;
-  top: calc(var(--sky-h) - 2px);
-  right: 0;
-  left: 0;
-  height: calc(var(--screen) * 0.18);
-  background: linear-gradient(180deg, #040e1c, rgba(4, 14, 28, 0));
-}
-
-.stars {
-  position: absolute;
-  z-index: 1;
-  top: 0;
-  left: 0;
-  width: 100%;
+  z-index: 3;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(2, 6, 12, 0.62) 0%, rgba(2, 6, 12, 0.36) 24%, rgba(2, 6, 12, 0) 42%);
+  opacity: var(--panel, 0);
   pointer-events: none;
 }
 
 /* ---- Constellations ---- */
 
 .box {
+  /* The screen at the top of the world: where the view rests in the sky. */
   position: absolute;
   z-index: 2;
-  top: calc(var(--screen) * 0.12);
-  right: 3%;
-  left: 33%;
-  height: calc(var(--screen) * 0.62);
+  top: 0;
+  right: 0;
+  left: 0;
+  height: var(--screen);
 }
 
 .lines {
@@ -600,12 +584,7 @@ a.tip:hover { border-color: rgba(119, 203, 255, 0.6); }
 }
 
 @media (max-width: 1040px) {
-  .box {
-    top: calc(var(--screen) * 0.13);
-    right: 5%;
-    left: 5%;
-    height: calc(var(--screen) * 0.5);
-  }
+  .scrim { display: none; }
 
   .panel {
     top: auto;
@@ -632,7 +611,6 @@ a.tip:hover { border-color: rgba(119, 203, 255, 0.6); }
 }
 
 @media (max-width: 600px) {
-  .box { height: calc(var(--screen) * 0.55); }
   .sections { top: 84px; gap: 20px; }
   .intro { bottom: 110px; }
   .heading { font-size: clamp(44px, 13vw, 56px); }

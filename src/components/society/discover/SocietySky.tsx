@@ -7,9 +7,9 @@ import UiText, { useUiCopy } from "@/components/i18n/UiText";
 import type { SocietyTabId } from "@/components/society/SocietyNetworkPanel";
 import { useTranslations } from "@/context/LocaleContext";
 import { primaryRole, type DirPerson } from "@/lib/society-directory";
-import { buildSky } from "@/lib/society-sky";
-import { drawStarfield } from "./starfield";
+import { buildSky, type Seat, type SkyStar } from "@/lib/society-sky";
 import styles from "./SocietySky.module.css";
+import { SKY_IMAGE, SKY_SEATS } from "./skySeats";
 import { useSkyGlide } from "./useSkyGlide";
 
 const SECTIONS: { id: SocietyTabId; label: string }[] = [
@@ -20,10 +20,45 @@ const SECTIONS: { id: SocietyTabId; label: string }[] = [
   { id: "works", label: "My Works" },
 ];
 
-/** The home's night sea: Society starts there and looks up. */
-const SEA = "/images/home/home_portal_night_photo.jpg";
-/** How much sky lies above the photo, as a share of the screen's height. */
+/**
+ * The home's night sea with the night sky above it, as one photograph:
+ * Society starts on the sea and looks up. The sky above the sea photo is
+ * SKY_SHARE of its height (public/images/society/society_sky.jpg is made
+ * that way), so with the sea filling the screen the sky is SKY_SHARE of a
+ * screen above it.
+ */
+const SCENE = "/images/society/society_sky.jpg";
 const SKY_SHARE = 0.47;
+/** The photo's width over the sea's height: its rendered width when it fills the screen's height. */
+const SEA_ASPECT = SKY_IMAGE.width / (SKY_IMAGE.height / (1 + SKY_SHARE));
+/** Matches .sceneImage's object-position. */
+const SCENE_X = 0.64;
+
+/**
+ * Where the photograph's real stars land on screen once the view is up in the
+ * sky (the scene drawn with object-fit: cover in a box the screen's width and
+ * 1 + SKY_SHARE screens tall), keeping those inside the area for figures.
+ */
+function seatsOnScreen(w: number, h: number): Seat[] {
+  const boxH = h * (1 + SKY_SHARE);
+  const scale = Math.max(w / SKY_IMAGE.width, boxH / SKY_IMAGE.height);
+  const rw = SKY_IMAGE.width * scale;
+  const rh = SKY_IMAGE.height * scale;
+  const ox = (w - rw) * SCENE_X;
+  const oy = boxH - rh;
+  // Clear of the header, the panel (on the left on wide screens, below
+  // otherwise; SocietySky.module.css) and the clouds.
+  const area = w <= 1040
+    ? { left: w * 0.06, right: w * 0.94, top: Math.max(96, h * 0.12), bottom: h * 0.64 }
+    : { left: w * 0.34, right: w * 0.97, top: Math.max(110, h * 0.13), bottom: h * 0.76 };
+  const seats: Seat[] = [];
+  for (const [sx, sy, b] of SKY_SEATS) {
+    const x = ox + sx * rw;
+    const y = oy + sy * rh;
+    if (x >= area.left && x <= area.right && y >= area.top && y <= area.bottom) seats.push({ x, y, b });
+  }
+  return seats;
+}
 const CREW_MAX = 8;
 
 const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
@@ -47,11 +82,9 @@ export default function SocietySky({
   const sectionRef = useRef<HTMLElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const worldRef = useRef<HTMLDivElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const boxRef = useRef<HTMLDivElement>(null);
   const linesRef = useRef<SVGGElement>(null);
-  const [boxSize, setBoxSize] = useState({ w: 1700, h: 1000 });
-  const aspect = Math.round((boxSize.w / boxSize.h) * 10) / 10;
+  const [boxSize, setBoxSize] = useState({ w: 1440, h: 900 });
   const [narrow, setNarrow] = useState(false);
   const [still, setStill] = useState(false);
   const [awake, setAwake] = useState(false);
@@ -70,8 +103,15 @@ export default function SocietySky({
   useEffect(() => () => window.clearTimeout(leaveTimer.current), []);
 
   const byUid = useMemo(() => new Map((people ?? []).map((p) => [p.uid, p])), [people]);
-  // A phone's sky holds fewer figures, so their names have room.
-  const sky = useMemo(() => buildSky(people ?? [], { aspect, maxConstellations: narrow ? 5 : undefined }), [people, aspect, narrow]);
+  // People sit on the photograph's own stars; a phone's sky holds fewer figures, closer together.
+  const sky = useMemo(
+    () =>
+      buildSky(people ?? [], seatsOnScreen(boxSize.w, boxSize.h), {
+        maxConstellations: narrow ? 4 : undefined,
+        spacing: narrow ? 48 : 64,
+      }),
+    [people, boxSize, narrow]
+  );
   const selected = sky.constellations.find((c) => c.work.key === selectedKey) ?? sky.constellations[0] ?? null;
   const starAt = useMemo(() => new Map(sky.stars.map((s) => [s.uid, s])), [sky]);
 
@@ -95,22 +135,14 @@ export default function SocietySky({
     return () => media.removeEventListener("change", sync);
   }, []);
 
-  // Paint the stars, and lay the constellations out for the box's shape.
+  // Lay the constellations out for the box's shape.
   useEffect(() => {
     const paint = () => {
       const stage = stageRef.current;
-      const canvas = canvasRef.current;
       const box = boxRef.current;
-      if (!stage || !canvas) return;
-      const w = stage.clientWidth;
-      const h = stage.clientHeight;
-      const skyH = h * SKY_SHARE;
-      // Into the photo's own sky, thinning out well before its clouds.
-      const height = skyH + h * 0.32;
-      canvas.style.height = `${height}px`;
-      drawStarfield(canvas, { width: w, height, ratio: Math.min(2, window.devicePixelRatio || 1), fadeFrom: skyH - h * 0.04, fadeTo: height });
+      if (!stage) return;
       if (box) setBoxSize({ w: Math.max(1, box.clientWidth), h: Math.max(1, box.clientHeight) });
-      setNarrow(w < 600);
+      setNarrow(stage.clientWidth < 600);
     };
     paint();
     let timer = 0;
@@ -177,8 +209,31 @@ export default function SocietySky({
   const hoveredWorks = hovered ? starAt.get(hovered)?.works ?? [] : [];
   const lit = (key: string) => key === selected?.work.key || hoveredWorks.includes(key);
   const named = new Set([...(selected?.members ?? []), ...(hovered ? [hovered] : [])]);
+  // A name goes right of its star, or left when that would cover another
+  // shown name or star, or run off the edge (widths are a rough guess).
+  const leftNames = new Set<string>();
+  const nameBoxes: { left: number; right: number; top: number; bottom: number }[] = [];
+  const textWidth = (text: string, px: number) => [...text].reduce((w, ch) => w + (ch.charCodeAt(0) > 0x2e80 ? px : px * 0.56), 0);
+  for (const s of [...named].map((uid) => starAt.get(uid)).filter((s): s is SkyStar => !!s).sort((a, b) => a.x - b.x)) {
+    const person = byUid.get(s.uid);
+    if (!person) continue;
+    const w = Math.max(textWidth(person.name, 12.5), textWidth(roleOf(person), 10.5)) + 6;
+    const sides = [
+      { left: s.x + 20, right: s.x + 20 + w, top: s.y - 18, bottom: s.y + 14 },
+      { left: s.x - 20 - w, right: s.x - 20, top: s.y - 18, bottom: s.y + 14 },
+    ];
+    const cost = (b: (typeof sides)[number]) =>
+      (b.left < 4 || b.right > boxSize.w - 4 ? 1e6 : 0) +
+      nameBoxes.reduce((sum, o) => sum + Math.max(0, Math.min(b.right, o.right) - Math.max(b.left, o.left)) * Math.max(0, Math.min(b.bottom, o.bottom) - Math.max(b.top, o.top)), 0) +
+      sky.stars.filter((o) => o !== s && o.x > b.left - 6 && o.x < b.right + 6 && o.y > b.top - 6 && o.y < b.bottom + 6).length * 200;
+    const onLeft = cost(sides[1]!) < cost(sides[0]!);
+    if (onLeft) leftNames.add(s.uid);
+    nameBoxes.push(sides[onLeft ? 1 : 0]!);
+  }
   const tip = hovered ? byUid.get(hovered) : null;
   const tipStar = hovered ? starAt.get(hovered) : null;
+  // Everything they made, not just the figure they're in.
+  const tipWorks = tip ? [...new Set(tip.credits.map((c) => c.work.title))].slice(0, 3) : [];
   const crew = selected
     ? selected.members.map((uid) => {
         const person = byUid.get(uid)!;
@@ -191,12 +246,16 @@ export default function SocietySky({
     <section ref={sectionRef} className={`${styles.sky} ${still ? styles.still : ""} ${awake ? styles.isAwake : ""}`} aria-label={copy("Constellations")}>
       <div ref={stageRef} className={styles.stage}>
         <div ref={worldRef} className={styles.world}>
-          <div className={styles.skyBg} aria-hidden="true" />
-          <canvas ref={canvasRef} className={styles.stars} aria-hidden="true" />
-          <div className={styles.sea} aria-hidden="true">
-            <Image src={SEA} alt="" fill priority sizes="100vw" className={styles.seaImage} />
+          <div className={styles.scene} aria-hidden="true">
+            <Image
+              src={SCENE}
+              alt=""
+              fill
+              priority
+              sizes={`(max-aspect-ratio: ${Math.round(SEA_ASPECT * 100)}/100) ${Math.round(SEA_ASPECT * 100)}vh, 100vw`}
+              className={styles.sceneImage}
+            />
           </div>
-          <div className={styles.seam} aria-hidden="true" />
 
           <div ref={boxRef} className={`${styles.box} ${awake ? styles.awake : ""}`}>
             <svg className={styles.lines} viewBox={`0 0 ${boxSize.w} ${boxSize.h}`} aria-hidden="true">
@@ -210,7 +269,7 @@ export default function SocietySky({
                         key={`${c.work.key}:${a}:${b}`}
                         data-order={ci + li * 0.5}
                         className={lit(c.work.key) ? styles.lineLit : styles.line}
-                        d={`M${sa.x * boxSize.w},${sa.y * boxSize.h} L${sb.x * boxSize.w},${sb.y * boxSize.h}`}
+                        d={`M${sa.x},${sa.y} L${sb.x},${sb.y}`}
                         pathLength={1}
                       />
                     );
@@ -224,7 +283,7 @@ export default function SocietySky({
                 key={c.work.key}
                 type="button"
                 className={`${styles.title} ${lit(c.work.key) ? styles.titleLit : ""}`}
-                style={{ left: `${c.labelX * 100}%`, top: `${c.labelY * 100}%`, "--i": ci } as CSSProperties}
+                style={{ left: c.labelX, top: c.labelY, "--i": ci } as CSSProperties}
                 onClick={() => setSelectedKey(c.work.key)}
                 tabIndex={awake ? 0 : -1}
               >
@@ -238,9 +297,9 @@ export default function SocietySky({
               const credits = new Set(person.credits.map((c) => c.work.key)).size;
               const inLit = s.works.some(lit);
               const className = [styles.star, person.available ? styles.open : "", s.works.length === 0 ? styles.lone : "", inLit ? styles.starLit : ""].join(" ");
-              const style = { left: `${s.x * 100}%`, top: `${s.y * 100}%`, "--size": `${3 + Math.min(credits, 5) * 1.1}px`, "--i": i } as CSSProperties;
+              const style = { left: s.x, top: s.y, "--size": `${2.6 + Math.min(credits, 5) * 0.8}px`, "--i": i } as CSSProperties;
               const label = named.has(s.uid) ? (
-                <span className={`${styles.name} ${s.x > 0.72 ? styles.nameLeft : ""}`}>
+                <span className={`${styles.name} ${leftNames.has(s.uid) ? styles.nameLeft : ""}`}>
                   {person.name}
                   <small>{roleOf(person)}</small>
                 </span>
@@ -264,15 +323,13 @@ export default function SocietySky({
             })}
 
             {tip && tipStar ? (() => {
-              const className = `${styles.tip} ${tipStar.x > 0.62 ? styles.tipLeft : ""} ${tipStar.y > 0.62 ? styles.tipUp : ""}`;
-              const style = { left: `${tipStar.x * 100}%`, top: `${tipStar.y * 100}%` };
+              const className = `${styles.tip} ${tipStar.x > boxSize.w - 300 ? styles.tipLeft : ""} ${tipStar.y > boxSize.h * 0.55 ? styles.tipUp : ""}`;
+              const style = { left: tipStar.x, top: tipStar.y };
               const card = (
                 <>
                   <strong>{tip.name}</strong>
                   <small>{[roleOf(tip), tip.schools[0]].filter(Boolean).join(" · ")}</small>
-                  {tipStar.works.length > 0 ? (
-                    <p>{tipStar.works.map((k) => sky.constellations.find((c) => c.work.key === k)?.work.title).filter(Boolean).join(", ")}</p>
-                  ) : null}
+                  {tipWorks.length > 0 ? <p>{tipWorks.join(", ")}</p> : null}
                   <em>
                     {tip.available ? <><UiText text="Open to work" /> · </> : null}
                     {tip.handle ? <UiText text="View profile" /> : null}
@@ -295,6 +352,7 @@ export default function SocietySky({
         </div>
 
         <span className={styles.bottomFade} aria-hidden="true" />
+        <span className={styles.scrim} aria-hidden="true" />
 
         <nav className={styles.sections} aria-label={copy("Society sections")}>
           {SECTIONS.map((section) => (
