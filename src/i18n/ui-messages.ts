@@ -2140,6 +2140,22 @@ export const uiMessages: Record<string, readonly [string, string]> = {
     "나",
     "あなた"
   ],
+  "directing & writing": [
+    "연출 · 각본",
+    "演出・脚本"
+  ],
+  "back to the sky": [
+    "하늘로 돌아가기",
+    "空に戻る"
+  ],
+  "meet the crew": [
+    "만든 사람들 보기",
+    "つくった人たちを見る"
+  ],
+  "pick someone to open their profile. faint branches lead to their other works.": [
+    "사람을 누르면 프로필이 열려요. 흐린 가지는 그 사람의 다른 작품으로 이어져요.",
+    "人を選ぶとプロフィールが開きます。淡い枝は、その人のほかの作品へ続いています。"
+  ],
   "every work is": [
     "모든 작품은",
     "すべての作品は"

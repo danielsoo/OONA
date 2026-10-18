@@ -6,8 +6,8 @@ import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties }
 import UiText, { useUiCopy } from "@/components/i18n/UiText";
 import type { SocietyTabId } from "@/components/society/SocietyNetworkPanel";
 import { useTranslations } from "@/context/LocaleContext";
-import { primaryRole, type DirPerson } from "@/lib/society-directory";
-import { buildSky, type Seat, type SkyStar } from "@/lib/society-sky";
+import { primaryRole, type DirPerson, type DirWork } from "@/lib/society-directory";
+import { buildSky, layOutNeuron, neuronGroup, neuronTwigs, type NeuronGroup, type Seat, type SkyStar } from "@/lib/society-sky";
 import styles from "./SocietySky.module.css";
 import { SKY_IMAGE, SKY_SEATS } from "./skySeats";
 import type { SkyDirectory } from "./useSocietyDirectory";
@@ -45,6 +45,16 @@ const SCENE_X = 0.64;
  * sky (the scene drawn with object-fit: cover in a box the screen's width and
  * 1 + SKY_SHARE screens tall), keeping those inside the area for figures.
  */
+/**
+ * Where figures go up in the sky: clear of the header, the panel (on the left
+ * on wide screens, below otherwise; SocietySky.module.css) and the clouds.
+ */
+function skyArea(w: number, h: number) {
+  return w <= 1040
+    ? { left: w * 0.06, right: w * 0.94, top: Math.max(96, h * 0.12), bottom: h * 0.64 }
+    : { left: w * 0.34, right: w * 0.97, top: Math.max(110, h * 0.13), bottom: h * 0.76 };
+}
+
 function seatsOnScreen(w: number, h: number): Seat[] {
   const boxH = h * (1 + SKY_SHARE);
   const scale = Math.max(w / SKY_IMAGE.width, boxH / SKY_IMAGE.height);
@@ -52,11 +62,7 @@ function seatsOnScreen(w: number, h: number): Seat[] {
   const rh = SKY_IMAGE.height * scale;
   const ox = (w - rw) * SCENE_X;
   const oy = boxH - rh;
-  // Clear of the header, the panel (on the left on wide screens, below
-  // otherwise; SocietySky.module.css) and the clouds.
-  const area = w <= 1040
-    ? { left: w * 0.06, right: w * 0.94, top: Math.max(96, h * 0.12), bottom: h * 0.64 }
-    : { left: w * 0.34, right: w * 0.97, top: Math.max(110, h * 0.13), bottom: h * 0.76 };
+  const area = skyArea(w, h);
   const seats: Seat[] = [];
   for (const [sx, sy, b] of SKY_SEATS) {
     const x = ox + sx * rw;
@@ -66,8 +72,12 @@ function seatsOnScreen(w: number, h: number): Seat[] {
   return seats;
 }
 const CREW_MAX = 8;
+const GROUP_LABEL: Record<NeuronGroup, string> = { direction: "Directing & writing", cast: "Cast", crew: "Crew" };
 
 const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
+/** A branch from a to b that bows a little to one side, as a neuron's do. */
+const curve = (a: { x: number; y: number }, b: { x: number; y: number }, bow: number) =>
+  `M${a.x},${a.y} Q${(a.x + b.x) / 2 + (b.y - a.y) * bow},${(a.y + b.y) / 2 - (b.x - a.x) * bow} ${b.x},${b.y}`;
 const ramp = (p: number, a: number, b: number) => clamp((p - a) / (b - a), 0, 1);
 const smooth = (t: number) => t * t * (3 - 2 * t);
 
@@ -97,6 +107,8 @@ export default function SocietySky({
   const [still, setStill] = useState(false);
   const [awake, setAwake] = useState(false);
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
+  // A work opened into a neuron of the people who made it (null: the sky).
+  const [focusKey, setFocusKey] = useState<string | null>(null);
   const [hovered, setHovered] = useState<string | null>(null);
   // Leaving a star, its card stays a moment so the pointer can move onto it.
   const leaveTimer = useRef(0);
@@ -126,6 +138,39 @@ export default function SocietySky({
   );
   const selected = sky.constellations.find((c) => c.work.key === selectedKey) ?? sky.constellations[0] ?? null;
   const starAt = useMemo(() => new Map(sky.stars.map((s) => [s.uid, s])), [sky]);
+  // Everyone's credits by work, for any work a neuron can open on.
+  const crews = useMemo(() => {
+    const map = new Map<string, { work: DirWork; members: { uid: string; role: string; character: string | null }[] }>();
+    for (const person of people ?? []) {
+      for (const credit of person.credits) {
+        const crew = map.get(credit.work.key) ?? { work: credit.work, members: [] };
+        if (!crew.members.some((m) => m.uid === person.uid)) crew.members.push({ uid: person.uid, role: credit.role, character: credit.character });
+        map.set(credit.work.key, crew);
+      }
+    }
+    return map;
+  }, [people]);
+  const neuron = useMemo(() => {
+    const crew = focusKey ? crews.get(focusKey) : null;
+    if (!crew) return null;
+    const area = skyArea(boxSize.w, boxSize.h);
+    const center = { x: (area.left + area.right) / 2, y: (area.top + area.bottom) / 2 };
+    const r = Math.min((area.right - area.left) / 2, (area.bottom - area.top) / 2) * 0.62;
+    // A phone keeps its names on screen: narrower, taller.
+    const rx = r * (narrow ? 0.86 : 1.3);
+    const ry = r * (narrow ? 1.05 : 0.95);
+    const layout = layOutNeuron(crew.members.map((m) => ({ uid: m.uid, group: neuronGroup(m.role) })), center, rx, ry);
+    // Faint twigs to a few of their other works; none on a phone, where there's no room.
+    const twigs = neuronTwigs(
+      layout.nodes,
+      (uid) => [...new Map((byUid.get(uid)?.credits ?? []).filter((c) => c.work.key !== crew.work.key).map((c) => [c.work.key, c.work])).values()],
+      center,
+      rx,
+      ry,
+      { max: narrow ? 0 : 8, bounds: { left: area.left - 10, right: area.right, top: area.top - 20, bottom: area.bottom + 30 } }
+    );
+    return { crew, center, layout, twigs, at: new Map(layout.nodes.map((n) => [n.uid, n])) };
+  }, [focusKey, crews, boxSize, narrow, byUid]);
 
   const roleOf = useCallback(
     (person: DirPerson) => {
@@ -137,6 +182,19 @@ export default function SocietySky({
 
   // One scroll on the sea glides up into the sky, as the credits glide to the home.
   useSkyGlide(sectionRef, !still);
+
+  // An open neuron closes with Esc, or on leaving the sky.
+  useEffect(() => {
+    if (!focusKey) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setFocusKey(null);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [focusKey]);
+  useEffect(() => {
+    if (!awake) setFocusKey(null);
+  }, [awake]);
 
   // Reduced motion: no tilt, just the sky.
   useEffect(() => {
@@ -212,10 +270,19 @@ export default function SocietySky({
     };
   }, [still, sky]);
 
+  // Opening a work: its constellation lights up and its people spread out.
+  const open = (key: string) => {
+    if (sky.constellations.some((c) => c.work.key === key)) setSelectedKey(key);
+    setHovered(null);
+    setFocusKey(key);
+  };
+  // The arrows move between the sky's works (and, with one open, open the next).
   const step = (by: number) => {
     const list = sky.constellations;
-    const at = Math.max(0, list.findIndex((c) => c.work.key === selected?.work.key));
-    setSelectedKey(list[(at + by + list.length) % list.length]!.work.key);
+    const at = Math.max(0, list.findIndex((c) => c.work.key === (focusKey ?? selected?.work.key)));
+    const next = list[(at + by + list.length) % list.length]!.work.key;
+    if (focusKey) open(next);
+    else setSelectedKey(next);
   };
 
   const hoveredWorks = hovered ? starAt.get(hovered)?.works ?? [] : [];
@@ -243,16 +310,22 @@ export default function SocietySky({
     nameBoxes.push(sides[onLeft ? 1 : 0]!);
   }
   const tip = hovered ? byUid.get(hovered) : null;
-  const tipStar = hovered ? starAt.get(hovered) : null;
+  const tipStar = hovered ? (neuron ? neuron.at.get(hovered) : starAt.get(hovered)) ?? null : null;
   // Everything they made, not just the figure they're in.
   const tipWorks = tip ? [...new Set(tip.credits.map((c) => c.work.title))].slice(0, 3) : [];
-  const crew = selected
-    ? selected.members.map((uid) => {
-        const person = byUid.get(uid)!;
-        const credit = person.credits.find((c) => c.work.key === selected.work.key);
-        return { person, role: credit ? credit.character ?? t(`watch.creditRole.${credit.role}`) : roleOf(person) };
+  const panelWork = neuron?.crew.work ?? selected?.work ?? null;
+  const crew = neuron
+    ? neuron.crew.members.flatMap((m) => {
+        const person = byUid.get(m.uid);
+        return person ? [{ person, role: m.character ?? t(`watch.creditRole.${m.role}`) }] : [];
       })
-    : [];
+    : selected
+      ? selected.members.map((uid) => {
+          const person = byUid.get(uid)!;
+          const credit = person.credits.find((c) => c.work.key === selected.work.key);
+          return { person, role: credit ? credit.character ?? t(`watch.creditRole.${credit.role}`) : roleOf(person) };
+        })
+      : [];
 
   return (
     <section ref={sectionRef} className={`${styles.sky} ${still ? styles.still : ""} ${awake ? styles.isAwake : ""}`} aria-label={copy("Constellations")}>
@@ -270,7 +343,13 @@ export default function SocietySky({
             />
           </div>
 
-          <div ref={boxRef} className={`${styles.box} ${awake ? styles.awake : ""}`}>
+          <div
+            ref={boxRef}
+            className={`${styles.box} ${awake ? styles.awake : ""} ${neuron ? styles.focused : ""}`}
+            onClick={(e) => {
+              if (neuron && e.target === e.currentTarget) setFocusKey(null);
+            }}
+          >
             <svg className={styles.lines} viewBox={`0 0 ${boxSize.w} ${boxSize.h}`} aria-hidden="true">
               <g ref={linesRef}>
                 {sky.constellations.map((c, ci) =>
@@ -297,7 +376,7 @@ export default function SocietySky({
                 type="button"
                 className={`${styles.title} ${lit(c.work.key) ? styles.titleLit : ""}`}
                 style={{ left: c.labelX, top: c.labelY, "--i": ci } as CSSProperties}
-                onClick={() => setSelectedKey(c.work.key)}
+                onClick={() => open(c.work.key)}
                 tabIndex={awake ? 0 : -1}
               >
                 {c.work.title}
@@ -336,7 +415,7 @@ export default function SocietySky({
             })}
 
             {tip && tipStar ? (() => {
-              const className = `${styles.tip} ${tipStar.x > boxSize.w - 300 ? styles.tipLeft : ""} ${tipStar.y > boxSize.h * 0.55 ? styles.tipUp : ""}`;
+              const className = `${styles.tip} ${neuron ? styles.tipNeuron : ""} ${tipStar.x > boxSize.w - 300 ? styles.tipLeft : ""} ${tipStar.y > boxSize.h * 0.55 ? styles.tipUp : ""}`;
               const style = { left: tipStar.x, top: tipStar.y };
               const card = (
                 <>
@@ -361,6 +440,81 @@ export default function SocietySky({
                 </div>
               );
             })() : null}
+
+            {neuron ? (
+              <div key={neuron.crew.work.key} className={styles.neuron}>
+                <svg className={styles.neuronLines} viewBox={`0 0 ${boxSize.w} ${boxSize.h}`} aria-hidden="true">
+                  {neuron.twigs.map((tw) => {
+                    const from = neuron.at.get(tw.uid)!;
+                    return <path key={`${tw.uid}:${tw.work.key}`} className={styles.twigLine} d={curve(from, tw, 0.12)} pathLength={1} />;
+                  })}
+                  {neuron.layout.branches.map((b) => (
+                    <g key={b.group}>
+                      <path className={styles.trunk} d={curve(neuron.center, b.knot, 0.08)} pathLength={1} />
+                      {b.members.map((uid) => (
+                        <path key={uid} className={styles.branch} d={curve(b.knot, neuron.at.get(uid)!, 0.14)} pathLength={1} />
+                      ))}
+                    </g>
+                  ))}
+                </svg>
+                <span className={styles.neuronCore} style={{ left: neuron.center.x, top: neuron.center.y }} aria-hidden="true" />
+                <Link
+                  href={`/watch/${neuron.crew.work.ownerUid}/${neuron.crew.work.workId}`}
+                  className={`${styles.neuronTitle} ${styles[`title_${neuron.layout.title.side}`]}`}
+                  style={{ left: neuron.layout.title.x, top: neuron.layout.title.y }}
+                >
+                  {neuron.crew.work.title}
+                </Link>
+                {neuron.layout.branches.map((b) => (
+                  <span key={b.group} className={`${styles.groupLabel} ${styles[`group_${b.label.anchor}`]}`} style={{ left: b.label.x, top: b.label.y }}>
+                    {copy(GROUP_LABEL[b.group])}
+                  </span>
+                ))}
+                {neuron.layout.nodes.map((n, i) => {
+                  const person = byUid.get(n.uid);
+                  if (!person) return null;
+                  const m = neuron.crew.members.find((x) => x.uid === n.uid)!;
+                  // Each comes from their own star in the sky, or from the work.
+                  const from = starAt.get(n.uid) ?? neuron.center;
+                  const style = {
+                    left: n.x,
+                    top: n.y,
+                    "--dx": `${from.x - n.x}px`,
+                    "--dy": `${from.y - n.y}px`,
+                    "--o0": starAt.has(n.uid) ? 1 : 0,
+                    "--i": i,
+                  } as CSSProperties;
+                  const className = `${styles.node} ${person.available ? styles.open : ""} ${n.uid === me ? styles.me : ""} ${Math.cos(n.angle) < -0.2 ? styles.nodeLeft : ""}`;
+                  const label = (
+                    <span className={styles.nodeName}>
+                      {person.name}
+                      <small>{n.uid === me ? copy("You") : m.character ?? t(`watch.creditRole.${m.role}`)}</small>
+                    </span>
+                  );
+                  const events = { onMouseEnter: () => enter(n.uid), onMouseLeave: () => leave(n.uid), onFocus: () => enter(n.uid), onBlur: () => leave(n.uid) };
+                  return person.handle ? (
+                    <Link key={n.uid} href={`/people/${person.handle}`} className={className} style={style} aria-label={person.name} {...events}>
+                      {label}
+                    </Link>
+                  ) : (
+                    <span key={n.uid} className={className} style={style} aria-label={person.name} tabIndex={0} {...events}>
+                      {label}
+                    </span>
+                  );
+                })}
+                {neuron.twigs.map((tw) => (
+                  <button
+                    key={`${tw.uid}:${tw.work.key}`}
+                    type="button"
+                    className={`${styles.twig} ${Math.cos(tw.angle) < -0.2 ? styles.twigLeft : ""}`}
+                    style={{ left: tw.x, top: tw.y }}
+                    onClick={() => open(tw.work.key)}
+                  >
+                    <span>{tw.work.title}</span>
+                  </button>
+                ))}
+              </div>
+            ) : null}
           </div>
         </div>
 
@@ -386,11 +540,11 @@ export default function SocietySky({
           <p className={styles.eyebrow}><UiText text="Constellations" /></p>
           <h2 className={styles.panelTitle}><UiText text="Every work is" /><br /><UiText text="a constellation." /></h2>
           <p className={styles.panelLede}><UiText text="Lines join the people who made a work together. The brightest stars are open to work." /></p>
-          {selected ? (
+          {panelWork ? (
             <div className={styles.pick}>
-              <p className={styles.eyebrow}>{[copy("{count} people made this together", { count: selected.members.length }), selected.work.schoolName].filter(Boolean).join(" · ")}</p>
+              <p className={styles.eyebrow}>{[copy("{count} people made this together", { count: crew.length }), panelWork.schoolName].filter(Boolean).join(" · ")}</p>
               <div className={styles.pickHead}>
-                <h3 className={styles.pickTitle}>{selected.work.title}</h3>
+                <h3 className={styles.pickTitle}>{panelWork.title}</h3>
                 {sky.constellations.length > 1 ? (
                   <span className={styles.step}>
                     <button type="button" aria-label={copy("Previous work")} onClick={() => step(-1)} tabIndex={awake ? 0 : -1}>
@@ -410,15 +564,28 @@ export default function SocietySky({
                   </li>
                 ))}
               </ul>
-              <Link href={`/watch/${selected.work.ownerUid}/${selected.work.workId}`} className={styles.watch} tabIndex={awake ? 0 : -1}>
-                {copy("Watch {title}", { title: selected.work.title })}
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>
-              </Link>
+              <div className={styles.pickActions}>
+                <Link href={`/watch/${panelWork.ownerUid}/${panelWork.workId}`} className={styles.watch} tabIndex={awake ? 0 : -1}>
+                  {copy("Watch {title}", { title: panelWork.title })}
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>
+                </Link>
+                {neuron ? (
+                  <button type="button" className={styles.back} onClick={() => setFocusKey(null)} tabIndex={awake ? 0 : -1}>
+                    <UiText text="Back to the sky" />
+                  </button>
+                ) : (
+                  <button type="button" className={styles.back} onClick={() => open(panelWork.key)} tabIndex={awake ? 0 : -1}>
+                    <UiText text="Meet the crew" />
+                  </button>
+                )}
+              </div>
             </div>
           ) : people && people.length > 0 ? (
             <p className={styles.panelLede}><UiText text="When people here make something together, their stars join into a constellation." /></p>
           ) : null}
-          <p className={styles.hint}><UiText text="Point at a star to meet them. Pick a title to see its crew." /></p>
+          <p className={styles.hint}>
+            {neuron ? <UiText text="Pick someone to open their profile. Faint branches lead to their other works." /> : <UiText text="Point at a star to meet them. Pick a title to see its crew." />}
+          </p>
         </aside>
       </div>
     </section>

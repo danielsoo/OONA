@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { buildSky, spanningLines, SKY_MAX_CONSTELLATIONS } from "./society-sky.ts";
+import { buildSky, layOutNeuron, neuronTwigs, spanningLines, SKY_MAX_CONSTELLATIONS } from "./society-sky.ts";
 
 const work = (key: string) => ({ key, ownerUid: "o", workId: key, title: key, stillUrl: "", schoolName: null });
 const person = (uid: string, works: string[]) => ({
@@ -126,5 +126,36 @@ describe("buildSky", () => {
     // @ts-expect-error test doubles
     const cramped = buildSky(many, seats.slice(0, 6), { spacing: 10 });
     assert.ok(cramped.stars.length <= 6);
+  });
+});
+
+describe("layOutNeuron", () => {
+  it("puts the directing on top, a branch per group, everyone on the ellipse", () => {
+    const members = [
+      { uid: "d", group: "direction" as const },
+      { uid: "a1", group: "cast" as const },
+      { uid: "a2", group: "cast" as const },
+      { uid: "c", group: "crew" as const },
+    ];
+    const n = layOutNeuron(members, { x: 500, y: 400 }, 200, 150);
+    assert.equal(n.branches.length, 3);
+    const d = n.nodes.find((x) => x.uid === "d")!;
+    assert.ok(Math.abs(d.x - 500) < 1 && Math.abs(d.y - 250) < 1, "director straight above");
+    for (const node of n.nodes) {
+      const r = ((node.x - 500) / 200) ** 2 + ((node.y - 400) / 150) ** 2;
+      assert.ok(Math.abs(r - 1) < 1e-9, `${node.uid} on the ellipse`);
+    }
+    // No branch leaves straight down, so the title goes below.
+    assert.equal(n.title.side, "below");
+  });
+
+  it("grows a few twigs, one each before any second, inside the bounds", () => {
+    const n = layOutNeuron([{ uid: "a", group: "cast" }, { uid: "b", group: "crew" }], { x: 100, y: 100 }, 80, 80);
+    const twigs = neuronTwigs(n.nodes, (uid) => (uid === "a" ? ["x", "y"] : ["z"]), { x: 100, y: 100 }, 80, 80, {
+      max: 2,
+      bounds: { left: 0, right: 200, top: 0, bottom: 200 },
+    });
+    assert.deepEqual(twigs.map((t) => t.work), ["x", "z"]);
+    for (const t of twigs) assert.ok(t.x >= 0 && t.x <= 200 && t.y >= 0 && t.y <= 200);
   });
 });

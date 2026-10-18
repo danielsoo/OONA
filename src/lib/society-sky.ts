@@ -356,3 +356,114 @@ function placeTitles(constellations: SkyConstellation[], stars: SkyStar[], seats
     placed.push({ left: best[0] - halfW, right: best[0] + halfW, top: best[1] - halfH, bottom: best[1] + halfH });
   }
 }
+
+// ---- A picked work, opened into a neuron of the people who made it ----
+
+export type NeuronGroup = "direction" | "cast" | "crew";
+type Point = { x: number; y: number };
+
+/** Which branch a credit sits on: directing and writing, acting, or everything else. */
+export function neuronGroup(role: string): NeuronGroup {
+  if (role === "director" || role === "writer" || role === "production") return "direction";
+  if (role === "actor") return "cast";
+  return "crew";
+}
+
+export type NeuronLayout = {
+  /** Each person at the tip of their branch; `angle` points away from the work. */
+  nodes: { uid: string; x: number; y: number; angle: number; group: NeuronGroup }[];
+  /**
+   * One per group: where it splits towards its people, and where its name
+   * goes (beside the branches, `anchor` saying which way the text runs).
+   */
+  branches: { group: NeuronGroup; knot: Point; label: Point & { anchor: "start" | "end" | "above" | "below" }; angle: number; members: string[] }[];
+  /** Where the work's own name sits: off the core, where no branch leaves it. */
+  title: Point & { side: "above" | "below" | "left" | "right" };
+};
+
+/**
+ * The work at `center`; its groups each take a share of the way round (the
+ * directing first, at the top), splitting at a knot into one branch per
+ * person, who sit on an ellipse rx × ry around it.
+ */
+export function layOutNeuron(members: readonly { uid: string; group: NeuronGroup }[], center: Point, rx: number, ry: number): NeuronLayout {
+  const groups = (["direction", "cast", "crew"] as const)
+    .map((group) => ({ group, ids: members.filter((m) => m.group === group).map((m) => m.uid) }))
+    .filter((g) => g.ids.length > 0);
+  const at = (angle: number, r: number) => ({ x: center.x + Math.cos(angle) * rx * r, y: center.y + Math.sin(angle) * ry * r });
+  const gap = groups.length > 1 ? 0.42 : 0;
+  const weights = groups.map((g) => g.ids.length + 0.8);
+  const total = weights.reduce((a, b) => a + b, 0);
+  const usable = Math.PI * 2 - gap * groups.length;
+  const crowded = members.length > 9;
+  const nodes: NeuronLayout["nodes"] = [];
+  const branches: NeuronLayout["branches"] = [];
+  // The first group is centred on the top.
+  let a = -Math.PI / 2 - (usable * weights[0]!) / total / 2;
+  groups.forEach((g, gi) => {
+    const span = (usable * weights[gi]!) / total;
+    const mid = a + span / 2;
+    g.ids.forEach((uid, i) => {
+      const angle = a + (span * (i + 0.5)) / g.ids.length;
+      // A big crew alternates nearer and farther, so neighbours don't touch.
+      const p = at(angle, crowded && i % 2 ? 0.8 : 1);
+      nodes.push({ uid, x: p.x, y: p.y, angle, group: g.group });
+    });
+    // The group's name between its branches, a little to one side of the
+    // middle one, running away from it.
+    const spot = at(mid, 0.64);
+    const px = -Math.sin(mid);
+    const py = Math.cos(mid);
+    const flip = py > 0 || (py === 0 && px < 0) ? -1 : 1;
+    const anchor = Math.abs(px) > Math.abs(py) ? (px * flip > 0 ? "start" : "end") : py * flip < 0 ? "above" : "below";
+    branches.push({
+      group: g.group,
+      knot: at(mid, 0.36),
+      label: { x: spot.x + px * flip * 10, y: spot.y + py * flip * 10, anchor },
+      angle: mid,
+      members: g.ids,
+    });
+    a += span + gap;
+  });
+  // The title goes where it is farthest from every trunk.
+  const sides = [
+    { side: "below" as const, angle: Math.PI / 2, x: center.x, y: center.y + 44 },
+    { side: "above" as const, angle: -Math.PI / 2, x: center.x, y: center.y - 44 },
+    { side: "right" as const, angle: 0, x: center.x + 26, y: center.y },
+    { side: "left" as const, angle: Math.PI, x: center.x - 26, y: center.y },
+  ];
+  const apart = (x: number, y: number) => Math.abs(Math.atan2(Math.sin(x - y), Math.cos(x - y)));
+  const title = sides
+    .map((s) => ({ ...s, room: Math.min(Math.PI, ...branches.map((b) => apart(s.angle, b.angle))) }))
+    .sort((p, q) => q.room - p.room)[0]!;
+  return { nodes, branches, title: { x: title.x, y: title.y, side: title.side } };
+}
+
+/**
+ * A few faint twigs beyond the people: each person's other works, at most
+ * `perPerson` each and `max` in all (taken round-robin so everyone gets one
+ * before anyone gets two), kept inside `bounds`.
+ */
+export function neuronTwigs<W>(
+  nodes: NeuronLayout["nodes"],
+  otherWorks: (uid: string) => W[],
+  center: Point,
+  rx: number,
+  ry: number,
+  { max, perPerson = 2, bounds }: { max: number; perPerson?: number; bounds: { left: number; right: number; top: number; bottom: number } }
+): { uid: string; work: W; x: number; y: number; angle: number }[] {
+  const twigs: { uid: string; work: W; x: number; y: number; angle: number }[] = [];
+  const lists = nodes.map((n) => ({ n, works: otherWorks(n.uid).slice(0, perPerson) }));
+  for (let round = 0; round < perPerson && twigs.length < max; round += 1) {
+    for (const { n, works } of lists) {
+      if (twigs.length >= max) break;
+      const work = works[round];
+      if (work === undefined) continue;
+      const angle = n.angle + (works.length > 1 ? (round ? 0.13 : -0.13) : 0);
+      const x = Math.min(bounds.right, Math.max(bounds.left, center.x + Math.cos(angle) * rx * 1.5));
+      const y = Math.min(bounds.bottom, Math.max(bounds.top, center.y + Math.sin(angle) * ry * 1.5));
+      twigs.push({ uid: n.uid, work, x, y, angle });
+    }
+  }
+  return twigs;
+}

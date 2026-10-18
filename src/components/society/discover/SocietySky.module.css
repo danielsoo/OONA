@@ -596,6 +596,280 @@ a.tip:hover { border-color: rgba(119, 203, 255, 0.6); }
   line-height: 1.5;
 }
 
+/* ---- A picked work, opened into a neuron of the people who made it ---- */
+
+/* The rest of the sky steps back while it's open. */
+.box .lines,
+.box .title,
+.box .star {
+  transition: opacity 500ms ease, filter 500ms ease;
+}
+
+.focused .lines,
+.focused .title,
+.focused .star {
+  opacity: 0.12 !important;
+  pointer-events: none !important;
+}
+
+/* Their names now sit on the neuron. */
+.focused .star .name { visibility: hidden; }
+.focused .titleLit { opacity: 0 !important; }
+
+.focused { cursor: zoom-out; }
+
+.neuron {
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  cursor: default;
+  pointer-events: none;
+}
+
+.neuronLines {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.neuronLines path {
+  fill: none;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  stroke-linecap: round;
+  animation: grow 820ms cubic-bezier(0.3, 0.7, 0.2, 1) forwards;
+}
+
+.trunk {
+  stroke: rgba(214, 238, 255, 0.82);
+  stroke-width: 2;
+  filter: drop-shadow(0 0 4px rgba(109, 196, 255, 0.5));
+  animation-delay: 120ms !important;
+}
+
+.branch {
+  stroke: rgba(200, 230, 255, 0.62);
+  stroke-width: 1.3;
+  animation-delay: 420ms !important;
+}
+
+.twigLine {
+  stroke: rgba(190, 225, 255, 0.26);
+  stroke-width: 0.9;
+  stroke-dasharray: 1;
+  animation-delay: 900ms !important;
+}
+
+@keyframes grow { to { stroke-dashoffset: 0; } }
+
+.neuronCore {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 0 30%, rgba(214, 238, 255, 0.95) 45%, rgba(214, 238, 255, 0) 72%);
+  box-shadow: 0 0 30px 9px rgba(150, 214, 255, 0.45), 0 0 80px 24px rgba(109, 196, 255, 0.16);
+  animation: coreIn 600ms ease both;
+}
+
+@keyframes coreIn { from { opacity: 0; transform: scale(0.4); } }
+
+.neuronTitle {
+  position: absolute;
+  width: max-content;
+  max-width: 240px;
+  color: #fff;
+  font-family: var(--serif);
+  font-size: 23px;
+  font-style: italic;
+  line-height: 1.1;
+  text-align: center;
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.8);
+  pointer-events: auto;
+  animation: fadeIn 600ms 300ms ease both;
+}
+
+.neuronTitle:hover { color: #bfe8ff; }
+.title_below { transform: translate(-50%, 0); }
+.title_above { transform: translate(-50%, -100%); }
+.title_right { transform: translate(0, -50%); }
+.title_left { transform: translate(-100%, -50%); }
+
+@keyframes fadeIn { from { opacity: 0; } }
+
+.groupLabel {
+  position: absolute;
+  color: rgba(185, 237, 255, 0.72);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.9);
+  animation: fadeIn 500ms 650ms ease both;
+}
+
+.group_start { transform: translateY(-50%); }
+.group_end { transform: translate(-100%, -50%); }
+.group_above { transform: translate(-50%, -100%); }
+.group_below { transform: translate(-50%, 0); }
+
+/* A person at the tip of their branch, come over from their star. */
+.node {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  margin: -14px 0 0 -14px;
+  border-radius: 50%;
+  outline: none;
+  pointer-events: auto;
+  animation: nodeIn 900ms cubic-bezier(0.22, 0.8, 0.2, 1) both;
+  animation-delay: calc(var(--i, 0) * 30ms);
+}
+
+@keyframes nodeIn {
+  from {
+    opacity: var(--o0, 1);
+    transform: translate(var(--dx, 0), var(--dy, 0));
+  }
+}
+
+.node::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 0 30%, rgba(228, 236, 248, 0.95) 45%, rgba(228, 236, 248, 0) 72%);
+  box-shadow: 0 0 14px 3px rgba(150, 214, 255, 0.5);
+  transform: translate(-50%, -50%);
+  transition: box-shadow 200ms ease;
+}
+
+.node.open::before { box-shadow: 0 0 18px 5px rgba(109, 196, 255, 0.7); }
+.node:hover::before,
+.node:focus-visible::before { box-shadow: 0 0 22px 7px rgba(150, 214, 255, 0.75); }
+.node:focus-visible::after {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border: 1px solid rgba(185, 237, 255, 0.8);
+  border-radius: 50%;
+}
+
+.nodeName {
+  position: absolute;
+  top: 50%;
+  left: 22px;
+  color: #eef3fa;
+  font-size: 12.5px;
+  font-weight: 500;
+  line-height: 1.3;
+  white-space: nowrap;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.75);
+  transform: translateY(-58%);
+  animation: fadeIn 400ms 600ms ease both;
+}
+
+.nodeName small {
+  display: block;
+  color: rgba(190, 208, 230, 0.68);
+  font-size: 10.5px;
+  font-weight: 400;
+}
+
+.nodeLeft .nodeName {
+  right: 22px;
+  left: auto;
+  text-align: right;
+}
+
+.node:hover .nodeName { color: #fff; }
+
+/* Their other works: faint, a way on to the next neuron. */
+.twig {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  margin: -11px 0 0 -11px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+  pointer-events: auto;
+  animation: fadeIn 600ms 1100ms ease both;
+}
+
+.twig::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(220, 234, 250, 0.7);
+  box-shadow: 0 0 8px rgba(150, 214, 255, 0.35);
+  transform: translate(-50%, -50%);
+}
+
+.twig span {
+  position: absolute;
+  top: 50%;
+  left: 18px;
+  max-width: 160px;
+  overflow: hidden;
+  color: rgba(200, 215, 235, 0.5);
+  font-family: var(--serif);
+  font-size: 13px;
+  font-style: italic;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transform: translateY(-50%);
+  transition: color 160ms ease;
+}
+
+.twigLeft span { right: 18px; left: auto; }
+.twig:hover span,
+.twig:focus-visible span { color: #e6f4ff; }
+.twig:focus-visible { outline: 1px solid rgba(185, 237, 255, 0.7); }
+
+.tipNeuron { pointer-events: auto; }
+
+.pickActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 18px;
+}
+
+.back {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: rgba(185, 237, 255, 0.82);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.back:hover { color: #fff; }
+
+@media (prefers-reduced-motion: reduce) {
+  .neuronLines path { animation: none; stroke-dashoffset: 0; }
+  .node,
+  .nodeName,
+  .twig,
+  .neuronTitle,
+  .groupLabel,
+  .neuronCore { animation: none; }
+}
+
 @media (max-width: 1040px) {
   .scrim { display: none; }
 
