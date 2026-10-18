@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useCallback, useEffect, useLayoutEffect, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useState, type CSSProperties, type ReactNode } from "react";
 import BusinessInviteComposerModal, { type PresetRecipient } from "@/components/messages/BusinessInviteComposerModal";
 import UiText, { useUiCopy } from "@/components/i18n/UiText";
 import SocietyLoginDialog from "@/components/society/SocietyLoginDialog";
@@ -78,11 +78,21 @@ function matchesFilter(person: DirPerson, filter: Filter): boolean {
   return person.groups.includes(filter);
 }
 
-/** A deep blue backdrop, the same for a person every time. */
-function backdropFor(uid: string): string {
+/**
+ * A person's patch of sky on their card, the same every time: which part of
+ * the small-star texture shows, and where in it their star sits, bigger for
+ * someone with more works.
+ */
+function skyPatch(person: DirPerson): CSSProperties {
   let h = 0;
-  for (const ch of uid) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
-  return `linear-gradient(165deg, hsl(${200 + (h % 40)} 36% 22%), #06101a 80%)`;
+  for (const ch of person.uid) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  const works = new Set(person.credits.map((c) => c.work.key)).size;
+  return {
+    backgroundPosition: `${h % 97}px ${(h >> 7) % 89}px, ${(h >> 3) % 131}px ${(h >> 11) % 113}px`,
+    "--sx": `${((h >> 5) % 41) - 20}%`,
+    "--sy": `${((h >> 13) % 31) - 15}%`,
+    "--ss": `${7 + Math.min(works, 4) * 1.5}px`,
+  } as CSSProperties;
 }
 
 function pad(n: number): string {
@@ -234,17 +244,6 @@ export default function SocietyDiscover({ onTabChange }: { onTabChange: (tab: So
         onFocusCapture={() => setPaused(true)}
         onBlurCapture={() => setPaused(false)}
       >
-        <Picture
-          key={hero?.uid ?? "none"}
-          src={hero ? stillOf(hero) ?? hero.avatarUrl ?? FALLBACK_PICTURE : FALLBACK_PICTURE}
-          sizes="100vw"
-          className={styles.heroImage}
-        />
-        <span className={styles.heroShade} aria-hidden="true" />
-        <span className={styles.heroTopFade} aria-hidden="true" />
-        <span className={styles.heroFade} aria-hidden="true" />
-
-
         {hero ? (
           <div className={styles.heroCopy} key={hero.uid}>
             <p className={styles.eyebrow}><UiText text="Creator in focus" /></p>
@@ -286,9 +285,17 @@ export default function SocietyDiscover({ onTabChange }: { onTabChange: (tab: So
           </div>
         )}
 
-        <div className={styles.heroAside} aria-hidden="true">
-          <p><UiText text="One creator." /><br /><UiText text="Their work." /><br /><UiText text="Their story." /></p>
-          <span />
+        {/* Their work, seen through the home's glowing doorway. */}
+        <div className={styles.portal} aria-hidden="true">
+          <div className={styles.portalFrame}>
+            <Picture
+              key={hero?.uid ?? "none"}
+              src={hero ? stillOf(hero) ?? hero.avatarUrl ?? FALLBACK_PICTURE : FALLBACK_PICTURE}
+              sizes="(max-width: 1040px) 64vw, 26vw"
+              className={styles.portalImage}
+            />
+          </div>
+          <span className={styles.portalGlow} />
         </div>
 
         {featured.length > 1 ? (
@@ -307,8 +314,12 @@ export default function SocietyDiscover({ onTabChange }: { onTabChange: (tab: So
             <section aria-labelledby="society-focus">
               <h2 id="society-focus" className={styles.sectionTitle}><UiText text="In focus" /></h2>
               <article className={styles.focus}>
-                <div className={styles.focusMedia}>
-                  <Picture src={focus.avatarUrl ?? stillOf(focus) ?? FALLBACK_PICTURE} sizes="(max-width: 1040px) 100vw, 54vw" />
+                <div className={styles.focusStar} aria-hidden="true">
+                  {focus.avatarUrl ? (
+                    <span className={styles.focusAvatar}><Picture src={focus.avatarUrl} sizes="240px" /></span>
+                  ) : (
+                    <i className={styles.bigStar} />
+                  )}
                 </div>
                 <div className={styles.focusText}>
                   <p className={styles.eyebrow}>{metaOf(focus)}</p>
@@ -381,26 +392,28 @@ export default function SocietyDiscover({ onTabChange }: { onTabChange: (tab: So
               <p className={styles.status}><UiText text="No one matches yet." /></p>
             ) : (
               <ul className={styles.grid}>
-                {matches.slice(0, visible).map((person) => {
-                  const picture = person.avatarUrl ?? stillOf(person);
-                  return (
-                    <li key={person.uid}>
-                      <ProfileLink person={person} className={styles.personCard}>
-                        {picture ? (
-                          <Picture src={picture} sizes="(max-width: 600px) 50vw, (max-width: 1040px) 33vw, 16vw" />
+                {matches.slice(0, visible).map((person) => (
+                  <li key={person.uid}>
+                    <ProfileLink person={person} className={`${styles.personCard} ${person.available ? styles.personOpen : ""}`}>
+                      {/* Their patch of sky: their picture in a halo, or their star. */}
+                      <span className={styles.personSky} style={skyPatch(person)} aria-hidden="true">
+                        {person.avatarUrl ? (
+                          <span className={styles.personAvatar}><Picture src={person.avatarUrl} sizes="96px" /></span>
                         ) : (
-                          <span className={styles.initial} style={{ background: backdropFor(person.uid) }} aria-hidden="true">
-                            {Array.from(person.name.trim())[0]?.toUpperCase() ?? "?"}
-                          </span>
+                          <i className={styles.personStar} />
                         )}
-                        <span className={styles.cardText}>
-                          <strong>{person.name}</strong>
-                          <small>{metaOf(person)}</small>
-                        </span>
-                      </ProfileLink>
-                    </li>
-                  );
-                })}
+                      </span>
+                      <span className={styles.personText}>
+                        <strong>{person.name}</strong>
+                        <small>{metaOf(person)}</small>
+                        {creditedWorks(person).length > 0 ? (
+                          <span className={styles.personWorks}>{creditedWorks(person).slice(0, 2).map((c) => c.work.title).join(", ")}</span>
+                        ) : null}
+                        {person.available ? <em><UiText text="Open to work" /></em> : null}
+                      </span>
+                    </ProfileLink>
+                  </li>
+                ))}
               </ul>
             )}
             {matches.length > visible ? (

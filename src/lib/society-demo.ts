@@ -5,6 +5,10 @@ import type { SocietyPerson } from "@/lib/societyTypes";
 import type { WorkCreditRole } from "@/types/credits";
 import type { CreditsRollWork } from "@/types/creditsRoll";
 import type { ProfileRoleTag } from "@/types/portfolio";
+// Stills that live beside the app rather than in public/: imported for their URLs.
+import discoverHero from "../../discover_hero.webp";
+import filmHero from "../../film_hero.webp";
+import homeHero from "../../home_hero.webp";
 
 /**
  * Made-up people and works for Society's demo (/society?demo=1): enough to
@@ -59,24 +63,23 @@ const PEOPLE: DemoPerson[] = [
 type Credit = [id: string, role: WorkCreditRole, character?: string];
 type DemoWork = { id: string; title: string; still: string; school: string; date: string; section: CreditsRollWork["section"]; crew: Credit[] };
 
-const S = "/images/home";
 const WORKS: DemoWork[] = [
   // Each made by people of its own, so the sky has room for them all…
-  { id: "low-tide", title: "Low Tide", still: `${S}/featured/sink-or-swim.webp`, school: "Riverside Film Academy", date: "2026-10-12", section: "movies", crew: [["lena", "director"], ["haneul", "cinematography"], ["tomas", "sound"], ["ines", "actor", "Mara"]] },
-  { id: "midnight-ferry", title: "Midnight Ferry", still: `${S}/selects/midnight-ferry.webp`, school: "Hanbit Film School", date: "2026-10-09", section: "movies", crew: [["yuna", "director"], ["park", "actor", "Minsu"], ["eunseo", "actor", "Sora"], ["seojun", "lighting"], ["minji", "edit"]] },
-  { id: "paper-moon", title: "Paper Moon", still: `${S}/selects/paper-moon.webp`, school: "Kitakaze Arts University", date: "2026-10-05", section: "movies", crew: [["mio", "writer"], ["kenji", "edit"], ["aiko", "actor", "Yuki"]] },
-  { id: "glass-garden", title: "Glass Garden", still: `${S}/selects/glass-garden.webp`, school: "Northlight College", date: "2026-09-28", section: "movies", crew: [["noor", "director"], ["ruth", "sound"], ["amara", "actor", "Iris"], ["leo", "cinematography"]] },
-  { id: "northbound", title: "Northbound", still: `${S}/selects/northbound.webp`, school: "Riverside Film Academy", date: "2026-09-21", section: "movies", crew: [["sam", "director"], ["theo", "actor", "Jules"], ["marcus", "sound"], ["priya", "production"], ["kai", "lighting"]] },
-  { id: "concrete-bloom", title: "Concrete Bloom", still: `${S}/featured/concrete-bloom.webp`, school: "Hanbit Film School", date: "2026-09-14", section: "movies", crew: [["yerin", "director"], ["jiwoo", "actor", "Dahye"], ["hana", "writer"], ["ivy", "other"]] },
-  { id: "first-draft", title: "The First Draft", still: `${S}/featured/the-first-draft.webp`, school: "Northlight College", date: "2026-09-02", section: "movies", crew: [["daniel", "director"], ["zoe", "actor", "Ellie"], ["rafael", "writer"]] },
-  { id: "rooftop-sound", title: "Rooftop Sound", still: `${S}/surface/rooftop-sound.webp`, school: "Riverside Film Academy", date: "2026-08-25", section: "entertainment", crew: [["grace", "director"], ["omar", "actor", "Sami"], ["yusuf", "cinematography"]] },
-  { id: "flicker", title: "Flicker", still: `${S}/surface/flicker.webp`, school: "Hanbit Film School", date: "2026-08-17", section: "movies", crew: [["nari", "director"], ["hugo", "edit"]] },
-  { id: "distant-land", title: "Distant Land", still: `${S}/surface/distant-land.webp`, school: "Kitakaze Arts University", date: "2026-08-08", section: "movies", crew: [["mei", "director"], ["arjun", "actor", "Dev"], ["clara", "sound"], ["jaehan", "cinematography"]] },
+  { id: "low-tide", title: "Low Tide", still: discoverHero.src, school: "Riverside Film Academy", date: "2026-10-12", section: "movies", crew: [["lena", "director"], ["haneul", "cinematography"], ["tomas", "sound"], ["ines", "actor", "Mara"]] },
+  { id: "midnight-ferry", title: "Midnight Ferry", still: filmHero.src, school: "Hanbit Film School", date: "2026-10-09", section: "movies", crew: [["yuna", "director"], ["park", "actor", "Minsu"], ["eunseo", "actor", "Sora"], ["seojun", "lighting"], ["minji", "edit"]] },
+  { id: "paper-moon", title: "Paper Moon", still: "/images/hero/home_under_water_1.jpeg", school: "Kitakaze Arts University", date: "2026-10-05", section: "movies", crew: [["mio", "writer"], ["kenji", "edit"], ["aiko", "actor", "Yuki"]] },
+  { id: "glass-garden", title: "Glass Garden", still: "/images/hero-landscape.webp", school: "Northlight College", date: "2026-09-28", section: "movies", crew: [["noor", "director"], ["ruth", "sound"], ["amara", "actor", "Iris"], ["leo", "cinematography"]] },
+  { id: "northbound", title: "Northbound", still: homeHero.src, school: "Riverside Film Academy", date: "2026-09-21", section: "movies", crew: [["sam", "director"], ["theo", "actor", "Jules"], ["marcus", "sound"], ["priya", "production"], ["kai", "lighting"]] },
+  { id: "concrete-bloom", title: "Concrete Bloom", still: "/images/show/show-house-v1.jpg", school: "Hanbit Film School", date: "2026-09-14", section: "entertainment", crew: [["yerin", "director"], ["jiwoo", "actor", "Dahye"], ["hana", "writer"], ["ivy", "other"]] },
+  { id: "first-draft", title: "The First Draft", still: discoverHero.src, school: "Northlight College", date: "2026-09-02", section: "movies", crew: [["daniel", "director"], ["zoe", "actor", "Ellie"], ["rafael", "writer"]] },
+  { id: "rooftop-sound", title: "Rooftop Sound", still: "/images/show/show-music-v1.jpg", school: "Riverside Film Academy", date: "2026-08-25", section: "entertainment", crew: [["grace", "director"], ["omar", "actor", "Sami"], ["yusuf", "cinematography"]] },
+  { id: "flicker", title: "Flicker", still: filmHero.src, school: "Hanbit Film School", date: "2026-08-17", section: "movies", crew: [["nari", "director"], ["hugo", "edit"]] },
+  { id: "distant-land", title: "Distant Land", still: "/images/hero-landscape.webp", school: "Kitakaze Arts University", date: "2026-08-08", section: "movies", crew: [["mei", "director"], ["arjun", "actor", "Dev"], ["clara", "sound"], ["jaehan", "cinematography"]] },
   // …and a few that share someone with those, so the twigs lead on.
-  { id: "almost-maine", title: "Almost Maine", still: `${S}/featured/almost-maine.webp`, school: "Northlight College", date: "2026-07-30", section: "movies", crew: [["lena", "writer"], ["park", "actor", "Joon"], ["leo", "cinematography"]] },
+  { id: "almost-maine", title: "Almost Maine", still: homeHero.src, school: "Northlight College", date: "2026-07-30", section: "movies", crew: [["lena", "writer"], ["park", "actor", "Joon"], ["leo", "cinematography"]] },
   { id: "sink-or-swim", title: "Sink or Swim", still: "/images/hero/home_under_water_1.jpeg", school: "Hanbit Film School", date: "2026-07-21", section: "movies", crew: [["yuna", "director"], ["omar", "actor", "Sami"], ["haneul", "cinematography"]] },
-  { id: "everything-somewhere", title: "Everything Somewhere", still: `${S}/surface/everything-somewhere.webp`, school: "Kitakaze Arts University", date: "2026-07-12", section: "movies", crew: [["aiko", "actor", "Rin"], ["theo", "actor", "Max"], ["kenji", "edit"], ["noor", "production"]] },
-  { id: "hongdae-concert", title: "Hongdae Concert", still: "/film_hero.webp", school: "Hanbit Film School", date: "2026-07-03", section: "entertainment", crew: [["daniel", "director"], ["jiwoo", "actor", "Minji"], ["seojun", "lighting"]] },
+  { id: "everything-somewhere", title: "Everything Somewhere", still: "/images/show/show-outdoor-v1.jpg", school: "Kitakaze Arts University", date: "2026-07-12", section: "entertainment", crew: [["aiko", "actor", "Rin"], ["theo", "actor", "Max"], ["kenji", "edit"], ["noor", "production"]] },
+  { id: "hongdae-concert", title: "Hongdae Concert", still: "/images/show/show-game-v1.jpg", school: "Hanbit Film School", date: "2026-07-03", section: "entertainment", crew: [["daniel", "director"], ["jiwoo", "actor", "Minji"], ["seojun", "lighting"]] },
   { id: "late-show", title: "Late Show", still: "/images/show/show-talk-v1.jpg", school: "Riverside Film Academy", date: "2026-06-20", section: "entertainment", crew: [["amara", "actor"], ["sam", "director"]] },
 ];
 
