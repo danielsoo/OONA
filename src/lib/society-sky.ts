@@ -43,6 +43,12 @@ export type SkyOptions = {
   spacing?: number;
   /** How far a figure's stars sit from its middle. */
   reach?: number;
+  /** You, when signed in: your newest work comes first, and your star is always up there. */
+  me?: string | null;
+  /** Work keys, newest first: the newest few come next. */
+  newest?: readonly string[];
+  /** A per-visit rank for the rest of the works (lib/visit-order), so each visit shows others. */
+  rankOf?: (workKey: string) => number;
 };
 
 /** FNV-1a: a stable number for a string. */
@@ -187,9 +193,9 @@ function layOut(crews: { members: string[] }[], seats: readonly Seat[], spacing:
 }
 
 export function buildSky(people: readonly DirPerson[], seats: readonly Seat[], options: SkyOptions = {}): Sky {
-  const { maxConstellations = SKY_MAX_CONSTELLATIONS, spacing = 64, reach = spacing * 1.5 } = options;
+  const { maxConstellations = SKY_MAX_CONSTELLATIONS, spacing = 64, reach = spacing * 1.5, me = null, newest = [], rankOf = hashString } = options;
 
-  // Works with two or more people here, biggest first.
+  // Works with two or more people here.
   const crews = new Map<string, { work: DirWork; members: string[] }>();
   for (const person of people) {
     for (const credit of person.credits) {
@@ -198,22 +204,36 @@ export function buildSky(people: readonly DirPerson[], seats: readonly Seat[], o
       crews.set(credit.work.key, crew);
     }
   }
-  const candidates = [...crews.values()]
-    .filter((c) => c.members.length >= 2)
-    .sort((a, b) => b.members.length - a.members.length || hashString(a.work.key) - hashString(b.work.key));
+  const candidates = [...crews.values()].filter((c) => c.members.length >= 2);
+  const age = new Map(newest.map((key, i) => [key, i]));
+  const byAge = [...candidates].sort(
+    (a, b) =>
+      (age.get(a.work.key) ?? 1e9) - (age.get(b.work.key) ?? 1e9) ||
+      b.members.length - a.members.length ||
+      hashString(a.work.key) - hashString(b.work.key)
+  );
+  const byVisit = [...candidates].sort((a, b) => rankOf(a.work.key) - rankOf(b.work.key) || hashString(a.work.key) - hashString(b.work.key));
+
   // As in the real sky, a star belongs to one figure: a work that shares
-  // someone with a bigger one already up there isn't drawn, so figures stay
-  // apart instead of joining into one web.
+  // someone with one already up there isn't drawn, so figures stay apart
+  // instead of joining into one web.
   let chosen: { work: DirWork; members: string[] }[] = [];
   const members = new Set<string>();
-  for (const crew of candidates) {
-    if (chosen.length >= maxConstellations) break;
-    if (crew.members.some((uid) => members.has(uid))) continue;
+  const add = (crew: { work: DirWork; members: string[] }) => {
+    if (chosen.length >= maxConstellations || chosen.some((c) => c.work === crew.work)) return false;
+    if (crew.members.some((uid) => members.has(uid))) return false;
     // No more people in figures than the sky has stars for (each needs room).
-    if (members.size + crew.members.length > Math.min(SKY_MAX_MEMBERS, seats.length * 0.5)) continue;
+    if (members.size + crew.members.length > Math.min(SKY_MAX_MEMBERS, seats.length * 0.5)) return false;
     chosen.push({ work: crew.work, members: [...crew.members].sort((a, b) => hashString(a) - hashString(b)) });
     for (const uid of crew.members) members.add(uid);
-  }
+    return true;
+  };
+  // First your newest work (your star can be in only one), then the newest
+  // works, then the rest in this visit's order.
+  if (me) for (const crew of byAge) if (crew.members.includes(me) && add(crew)) break;
+  let fresh = 0;
+  for (const crew of byAge) if (fresh < Math.round(maxConstellations * 0.4) && add(crew)) fresh += 1;
+  for (const crew of byVisit) add(crew);
 
   // Everyone in a figure takes the real star nearest where the layout wants
   // them, brighter stars preferred.
@@ -250,7 +270,7 @@ export function buildSky(people: readonly DirPerson[], seats: readonly Seat[], o
   // Everyone else shines alone on a bright star, clear of the figures.
   const lone = people
     .filter((p) => !seatOf.has(p.uid))
-    .sort((a, b) => hashString(a.uid) - hashString(b.uid))
+    .sort((a, b) => Number(b.uid === me) - Number(a.uid === me) || hashString(a.uid) - hashString(b.uid))
     .slice(0, SKY_MAX_LONE);
   let li = 0;
   for (const s of pool) {
@@ -297,17 +317,20 @@ function placeTitles(constellations: SkyConstellation[], stars: SkyStar[], seats
     const maxY = Math.max(...points.map((p) => p.y));
     const midX = (minX + maxX) / 2;
     const midY = points.reduce((sum, p) => sum + p.y, 0) / points.length;
-    const halfW = c.work.title.length * 4.1 + 10;
-    const halfH = 12;
+    const halfW = c.work.title.length * 5.6 + 10;
+    // Big enough for the name as it shows when picked.
+    const halfH = 14;
     // Candidates, in order of preference.
+    // Clear of the members' names too (two lines beside each star, shown
+    // when the work is picked).
     const spots: [number, number][] = [
-      [midX, minY - 30],
-      [midX, maxY + 30],
+      [midX, minY - 42],
+      [midX, maxY + 44],
       [minX - halfW - 14, midY],
       [maxX + halfW + 14, midY],
       [points.reduce((sum, p) => sum + p.x, 0) / points.length, midY],
-      [midX, minY - 54],
-      [midX, maxY + 54],
+      [midX, minY - 66],
+      [midX, maxY + 68],
     ];
     let best = spots[0]!;
     let bestCost = Infinity;
@@ -321,6 +344,7 @@ function placeTitles(constellations: SkyConstellation[], stars: SkyStar[], seats
         for (let k = 1; k < 12; k += 1) if (inside({ x: a.x + ((b.x - a.x) * k) / 12, y: a.y + ((b.y - a.y) * k) / 12 })) cost += 1;
       }
       for (const other of placed) cost += overlap(box, other) / 60;
+      for (const p of points) cost += overlap(box, { left: p.x - 110, right: p.x + 110, top: p.y - 20, bottom: p.y + 14 }) / 120;
       cost += (overlap(box, bounds) < (box.right - box.left) * (box.bottom - box.top) - 1 ? 20 : 0);
       if (cost < bestCost) {
         bestCost = cost;

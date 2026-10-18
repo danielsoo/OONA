@@ -10,6 +10,7 @@ import { primaryRole, type DirPerson } from "@/lib/society-directory";
 import { buildSky, type Seat, type SkyStar } from "@/lib/society-sky";
 import styles from "./SocietySky.module.css";
 import { SKY_IMAGE, SKY_SEATS } from "./skySeats";
+import type { SkyDirectory } from "./useSocietyDirectory";
 import { useSkyGlide } from "./useSkyGlide";
 
 const SECTIONS: { id: SocietyTabId; label: string }[] = [
@@ -71,12 +72,14 @@ const smooth = (t: number) => t * t * (3 - 2 * t);
  * made together is a constellation joining them.
  */
 export default function SocietySky({
-  people,
+  directory,
   onOpenSection,
 }: {
-  people: DirPerson[] | null;
+  directory: SkyDirectory | null;
   onOpenSection: (tab: SocietyTabId) => void;
 }) {
+  const people = directory?.people ?? null;
+  const me = directory?.me ?? null;
   const copy = useUiCopy();
   const { t } = useTranslations();
   const sectionRef = useRef<HTMLElement>(null);
@@ -104,13 +107,17 @@ export default function SocietySky({
 
   const byUid = useMemo(() => new Map((people ?? []).map((p) => [p.uid, p])), [people]);
   // People sit on the photograph's own stars; a phone's sky holds fewer figures, closer together.
+  // Which works: yours first, then the newest, then others that change each visit.
   const sky = useMemo(
     () =>
       buildSky(people ?? [], seatsOnScreen(boxSize.w, boxSize.h), {
         maxConstellations: narrow ? 4 : undefined,
         spacing: narrow ? 48 : 64,
+        me,
+        newest: directory?.newest,
+        rankOf: directory?.rankOf,
       }),
-    [people, boxSize, narrow]
+    [people, boxSize, narrow, me, directory]
   );
   const selected = sky.constellations.find((c) => c.work.key === selectedKey) ?? sky.constellations[0] ?? null;
   const starAt = useMemo(() => new Map(sky.stars.map((s) => [s.uid, s])), [sky]);
@@ -208,7 +215,7 @@ export default function SocietySky({
 
   const hoveredWorks = hovered ? starAt.get(hovered)?.works ?? [] : [];
   const lit = (key: string) => key === selected?.work.key || hoveredWorks.includes(key);
-  const named = new Set([...(selected?.members ?? []), ...(hovered ? [hovered] : [])]);
+  const named = new Set([...(selected?.members ?? []), ...(hovered ? [hovered] : []), ...(me && starAt.has(me) ? [me] : [])]);
   // A name goes right of its star, or left when that would cover another
   // shown name or star, or run off the edge (widths are a rough guess).
   const leftNames = new Set<string>();
@@ -296,12 +303,12 @@ export default function SocietySky({
               if (!person) return null;
               const credits = new Set(person.credits.map((c) => c.work.key)).size;
               const inLit = s.works.some(lit);
-              const className = [styles.star, person.available ? styles.open : "", s.works.length === 0 ? styles.lone : "", inLit ? styles.starLit : ""].join(" ");
+              const className = [styles.star, person.available ? styles.open : "", s.works.length === 0 ? styles.lone : "", inLit ? styles.starLit : "", s.uid === me ? styles.me : ""].join(" ");
               const style = { left: s.x, top: s.y, "--size": `${2.6 + Math.min(credits, 5) * 0.8}px`, "--i": i } as CSSProperties;
               const label = named.has(s.uid) ? (
                 <span className={`${styles.name} ${leftNames.has(s.uid) ? styles.nameLeft : ""}`}>
                   {person.name}
-                  <small>{roleOf(person)}</small>
+                  {s.uid === me ? <small className={styles.you}>{copy("You")}</small> : <small>{roleOf(person)}</small>}
                 </span>
               ) : null;
               const events = {

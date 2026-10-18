@@ -118,7 +118,7 @@ export default function SocietyDiscover({ onTabChange }: { onTabChange: (tab: So
   const copy = useUiCopy();
   const { t } = useTranslations();
   const { user, loading: authLoading } = useAuth();
-  const { directory, failed } = useSocietyDirectory();
+  const { directory, sky, failed } = useSocietyDirectory();
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const [filter, setFilter] = useState<Filter>("everyone");
@@ -220,7 +220,7 @@ export default function SocietyDiscover({ onTabChange }: { onTabChange: (tab: So
 
   return (
     <div className={styles.page}>
-      <SocietySky people={directory?.people ?? null} onOpenSection={openSection} />
+      <SocietySky directory={sky} onOpenSection={openSection} />
 
       <section
         className={styles.hero}

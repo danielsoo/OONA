@@ -83,6 +83,7 @@ async function loadCreditsRoll(db: Firestore): Promise<CreditsRollWork[]> {
       section: work.section,
       ...(work.approvedCategory ? { category: work.approvedCategory } : {}),
       ...(work.approvedSchoolName ? { schoolName: work.approvedSchoolName } : {}),
+      ...(typeof item.publishedAt === "string" ? { publishedAt: item.publishedAt } : {}),
       // Side screens render up to ~700px wide on 2x screens.
       stillUrl: getStreamThumbnailUrl(work.streamUid, { width: 1280, height: 720, fit: "crop" }),
       previewUrl,

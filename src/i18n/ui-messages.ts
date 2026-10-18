@@ -2136,6 +2136,10 @@ export const uiMessages: Record<string, readonly [string, string]> = {
     "별자리",
     "星座"
   ],
+  "you": [
+    "나",
+    "あなた"
+  ],
   "every work is": [
     "모든 작품은",
     "すべての作品は"

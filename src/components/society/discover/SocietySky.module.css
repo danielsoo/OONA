@@ -156,6 +156,25 @@
   box-shadow: 0 0 calc(var(--size) * 2.6) calc(var(--size) * 0.45) rgba(150, 214, 255, 0.5);
 }
 
+/* Your own star: always named, with a faint ring. */
+.me {
+  opacity: calc(0.6 + 0.4 * var(--glow, 0));
+}
+
+.me::after {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border: 1px solid rgba(185, 237, 255, 0.5);
+  border-radius: 50%;
+  box-shadow: 0 0 10px rgba(109, 196, 255, 0.25);
+}
+
+.name small.you {
+  color: rgba(185, 237, 255, 0.9);
+  letter-spacing: 0.12em;
+}
+
 .star:focus-visible::after {
   content: "";
   position: absolute;

@@ -18,6 +18,8 @@ export type CreditsRollWork = {
   section: WorkSection;
   category?: string;
   schoolName?: string;
+  /** When it went up (ISO); the client shuffles the list, so this keeps "newest" knowable. */
+  publishedAt?: string;
   /** A 16:9 frame of the work itself. */
   stillUrl: string;
   /** The work's promo clip (HLS), played muted on the side screens. */

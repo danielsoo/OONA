@@ -100,6 +100,25 @@ describe("buildSky", () => {
     for (const uid of ["a", "b", "c", "d"]) assert.deepEqual([at(a, uid).x, at(a, uid).y], [at(b, uid).x, at(b, uid).y]);
   });
 
+  it("shows your newest work first, then the newest works, then others that change each visit", () => {
+    const crowd = Array.from({ length: 8 }, (_, i) => [person(`x${i}`, [`w${i}`]), person(`y${i}`, [`w${i}`])]).flat();
+    const you = person("you", ["w5", "w0"]);
+    const newest = ["w7", "w6", "w5", "w4", "w3", "w2", "w1", "w0"];
+    const visit = (rankOf: (key: string) => number) =>
+      // @ts-expect-error test doubles
+      buildSky([...crowd, you], seats, { maxConstellations: 5, me: "you", newest, rankOf }).constellations.map((c) => c.work.key);
+    // w5 is yours and newer than w0 (your star sits in one figure only); then
+    // the two newest; then this visit's order.
+    assert.deepEqual(visit((key) => Number(key.slice(1))), ["w5", "w7", "w6", "w1", "w2"]);
+    assert.deepEqual(visit((key) => -Number(key.slice(1))), ["w5", "w7", "w6", "w4", "w3"]);
+  });
+
+  it("always puts you up there, even before you've made anything", () => {
+    // @ts-expect-error test doubles
+    const sky = buildSky([...people, person("you", [])], seats.slice(0, 40), { me: "you" });
+    assert.ok(sky.stars.some((s) => s.uid === "you"));
+  });
+
   it("caps the constellations, and seats no more people than the sky has room for", () => {
     const many = Array.from({ length: 30 }, (_, i) => [person(`p${i}a`, [`w${i}`]), person(`p${i}b`, [`w${i}`])]).flat();
     // @ts-expect-error test doubles
