@@ -14,6 +14,7 @@ import { invalidateBusinessInvites } from "@/lib/societyInviteCache";
 import DemoBadge from "@/components/society/DemoBadge";
 import { watchHref } from "@/lib/demo-flags";
 import SocietySky from "./SocietySky";
+import { useSnapGlide } from "./useSnapGlide";
 import { useSocietyDirectory } from "./useSocietyDirectory";
 import styles from "./SocietyDiscover.module.css";
 
@@ -36,7 +37,12 @@ const GRID_STEP = 18;
 const FALLBACK_PICTURE = "/images/home/xiio-portal-hero.png";
 
 function stillOf(person: DirPerson): string | null {
-  return person.credits.find((credit) => credit.work.stillUrl)?.work.stillUrl ?? null;
+  return stillCredit(person)?.work.stillUrl ?? null;
+}
+
+/** The first of their works that has a frame to show. */
+function stillCredit(person: DirPerson): DirCredit | null {
+  return person.credits.find((credit) => credit.work.stillUrl) ?? null;
 }
 
 /** Each work once, in the order they were credited. */
@@ -150,6 +156,41 @@ export default function SocietyDiscover({ onTabChange }: { onTabChange: (tab: So
     };
   }, []);
 
+  // One scroll glides from screen to screen: the sea, the sky, then each
+  // section below marked data-glide-stop (not with reduced motion).
+  const [still, setStill] = useState(false);
+  useEffect(() => {
+    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const sync = () => setStill(media.matches);
+    sync();
+    media.addEventListener("change", sync);
+    return () => media.removeEventListener("change", sync);
+  }, []);
+  const stops = useCallback(() => {
+    const at = (el: HTMLElement) => el.getBoundingClientRect().top + window.scrollY;
+    const out: number[] = [];
+    const sky = document.querySelector<HTMLElement>("[data-glide-sky]");
+    if (sky) out.push(at(sky), at(sky) + Math.max(0, sky.offsetHeight - window.innerHeight));
+    document.querySelectorAll<HTMLElement>("[data-glide-stop]").forEach((el) => out.push(at(el)));
+    return out;
+  }, []);
+  useSnapGlide(stops, !still);
+
+  // Arriving at a section, what's in it comes up into view (set up once the
+  // page runs, so without scripts nothing waits to appear).
+  const [revealing, setRevealing] = useState(false);
+  useEffect(() => {
+    setRevealing(true);
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) if (entry.isIntersecting) (entry.target as HTMLElement).dataset.shown = "";
+      },
+      { threshold: 0.25 }
+    );
+    document.querySelectorAll("[data-glide-stop]").forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, [directory]);
+
   const roleOf = useCallback(
     (person: DirPerson) => {
       const role = primaryRole(person);
@@ -232,13 +273,14 @@ export default function SocietyDiscover({ onTabChange }: { onTabChange: (tab: So
   };
 
   return (
-    <div className={styles.page} data-society-hero="">
+    <div className={`${styles.page} ${revealing ? styles.revealing : ""}`} data-society-hero="">
       {/* Once it's known which this is: the demo's badge, or the way into it. */}
       {demoKnown ? <DemoBadge active={demo} /> : null}
       <SocietySky directory={sky} onOpenSection={openSection} />
 
       <section
         className={styles.hero}
+        data-glide-stop=""
         aria-label={copy("Creator in focus")}
         onMouseEnter={() => setPaused(true)}
         onMouseLeave={() => setPaused(false)}
@@ -286,18 +328,25 @@ export default function SocietyDiscover({ onTabChange }: { onTabChange: (tab: So
           </div>
         )}
 
-        {/* Their work, seen through the home's glowing doorway. */}
-        <div className={styles.portal} aria-hidden="true">
-          <div className={styles.portalFrame}>
-            <Picture
-              key={hero?.uid ?? "none"}
-              src={hero ? stillOf(hero) ?? hero.avatarUrl ?? FALLBACK_PICTURE : FALLBACK_PICTURE}
-              sizes="(max-width: 1040px) 64vw, 26vw"
-              className={styles.portalImage}
-            />
+        {/* Their work, whole, on a glowing screen in the night. */}
+        <figure className={styles.screen} key={`screen:${hero?.uid ?? "none"}`}>
+          <div className={styles.screenStage}>
+            <div className={styles.screenFrame}>
+              <Picture
+                src={hero ? stillOf(hero) ?? hero.avatarUrl ?? FALLBACK_PICTURE : FALLBACK_PICTURE}
+                sizes="(max-width: 1040px) 92vw, 54vw"
+                className={styles.screenImage}
+              />
+            </div>
+            <span className={styles.screenGlow} aria-hidden="true" />
           </div>
-          <span className={styles.portalGlow} />
-        </div>
+          {hero && stillCredit(hero) ? (
+            <figcaption>
+              <Link href={watchHref(stillCredit(hero)!.work)}>{stillCredit(hero)!.work.title}</Link>
+              <span>{stillCredit(hero)!.character ?? t(`watch.creditRole.${stillCredit(hero)!.role}`)}</span>
+            </figcaption>
+          ) : null}
+        </figure>
 
         {featured.length > 1 ? (
           <div className={styles.pager}>
@@ -312,7 +361,7 @@ export default function SocietyDiscover({ onTabChange }: { onTabChange: (tab: So
       {people.length > 0 ? (
         <div className={styles.content}>
           {focus ? (
-            <section aria-labelledby="society-focus">
+            <section aria-labelledby="society-focus" className={styles.stop} data-glide-stop="">
               <h2 id="society-focus" className={styles.sectionTitle}><UiText text="In focus" /></h2>
               <article className={styles.focus}>
                 <div className={styles.focusStar} aria-hidden="true">
@@ -354,7 +403,7 @@ export default function SocietyDiscover({ onTabChange }: { onTabChange: (tab: So
             </section>
           ) : null}
 
-          <section aria-labelledby="society-everyone">
+          <section aria-labelledby="society-everyone" className={styles.stop} data-glide-stop="">
             <div className={styles.gridHead}>
               <h2 id="society-everyone" className={styles.sectionTitle}><UiText text="Meet the society" /></h2>
               <div className={styles.tools}>
@@ -396,14 +445,16 @@ export default function SocietyDiscover({ onTabChange }: { onTabChange: (tab: So
                 {matches.slice(0, visible).map((person) => (
                   <li key={person.uid}>
                     <ProfileLink person={person} className={`${styles.personCard} ${person.available ? styles.personOpen : ""}`}>
-                      {/* Their patch of sky: their picture in a halo, or their star. */}
-                      <span className={styles.personSky} style={skyPatch(person)} aria-hidden="true">
-                        {person.avatarUrl ? (
-                          <span className={styles.personAvatar}><Picture src={person.avatarUrl} sizes="96px" /></span>
-                        ) : (
+                      {/* Their picture, or a frame of their work; their star when there's neither. */}
+                      {person.avatarUrl || stillOf(person) ? (
+                        <span className={styles.personThumb} aria-hidden="true">
+                          <Picture src={person.avatarUrl ?? stillOf(person)!} sizes="(max-width: 600px) 50vw, (max-width: 1040px) 33vw, 18vw" />
+                        </span>
+                      ) : (
+                        <span className={styles.personSky} style={skyPatch(person)} aria-hidden="true">
                           <i className={styles.personStar} />
-                        )}
-                      </span>
+                        </span>
+                      )}
                       <span className={styles.personText}>
                         <strong>{person.name}</strong>
                         <small>{metaOf(person)}</small>

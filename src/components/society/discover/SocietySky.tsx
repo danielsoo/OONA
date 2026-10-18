@@ -12,7 +12,6 @@ import { buildSky, layOutNeuron, neuronGroup, neuronTwigs, type NeuronGroup, typ
 import styles from "./SocietySky.module.css";
 import { SKY_IMAGE, SKY_SEATS } from "./skySeats";
 import type { SkyDirectory } from "./useSocietyDirectory";
-import { useSkyGlide } from "./useSkyGlide";
 
 const SECTIONS: { id: SocietyTabId; label: string }[] = [
   { id: "discover", label: "Discover" },
@@ -181,8 +180,8 @@ export default function SocietySky({
     [copy, t]
   );
 
-  // One scroll on the sea glides up into the sky, as the credits glide to the home.
-  useSkyGlide(sectionRef, !still);
+  // One scroll on the sea glides up into the sky (useSnapGlide, in SocietyDiscover:
+  // this section is marked data-glide-sky).
 
   // An open neuron closes with Esc, or on leaving the sky.
   useEffect(() => {
@@ -329,7 +328,7 @@ export default function SocietySky({
       : [];
 
   return (
-    <section ref={sectionRef} className={`${styles.sky} ${still ? styles.still : ""} ${awake ? styles.isAwake : ""}`} aria-label={copy("Constellations")}>
+    <section ref={sectionRef} data-glide-sky="" className={`${styles.sky} ${still ? styles.still : ""} ${awake ? styles.isAwake : ""}`} aria-label={copy("Constellations")}>
       <div ref={stageRef} className={styles.stage}>
         <div ref={worldRef} className={styles.world}>
           <div className={styles.scene} aria-hidden="true">

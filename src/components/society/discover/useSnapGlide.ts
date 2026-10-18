@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, type RefObject } from "react";
+import { useEffect } from "react";
 
-/** About a second and a half: long enough to feel the view tilt up. */
-const GLIDE_MS = 1400;
+/** About a second and a half for the long tilt from the sea up to the sky; shorter hops are quicker. */
+const GLIDE_MS_MAX = 1400;
+const GLIDE_MS_MIN = 800;
 /** After a glide, the rest of the same wheel or trackpad gesture is held back, at most this long. */
 const HOLD_MAX_MS = 1200;
 const NEW_GESTURE_GAP_MS = 90;
@@ -20,29 +21,29 @@ function isTypingTarget(target: EventTarget | null, space: boolean): boolean {
 }
 
 /**
- * The sea and the sky above it are two screens, as the credits and the home
- * are on "/" (CreditsFirstHome): one scroll down (wheel, swipe or key) on the
- * sea glides all the way up into the sky, and one scroll up in the sky glides
- * back down to the sea. Below the sky, scrolling is normal.
- *
- * `sectionRef` is the pinned section whose scroll position drives the scene.
+ * Society as screens, the way the credits and the home are on "/"
+ * (CreditsFirstHome): one scroll (wheel, swipe or key) glides from one stop
+ * to the next — the sea, the sky above it, then each section marked with
+ * data-glide-stop — and one scroll back glides to the one before. Past the
+ * last stop, scrolling is normal again, and coming back up it rests there
+ * first. `stops()` gives the stops' scroll positions, top to bottom.
  */
-export function useSkyGlide(sectionRef: RefObject<HTMLElement | null>, enabled: boolean) {
+export function useSnapGlide(stops: () => number[], enabled: boolean) {
   useEffect(() => {
-    const section = sectionRef.current;
-    if (!enabled || !section) return;
+    if (!enabled) return;
 
-    const edges = () => {
-      const sea = section.getBoundingClientRect().top + window.scrollY;
-      return { sea, sky: sea + Math.max(0, section.offsetHeight - window.innerHeight) };
+    const points = () => {
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      return [...new Set(stops().map((p) => Math.round(Math.max(0, Math.min(max, p)))))].sort((a, b) => a - b);
     };
     const snapTarget = (down: boolean): number | null => {
       const y = window.scrollY;
-      const { sea, sky } = edges();
-      const near = window.innerHeight * 0.2;
-      if (down && y >= sea - 2 && y < sky - near) return sky;
-      if (!down && y > sea + near && y <= sky + 2) return sea;
-      return null;
+      const pts = points();
+      if (pts.length < 2) return null;
+      const last = pts[pts.length - 1]!;
+      if (down) return y < last - 2 ? pts.find((p) => p > y + 2) ?? null : null;
+      if (y > last + 2 || y <= pts[0]! + 2) return null;
+      return [...pts].reverse().find((p) => p < y - 2) ?? null;
     };
 
     let gliding = false;
@@ -59,9 +60,10 @@ export function useSkyGlide(sectionRef: RefObject<HTMLElement | null>, enabled: 
       arm(true);
       gliding = true;
       cancelAnimationFrame(raf);
+      const ms = Math.max(GLIDE_MS_MIN, Math.min(GLIDE_MS_MAX, 500 + Math.abs(to - from) * 0.6));
       const start = performance.now();
       const step = (now: number) => {
-        const t = Math.min(1, (now - start) / GLIDE_MS);
+        const t = Math.min(1, (now - start) / ms);
         window.scrollTo(0, from + (to - from) * easeInOutCubic(t));
         if (t < 1) {
           raf = requestAnimationFrame(step);
@@ -102,13 +104,14 @@ export function useSkyGlide(sectionRef: RefObject<HTMLElement | null>, enabled: 
         glide(to);
         return;
       }
-      // Scrolling back up from the page below: stop at the sky first, so a
-      // long fling doesn't carry straight down to the sea.
+      // Scrolling back up from the page below: stop at the last stop first,
+      // so a long fling doesn't carry straight past it.
       const y = window.scrollY;
-      const { sky } = edges();
-      if (dy < 0 && y > sky + 2 && y + dy <= sky + 2) {
+      const pts = points();
+      const last = pts[pts.length - 1];
+      if (last !== undefined && dy < 0 && y > last + 2 && y + dy <= last + 2) {
         e.preventDefault();
-        window.scrollTo(0, sky);
+        window.scrollTo(0, last);
         hold(now);
       }
     };
@@ -131,7 +134,7 @@ export function useSkyGlide(sectionRef: RefObject<HTMLElement | null>, enabled: 
       glide(to);
     };
 
-    // A swipe glides only if it starts on one of the two screens.
+    // A swipe glides only if it starts where one would.
     let touch: { x: number; y: number; down: boolean; up: boolean; done: boolean } | null = null;
     let touching = false;
     const onTouchStart = (e: TouchEvent) => {
@@ -165,7 +168,7 @@ export function useSkyGlide(sectionRef: RefObject<HTMLElement | null>, enabled: 
       touch = null;
     };
 
-    // A scroll that comes to rest between sea and sky (the scrollbar, a fling)
+    // A scroll that comes to rest between two stops (the scrollbar, a fling)
     // finishes the trip it started, or goes back if it barely left.
     let lastY = window.scrollY;
     let direction = 1;
@@ -179,16 +182,19 @@ export function useSkyGlide(sectionRef: RefObject<HTMLElement | null>, enabled: 
       settleTimer = window.setTimeout(() => {
         if (gliding || touching) return;
         const now = window.scrollY;
-        const { sea, sky } = edges();
-        if (now <= sea + 2 || now >= sky - 2) return;
-        const barely = (sky - sea) * 0.2;
-        if (direction > 0) glide(now - sea < barely ? sea : sky);
-        else glide(sky - now < barely ? sky : sea);
+        const pts = points();
+        const below = [...pts].reverse().find((p) => p <= now + 2);
+        const above = pts.find((p) => p >= now - 2);
+        if (below === undefined || above === undefined || Math.abs(above - below) <= 4) return;
+        if (Math.abs(now - below) <= 2 || Math.abs(now - above) <= 2) return;
+        const barely = (above - below) * 0.2;
+        if (direction > 0) glide(now - below < barely ? below : above);
+        else glide(above - now < barely ? above : below);
       }, 160);
     };
 
     // Listeners that can cancel a scroll make the browser wait for this script
-    // on every scroll step, so they're attached only near the sea and sky.
+    // on every scroll step, so they're attached only near the stops.
     let armed = false;
     function arm(on: boolean) {
       if (on === armed) return;
@@ -201,7 +207,10 @@ export function useSkyGlide(sectionRef: RefObject<HTMLElement | null>, enabled: 
         window.removeEventListener("touchmove", onTouchMove);
       }
     }
-    const rearm = () => arm(gliding || window.scrollY <= edges().sky + window.innerHeight);
+    const rearm = () => {
+      const pts = points();
+      arm(gliding || window.scrollY <= (pts[pts.length - 1] ?? 0) + window.innerHeight);
+    };
 
     rearm();
     window.addEventListener("keydown", onKeyDown);
@@ -224,5 +233,5 @@ export function useSkyGlide(sectionRef: RefObject<HTMLElement | null>, enabled: 
       window.clearTimeout(settleTimer);
       cancelAnimationFrame(raf);
     };
-  }, [sectionRef, enabled]);
+  }, [stops, enabled]);
 }
