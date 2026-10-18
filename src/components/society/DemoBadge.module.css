@@ -49,6 +49,18 @@
   display: none;
 }
 
+/* The way in: quieter than the badge it becomes. */
+.offer {
+  border-color: rgba(119, 203, 255, 0.28);
+  background: rgba(4, 14, 24, 0.7);
+  color: rgba(226, 238, 250, 0.68);
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.3);
+}
+
+.offer a {
+  border-color: rgba(119, 203, 255, 0.6);
+}
+
 /* On a phone: small, in the header's empty middle, clear of the controls below. */
 @media (max-width: 1040px) {
   .badge {
@@ -70,5 +82,12 @@
   .badge a {
     padding: 3px 8px;
     font-size: 11px;
+  }
+  /* The way in is just its button here, clear of the logo. */
+  .offer {
+    padding: 4px;
+  }
+  .offer b {
+    display: none;
   }
 }

@@ -130,7 +130,7 @@ export default function SocietyDiscover({ onTabChange }: { onTabChange: (tab: So
   const copy = useUiCopy();
   const { t } = useTranslations();
   const { user, loading: authLoading } = useAuth();
-  const { directory, sky, failed, demo } = useSocietyDirectory();
+  const { directory, sky, failed, demo, demoKnown } = useSocietyDirectory();
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const [filter, setFilter] = useState<Filter>("everyone");
@@ -233,7 +233,8 @@ export default function SocietyDiscover({ onTabChange }: { onTabChange: (tab: So
 
   return (
     <div className={styles.page} data-society-hero="">
-      {demo ? <DemoBadge /> : null}
+      {/* Once it's known which this is: the demo's badge, or the way into it. */}
+      {demoKnown ? <DemoBadge active={demo} /> : null}
       <SocietySky directory={sky} onOpenSection={openSection} />
 
       <section

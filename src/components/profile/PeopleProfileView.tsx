@@ -185,7 +185,7 @@ export default function PeopleProfileView({ handle }: Props) {
 
   return (
     <main className={styles.page}>
-      {demo ? <DemoBadge /> : null}
+      {demo ? <DemoBadge active /> : null}
       <SocietyPublicProfileHero
         demo={demo}
         displayName={data.profile.displayName}

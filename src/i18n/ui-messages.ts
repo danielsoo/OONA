@@ -2148,6 +2148,14 @@ export const uiMessages: Record<string, readonly [string, string]> = {
     "둘러보기용으로 지어낸 사람과 작품이에요.",
     "見て回るための、架空の人と作品です。"
   ],
+  "see society filled with made-up people.": [
+    "가짜 사람들로 가득 찬 Society를 둘러볼 수 있어요.",
+    "架空の人たちでいっぱいのSocietyを見て回れます。"
+  ],
+  "try the demo": [
+    "데모 보기",
+    "デモを見る"
+  ],
   "leave the demo": [
     "데모 나가기",
     "デモを終える"

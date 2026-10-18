@@ -22,15 +22,17 @@ export type SkyDirectory = { people: DirPerson[]; me: string | null; newest: str
  * Discover's people joined with the credits feed; `directory` is null while
  * loading. With ?demo=1 it's made-up people and works instead (`demo`).
  */
-export function useSocietyDirectory(): { directory: Directory | null; sky: SkyDirectory | null; failed: boolean; demo: boolean } {
+export function useSocietyDirectory(): { directory: Directory | null; sky: SkyDirectory | null; failed: boolean; demo: boolean; demoKnown: boolean } {
   const { user, loading: authLoading } = useAuth();
   const feed = useCreditsRollFeed();
   const [realPeople, setPeople] = useState<SocietyPerson[] | null>(null);
   // The demo is known after the first paint (the server can't see the URL's
   // query here), before any real data can arrive.
   const [demo, setDemo] = useState(false);
+  const [demoKnown, setDemoKnown] = useState(false);
   const [demoData, setDemoData] = useState<{ people: SocietyPerson[]; works: CreditsRollWork[] } | null>(null);
   useEffect(() => {
+    setDemoKnown(true);
     if (!isDemoVisit()) return;
     setDemo(true);
     void import("@/lib/society-demo").then((m) => setDemoData(m.demoSociety()));
@@ -108,5 +110,5 @@ export function useSocietyDirectory(): { directory: Directory | null; sky: SkyDi
     if (sky) rememberProfilePreviews(sky.people);
   }, [sky]);
 
-  return { directory, sky, failed: !demo && failed && (works?.length ?? 0) === 0, demo };
+  return { directory, sky, failed: !demo && failed && (works?.length ?? 0) === 0, demo, demoKnown };
 }
