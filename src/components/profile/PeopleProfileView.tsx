@@ -1,10 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useTranslations } from "@/context/LocaleContext";
 import SocietyProfileBody, { type ProfileTab } from "@/components/society/SocietyProfileBody";
 import SocietyPublicProfileHero from "@/components/society/SocietyPublicProfileHero";
+import PeopleProfileSkeleton from "@/components/profile/PeopleProfileSkeleton";
+import { profilePreview } from "@/lib/profilePreview";
 import type { HeroBackgroundId } from "@/lib/heroBackgroundPresets";
 import type { DirectorNameChangeRequest } from "@/types/user";
 import styles from "@/components/society/EditorialProfile.module.css";
@@ -82,9 +84,15 @@ export default function PeopleProfileView({ handle }: Props) {
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useProfileTab();
 
+  // Signing in finishes after the first request; asking again then (for the
+  // viewer's follow state) refreshes quietly instead of going back to loading,
+  // and only the latest answer counts.
+  const loadedHandle = useRef<string | null>(null);
+  const latest = useRef(0);
   const load = useCallback(async () => {
     if (!handle) return;
-    setLoading(true);
+    const request = ++latest.current;
+    if (loadedHandle.current !== handle) setLoading(true);
     try {
       const headers: HeadersInit = {};
       if (user) {
@@ -92,17 +100,21 @@ export default function PeopleProfileView({ handle }: Props) {
         headers.Authorization = `Bearer ${token}`;
       }
       const res = await fetch(`/api/people/${encodeURIComponent(handle)}`, { headers });
+      if (request !== latest.current) return;
       if (!res.ok) {
         setErr(t("network.people.notFound"));
         setData(null);
         return;
       }
-      setData((await res.json()) as PeopleProfilePayload);
+      const payload = (await res.json()) as PeopleProfilePayload;
+      if (request !== latest.current) return;
+      setData(payload);
       setErr(null);
+      loadedHandle.current = handle;
     } catch {
-      setErr(t("network.people.loadError"));
+      if (request === latest.current) setErr(t("network.people.loadError"));
     } finally {
-      setLoading(false);
+      if (request === latest.current) setLoading(false);
     }
   }, [handle, t, user]);
 
@@ -111,7 +123,7 @@ export default function PeopleProfileView({ handle }: Props) {
   }, [load]);
 
   if (loading) {
-    return <p className="px-4 text-xiio-muted lg:px-12">{t("common.loading")}</p>;
+    return <PeopleProfileSkeleton handle={handle} preview={profilePreview(handle)} />;
   }
 
   if (err || !data) {

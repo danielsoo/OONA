@@ -361,6 +361,83 @@
   color: #78d9f4;
   font-size: 13px;
 }
+/* A profile while it loads (PeopleProfileSkeleton): soft bars that breathe. */
+.skel {
+  display: block;
+  border-radius: 2px;
+  background: linear-gradient(100deg, rgba(181, 196, 210, 0.05) 30%, rgba(181, 196, 210, 0.12) 50%, rgba(181, 196, 210, 0.05) 70%) 0 0 / 250% 100%;
+  animation: skelSweep 1.8s ease-in-out infinite;
+}
+.portrait.skel {
+  border-radius: 0;
+}
+.skelName {
+  display: grid;
+  gap: 14px;
+}
+.skelName .skel {
+  width: min(78%, 300px);
+  height: clamp(48px, 5.2vw, 84px);
+}
+.skelName .skel + .skel {
+  width: min(62%, 240px);
+}
+.skelLine {
+  height: 12px;
+}
+.skelBio {
+  display: grid;
+  gap: 12px;
+  margin: 32px 0;
+}
+.skelBio .skel {
+  height: 15px;
+}
+.skelStat {
+  width: 46%;
+  height: 22px;
+  margin: 2px 0 17px;
+}
+.skelActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  max-width: 190px;
+  margin-top: 24px;
+}
+.skelActions .skel {
+  width: 78px;
+  height: 42px;
+}
+.skelActions .skel:nth-child(2) {
+  width: 94px;
+}
+.skelActions .skel:nth-child(3) {
+  width: 124px;
+}
+.skelWorks {
+  margin-top: 46px;
+}
+.skelWorks article {
+  display: grid;
+  gap: 12px;
+}
+.profileTabs button:disabled {
+  cursor: default;
+}
+@keyframes skelSweep {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: 0 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skel {
+    animation: none;
+  }
+}
 @media (max-width: 980px) {
   .aboutGrid {
     grid-template-columns: 1fr;

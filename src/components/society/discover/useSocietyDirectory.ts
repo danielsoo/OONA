@@ -6,6 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 import { buildDirectory, type DirPerson, type Directory } from "@/lib/society-directory";
 import { loadSocietyPeople } from "@/lib/societyPeopleCache";
 import type { SocietyPerson } from "@/lib/societyTypes";
+import { rememberProfilePreviews } from "@/lib/profilePreview";
 import { getUserProfile } from "@/lib/userProfile";
 import { newVisitSeed, visitRank } from "@/lib/visit-order";
 
@@ -85,6 +86,11 @@ export function useSocietyDirectory(): { directory: Directory | null; sky: SkyDi
       .map((w) => `${w.ownerUid}:${w.workId}`);
     return { people: all.people, me: user?.uid ?? null, newest, rankOf };
   }, [people, works, user, me, rankOf]);
+
+  // Whoever is clicked on here, their profile can show their name and picture at once.
+  useEffect(() => {
+    if (sky) rememberProfilePreviews(sky.people);
+  }, [sky]);
 
   return { directory, sky, failed: failed && (works?.length ?? 0) === 0 };
 }

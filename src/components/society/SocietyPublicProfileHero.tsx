@@ -21,7 +21,8 @@ const TABS: { id: ProfileTab; label: string }[] = [
   { id: "credits", label: "Credits" },
 ];
 
-function displayLines(value: string) { const pieces = value.trim().split(/\s+/); return pieces.length < 2 ? [value] : [pieces.slice(0, -1).join(" "), pieces.at(-1)!]; }
+/** A name over two lines: the last word on its own. */
+export function displayLines(value: string) { const pieces = value.trim().split(/\s+/); return pieces.length < 2 ? [value] : [pieces.slice(0, -1).join(" "), pieces.at(-1)!]; }
 
 export default function SocietyPublicProfileHero(props: Props) {
   const _copy = useUiCopy();
