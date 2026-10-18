@@ -53,12 +53,6 @@
   background: #02060d;
 }
 
-.sceneImage {
-  object-fit: cover;
-  /* Keeps the portal a little right of centre on any screen shape. */
-  object-position: 64% 100%;
-}
-
 /* In the sky, the panel's side of it is a little darker so its text reads. */
 .scrim {
   position: absolute;

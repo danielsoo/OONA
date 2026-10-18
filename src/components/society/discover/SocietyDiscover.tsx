@@ -128,7 +128,8 @@ export default function SocietyDiscover({ onTabChange }: { onTabChange: (tab: So
   const [loginReturnTo, setLoginReturnTo] = useState<string | null>(null);
 
   // The page opens on a full-bleed picture: the site header lies over it
-  // (CinematicAppHeader.module.css) while this view is on screen.
+  // (CinematicAppHeader.module.css) while this view is on screen. The page's
+  // own data-society-hero does it with :has(); this is for browsers without.
   useLayoutEffect(() => {
     const root = document.documentElement;
     root.dataset.societyHero = "";
@@ -219,7 +220,7 @@ export default function SocietyDiscover({ onTabChange }: { onTabChange: (tab: So
   };
 
   return (
-    <div className={styles.page}>
+    <div className={styles.page} data-society-hero="">
       <SocietySky directory={sky} onOpenSection={openSection} />
 
       <section

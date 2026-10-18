@@ -29,10 +29,15 @@ const SECTIONS: { id: SocietyTabId; label: string }[] = [
  * screen above it.
  */
 const SCENE = "/images/society/society_sky.jpg";
+/**
+ * The scene at 96×60, softened (OpenCV INTER_AREA + a 0.8px blur, WebP):
+ * shows at once, sea and portal glow included, while the photo loads.
+ */
+const SCENE_PREVIEW = "data:image/webp;base64,UklGRmABAABXRUJQVlA4IFQBAACQDQCdASpgADwAPsFSn0qnpSKhrVs8kPAYCWcAx+Q1dGr13Vdg1p/CYiqJtFePqs8gi4T23TLCDrRUjRtvvQ6Z5Z2cz+UvtMZya6nq90O/UH0hg6Y1slJQ2u8T6QI2MUdF8TZH93Rvj/pix2SfuH2ZS3B4twAA/vblJJNE2tBuJtu+1pgdXefoMmsxq3KnDPlQ+j/UvCBf31BmUlY4v+7o5p+wWRZd38hyPT4LZdHlwZfxr44C7iNHNxVy5WCxwthV7DwoUnX2dYp2g1ND7gVNP5GQeQVdF1yvtD2f0AKfQnhY7AZiR81iKUmOkLF1Pr85Hm6Dy8QCz4pNFi8z9BAo24rWTKXRqcrICvnOePVEJYuN0NC3/rnwYWimODmvaKdoUOQZtYvfgXkNDKsf8CUi03U5YrGeWI6E6zGXtxSrygvc4HTBsSinquE0L9Fr5bTpAAAA";
 const SKY_SHARE = 0.47;
 /** The photo's width over the sea's height: its rendered width when it fills the screen's height. */
 const SEA_ASPECT = SKY_IMAGE.width / (SKY_IMAGE.height / (1 + SKY_SHARE));
-/** Matches .sceneImage's object-position. */
+/** Across the photo's crop: keeps the portal a little right of centre on any screen shape. */
 const SCENE_X = 0.64;
 
 /**
@@ -259,8 +264,9 @@ export default function SocietySky({
               alt=""
               fill
               priority
+              placeholder={SCENE_PREVIEW}
+              style={{ objectFit: "cover", objectPosition: `${SCENE_X * 100}% 100%` }}
               sizes={`(max-aspect-ratio: ${Math.round(SEA_ASPECT * 100)}/100) ${Math.round(SEA_ASPECT * 100)}vh, 100vw`}
-              className={styles.sceneImage}
             />
           </div>
 

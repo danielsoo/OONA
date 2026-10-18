@@ -24,9 +24,11 @@
   backdrop-filter: none;
 }
 
-/* Society's Discover opens on a full-bleed picture (SocietyDiscover sets
-   data-society-hero while it is on screen). */
-:global(html[data-society-hero]) .header {
+/* Society's Discover opens on a full-bleed picture (it carries
+   data-society-hero, so this holds from the first paint, before any script;
+   SocietyDiscover also marks <html> for browsers without :has()). */
+:global(html[data-society-hero]) .header,
+:global(body:has([data-society-hero])) .header {
   position: absolute;
   border-bottom-color: transparent;
   background: linear-gradient(180deg, rgba(1, 8, 15, 0.7) 0%, rgba(1, 8, 15, 0.22) 68%, transparent 100%);
