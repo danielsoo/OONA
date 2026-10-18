@@ -7,6 +7,7 @@ import UiText, { useUiCopy } from "@/components/i18n/UiText";
 import type { SocietyTabId } from "@/components/society/SocietyNetworkPanel";
 import { useTranslations } from "@/context/LocaleContext";
 import { primaryRole, type DirPerson, type DirWork } from "@/lib/society-directory";
+import { watchHref } from "@/lib/demo-flags";
 import { buildSky, layOutNeuron, neuronGroup, neuronTwigs, type NeuronGroup, type Seat, type SkyStar } from "@/lib/society-sky";
 import styles from "./SocietySky.module.css";
 import { SKY_IMAGE, SKY_SEATS } from "./skySeats";
@@ -459,7 +460,7 @@ export default function SocietySky({
                 </svg>
                 <span className={styles.neuronCore} style={{ left: neuron.center.x, top: neuron.center.y }} aria-hidden="true" />
                 <Link
-                  href={`/watch/${neuron.crew.work.ownerUid}/${neuron.crew.work.workId}`}
+                  href={watchHref(neuron.crew.work)}
                   className={`${styles.neuronTitle} ${styles[`title_${neuron.layout.title.side}`]}`}
                   style={{ left: neuron.layout.title.x, top: neuron.layout.title.y }}
                 >
@@ -565,7 +566,7 @@ export default function SocietySky({
                 ))}
               </ul>
               <div className={styles.pickActions}>
-                <Link href={`/watch/${panelWork.ownerUid}/${panelWork.workId}`} className={styles.watch} tabIndex={awake ? 0 : -1}>
+                <Link href={watchHref(panelWork)} className={styles.watch} tabIndex={awake ? 0 : -1}>
                   {copy("Watch {title}", { title: panelWork.title })}
                   <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>
                 </Link>

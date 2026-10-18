@@ -17,7 +17,7 @@ const TABS = ["Selected works", "About", "Credits"];
  * Society) in place, the rest as soft placeholders, so the page settles
  * rather than appearing out of an empty screen.
  */
-export default function PeopleProfileSkeleton({ handle, preview }: { handle: string; preview: ProfilePreview | null }) {
+export default function PeopleProfileSkeleton({ handle, preview, backHref = "/society?tab=discover" }: { handle: string; preview: ProfilePreview | null; backHref?: string }) {
   const copy = useUiCopy();
   const { t } = useTranslations();
   const name = preview?.name.trim() || null;
@@ -30,7 +30,7 @@ export default function PeopleProfileSkeleton({ handle, preview }: { handle: str
         </div>
         <div className={styles.heroInner}>
           <div className={styles.backRow}>
-            <Link href="/society?tab=discover"><UiText text={"← Back to Society"} /></Link>
+            <Link href={backHref}><UiText text={"← Back to Society"} /></Link>
             <span>{copy("CREATOR PROFILE")}</span>
           </div>
           <div className={styles.heroGrid}>

@@ -8,6 +8,8 @@ import { useTranslations } from "@/context/LocaleContext";
 import SocietyProfileBody, { type ProfileTab } from "@/components/society/SocietyProfileBody";
 import SocietyPublicProfileHero from "@/components/society/SocietyPublicProfileHero";
 import PeopleProfileSkeleton from "@/components/profile/PeopleProfileSkeleton";
+import DemoBadge from "@/components/society/DemoBadge";
+import { DEMO_SOCIETY_HREF, isDemoHandle } from "@/lib/demo-flags";
 import { profilePreview } from "@/lib/profilePreview";
 import type { HeroBackgroundId } from "@/lib/heroBackgroundPresets";
 import type { DirectorNameChangeRequest } from "@/types/user";
@@ -96,6 +98,20 @@ export default function PeopleProfileView({ handle }: Props) {
     const request = ++latest.current;
     if (loadedHandle.current !== handle) setLoading(true);
     try {
+      // Society's demo people answer from the made-up set, not the API.
+      if (isDemoHandle(handle)) {
+        const payload = (await import("@/lib/society-demo")).demoProfile(handle);
+        if (request !== latest.current) return;
+        if (payload) {
+          setData(payload);
+          setErr(null);
+          loadedHandle.current = handle;
+        } else {
+          setErr(t("network.people.notFound"));
+          setData(null);
+        }
+        return;
+      }
       const headers: HeadersInit = {};
       if (user) {
         const token = await user.getIdToken();
@@ -124,8 +140,9 @@ export default function PeopleProfileView({ handle }: Props) {
     void load();
   }, [load]);
 
+  const demo = isDemoHandle(handle);
   if (loading) {
-    return <PeopleProfileSkeleton handle={handle} preview={profilePreview(handle)} />;
+    return <PeopleProfileSkeleton handle={handle} preview={profilePreview(handle)} backHref={demo ? DEMO_SOCIETY_HREF : undefined} />;
   }
 
   if (err || !data) {
@@ -152,7 +169,9 @@ export default function PeopleProfileView({ handle }: Props) {
 
   return (
     <main className={styles.page}>
+      {demo ? <DemoBadge /> : null}
       <SocietyPublicProfileHero
+        demo={demo}
         displayName={data.profile.displayName}
         handle={data.profile.handle}
         headline={data.profile.headline}

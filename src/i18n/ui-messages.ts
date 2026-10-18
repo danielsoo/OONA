@@ -2140,6 +2140,22 @@ export const uiMessages: Record<string, readonly [string, string]> = {
     "나",
     "あなた"
   ],
+  "demo": [
+    "데모",
+    "デモ"
+  ],
+  "made-up people and works, to look around.": [
+    "둘러보기용으로 지어낸 사람과 작품이에요.",
+    "見て回るための、架空の人と作品です。"
+  ],
+  "leave the demo": [
+    "데모 나가기",
+    "デモを終える"
+  ],
+  "this is a made-up demo profile.": [
+    "지어낸 데모 프로필이에요.",
+    "架空のデモプロフィールです。"
+  ],
   "directing & writing": [
     "연출 · 각본",
     "演出・脚本"

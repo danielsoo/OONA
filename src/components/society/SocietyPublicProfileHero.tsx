@@ -8,11 +8,12 @@ import { formatCompactStat } from "@/lib/formatStat";
 import type { HeroBackgroundId } from "@/lib/heroBackgroundPresets";
 import type { ProfileTab } from "./SocietyProfileBody";
 import ProfileConstellation, { type ConstellationWork } from "./ProfileConstellation";
+import { DEMO_SOCIETY_HREF } from "@/lib/demo-flags";
 import styles from "./EditorialProfile.module.css";
 import UiText from "@/components/i18n/UiText";
 import { useUiCopy } from "@/components/i18n/UiText";
 
-type Props = { displayName: string; handle: string; headline?: string | null; bio?: string | null; avatarUrl?: string | null; schoolName?: string | null; profileLink?: string | null; societyBannerBackgroundId?: HeroBackgroundId | null; followerCount?: number; followingCount?: number; stats?: { stories: number; totalViews: number }; isOnline?: boolean; openToCollaborate?: boolean; profileUid: string; isSelf: boolean; isFollowing: boolean; tab: ProfileTab; onTab: (tab: ProfileTab) => void; counts: { works: number; credits: number }; works: ConstellationWork[] };
+type Props = { displayName: string; handle: string; headline?: string | null; bio?: string | null; avatarUrl?: string | null; schoolName?: string | null; profileLink?: string | null; societyBannerBackgroundId?: HeroBackgroundId | null; followerCount?: number; followingCount?: number; stats?: { stories: number; totalViews: number }; isOnline?: boolean; openToCollaborate?: boolean; profileUid: string; isSelf: boolean; isFollowing: boolean; tab: ProfileTab; onTab: (tab: ProfileTab) => void; counts: { works: number; credits: number }; works: ConstellationWork[]; demo?: boolean };
 
 const TABS: { id: ProfileTab; label: string }[] = [
   { id: "works", label: "Selected works" },
@@ -43,7 +44,7 @@ export default function SocietyPublicProfileHero(props: Props) {
         <Image src={PROFILE_SKY} alt="" fill priority sizes="100vw" style={{ objectFit: "cover", objectPosition: PROFILE_SKY_POSITION }} />
       </div>
       <div className={styles.heroInner}>
-        <div className={styles.backRow}><Link href="/society?tab=discover"><UiText text={"← Back to Society"} /></Link><span>{props.isSelf ? _copy("MY PROFILE") : _copy("CREATOR PROFILE")}</span></div>
+        <div className={styles.backRow}><Link href={props.demo ? DEMO_SOCIETY_HREF : "/society?tab=discover"}><UiText text={"← Back to Society"} /></Link><span>{props.isSelf ? _copy("MY PROFILE") : _copy("CREATOR PROFILE")}</span></div>
         <div className={styles.heroGrid}>
           <div className={styles.identity}>
             <p className={styles.eyebrow}><UiText text={"OONA SOCIETY"} /></p>
@@ -56,7 +57,7 @@ export default function SocietyPublicProfileHero(props: Props) {
                 {props.isOnline ? <span className={styles.badge}><UiText text={"AVAILABLE NOW"} /></span> : null}
               </p>
             ) : null}
-            <div className={styles.heroActions}>{props.isSelf ? <><Link className={styles.primary} href="/account?tab=profile&section=about"><UiText text={"Edit profile"} /></Link><Link href="/uploader/upload"><UiText text={"Upload a work"} /></Link><Link href="/uploader/works"><UiText text={"Manage works"} /></Link></> : <PeopleProfileActions profileUid={props.profileUid} handle={props.handle} displayName={props.displayName} isSelf={false} initialFollowing={props.isFollowing} onFollowChange={(now) => setFollowerCount((n) => Math.max(0, n + (now ? 1 : -1)))} />}</div>
+            <div className={styles.heroActions}>{props.isSelf ? <><Link className={styles.primary} href="/account?tab=profile&section=about"><UiText text={"Edit profile"} /></Link><Link href="/uploader/upload"><UiText text={"Upload a work"} /></Link><Link href="/uploader/works"><UiText text={"Manage works"} /></Link></> : props.demo ? <>{["Follow", "Message", "Send an invite"].map((label) => <button key={label} type="button" disabled title={_copy("This is a made-up demo profile.")}><UiText text={label} /></button>)}</> : <PeopleProfileActions profileUid={props.profileUid} handle={props.handle} displayName={props.displayName} isSelf={false} initialFollowing={props.isFollowing} onFollowChange={(now) => setFollowerCount((n) => Math.max(0, n + (now ? 1 : -1)))} />}</div>
             {props.profileLink && <a className={styles.external} href={props.profileLink} target="_blank" rel="noreferrer"><UiText text={"External portfolio ↗"} /></a>}
           </div>
           <ProfileConstellation name={props.displayName || props.handle} seed={props.profileUid} avatarUrl={props.avatarUrl} works={props.works} />

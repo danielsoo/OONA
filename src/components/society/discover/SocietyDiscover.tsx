@@ -11,6 +11,8 @@ import { useAuth } from "@/context/AuthContext";
 import { useTranslations } from "@/context/LocaleContext";
 import { primaryRole, type DirCredit, type DirPerson } from "@/lib/society-directory";
 import { invalidateBusinessInvites } from "@/lib/societyInviteCache";
+import DemoBadge from "@/components/society/DemoBadge";
+import { watchHref } from "@/lib/demo-flags";
 import SocietySky from "./SocietySky";
 import { useSocietyDirectory } from "./useSocietyDirectory";
 import styles from "./SocietyDiscover.module.css";
@@ -118,7 +120,7 @@ export default function SocietyDiscover({ onTabChange }: { onTabChange: (tab: So
   const copy = useUiCopy();
   const { t } = useTranslations();
   const { user, loading: authLoading } = useAuth();
-  const { directory, sky, failed } = useSocietyDirectory();
+  const { directory, sky, failed, demo } = useSocietyDirectory();
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const [filter, setFilter] = useState<Filter>("everyone");
@@ -221,6 +223,7 @@ export default function SocietyDiscover({ onTabChange }: { onTabChange: (tab: So
 
   return (
     <div className={styles.page} data-society-hero="">
+      {demo ? <DemoBadge /> : null}
       <SocietySky directory={sky} onOpenSection={openSection} />
 
       <section
@@ -256,7 +259,7 @@ export default function SocietyDiscover({ onTabChange }: { onTabChange: (tab: So
                   <UiText text="View profile" /> <Chevron />
                 </Link>
               ) : null}
-              <button type="button" className={styles.secondary} disabled={authLoading} onClick={() => askToWork(hero)}>
+              <button type="button" className={styles.secondary} disabled={authLoading || demo} onClick={() => askToWork(hero)}>
                 <UiText text="Ask to work together" />
               </button>
             </div>
@@ -319,7 +322,7 @@ export default function SocietyDiscover({ onTabChange }: { onTabChange: (tab: So
                   <ul className={styles.works}>
                     {creditedWorks(focus).slice(0, 3).map((credit) => (
                       <li key={credit.work.key}>
-                        <Link href={`/watch/${credit.work.ownerUid}/${credit.work.workId}`} className={styles.workCard}>
+                        <Link href={watchHref(credit.work)} className={styles.workCard}>
                           {credit.work.stillUrl ? <Picture src={credit.work.stillUrl} sizes="200px" /> : null}
                           <span className={styles.cardText}>
                             <strong>{credit.work.title}</strong>
