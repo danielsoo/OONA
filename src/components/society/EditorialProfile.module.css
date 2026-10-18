@@ -240,7 +240,7 @@
 .constellation {
   position: relative;
   width: 100%;
-  max-width: 540px;
+  max-width: 600px;
   aspect-ratio: 1;
   justify-self: center;
 }
@@ -327,67 +327,125 @@
     transform: scale(0.94);
   }
 }
-.workStar {
+.branches .trunk {
+  stroke: rgba(210, 236, 255, 0.6);
+  stroke-width: 1.5;
+}
+.branches .echo {
+  stroke: rgba(190, 225, 255, 0.16);
+  stroke-dasharray: 3 4;
+}
+/* A work: a small ring where its branch splits, its title beside it. */
+.knotDot {
   position: absolute;
-  width: 26px;
-  height: 26px;
-  margin: -13px 0 0 -13px;
+  width: 9px;
+  height: 9px;
+  margin: -4.5px 0 0 -4.5px;
+  border: 1px solid rgba(200, 232, 255, 0.85);
+  border-radius: 50%;
+  background: rgba(7, 17, 27, 0.9);
+  box-shadow: 0 0 10px rgba(109, 196, 255, 0.4);
+  pointer-events: none;
+}
+.workKnot {
+  position: absolute;
+  z-index: 1;
+  display: flex;
+  width: max-content;
+  max-width: 150px;
+  flex-direction: column;
+  gap: 1px;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.85);
+}
+.knot_start { transform: translate(6px, -50%); }
+.knot_end { align-items: flex-end; text-align: right; transform: translate(calc(-100% - 6px), -50%); }
+.knot_above { align-items: center; text-align: center; transform: translate(-50%, calc(-100% - 4px)); }
+.knot_below { align-items: center; text-align: center; transform: translate(-50%, 4px); }
+.workKnot strong {
+  color: rgba(236, 242, 250, 0.92);
+  font-family: var(--serif);
+  font-size: 15px;
+  font-style: italic;
+  font-weight: 400;
+  line-height: 1.15;
+  transition: color 160ms ease;
+}
+.workKnot small {
+  color: rgba(185, 237, 255, 0.62);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.workKnot:hover strong,
+.workKnot:focus-visible strong {
+  color: #fff;
+}
+.workKnot:focus-visible {
+  outline: 1px solid rgba(185, 237, 255, 0.7);
+  outline-offset: 3px;
+}
+/* Someone they made it with: a star at the tip, as in the sky. */
+.personStar {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  margin: -12px 0 0 -12px;
   border-radius: 50%;
 }
-.workStar::before {
+.personStar::before {
   content: "";
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 7px;
-  height: 7px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
-  background: radial-gradient(circle, #fff 0 30%, rgba(228, 236, 248, 0.9) 45%, rgba(228, 236, 248, 0) 72%);
-  box-shadow: 0 0 12px 2px rgba(196, 214, 240, 0.35);
+  background: radial-gradient(circle, #fff 0 30%, rgba(228, 236, 248, 0.92) 45%, rgba(228, 236, 248, 0) 72%);
+  box-shadow: 0 0 12px 2px rgba(150, 214, 255, 0.42);
   transform: translate(-50%, -50%);
   transition: box-shadow 200ms ease;
 }
-.workStar:hover::before,
-.workStar:focus-visible::before {
-  box-shadow: 0 0 18px 5px rgba(150, 214, 255, 0.6);
+.personStar:hover::before,
+.personStar:focus-visible::before {
+  box-shadow: 0 0 18px 5px rgba(150, 214, 255, 0.7);
 }
-.workStar:focus-visible {
+.personStar:focus-visible {
   outline: 1px solid rgba(185, 237, 255, 0.8);
   outline-offset: 2px;
 }
-.workLabel {
+.personLabel {
   position: absolute;
   top: 50%;
-  left: 24px;
+  left: 19px;
   display: flex;
   width: max-content;
-  max-width: 160px;
+  max-width: 130px;
   flex-direction: column;
-  gap: 2px;
   transform: translateY(-58%);
-  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.8);
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.85);
 }
-.workStarLeft .workLabel {
-  right: 24px;
+.personLeft .personLabel {
+  right: 19px;
   left: auto;
   align-items: flex-end;
   text-align: right;
 }
-.workLabel strong {
-  color: rgba(236, 242, 250, 0.9);
-  font-family: var(--serif);
-  font-size: 16px;
-  font-style: italic;
-  font-weight: 400;
-  line-height: 1.2;
-  transition: color 160ms ease;
+.personLabel strong {
+  overflow: hidden;
+  color: #eef3fa;
+  font-size: 12px;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
-.workLabel small {
+.personLabel small {
+  overflow: hidden;
   color: rgba(190, 208, 230, 0.6);
-  font-size: 11px;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
-.workStar:hover strong,
-.workStar:focus-visible strong {
+.personStar:hover strong {
   color: #fff;
 }
 
@@ -750,16 +808,23 @@
     font-size: clamp(52px, 15vw, 72px);
   }
   .constellation {
-    width: 72%;
+    width: 74%;
   }
-  .workLabel {
-    max-width: 104px;
+  .workKnot {
+    max-width: 96px;
   }
-  .workLabel strong {
-    font-size: 13px;
+  .workKnot strong {
+    font-size: 12.5px;
   }
-  .workLabel small {
+  .workKnot small,
+  .personLabel small {
     display: none;
+  }
+  .personLabel {
+    max-width: 78px;
+  }
+  .personLabel strong {
+    font-size: 10.5px;
   }
   .coreStar::before,
   .coreStar::after {

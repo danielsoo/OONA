@@ -126,10 +126,20 @@ export function demoProfile(handle: string): PeopleProfilePayload | null {
     workId: w.id,
     ownerUid: DEMO_OWNER,
     title: w.title,
-    role: role.charAt(0).toUpperCase() + role.slice(1),
+    role,
     ...(character ? { characterName: character } : {}),
     thumbnailUrl: w.still,
     watchPath: DEMO_SOCIETY_HREF,
+    collaborators: w.crew
+      .filter(([cid]) => cid !== id)
+      .map(([cid, crole, ccharacter]) => ({
+        uid: uidOf(cid),
+        displayName: byId.get(cid)?.name ?? cid,
+        role: crole,
+        ...(ccharacter ? { characterName: ccharacter } : {}),
+        avatarUrl: null,
+        profileHref: `/people/${uidOf(cid)}`,
+      })),
   });
   const directed = mine.filter((m) => m.role === "director").map(card);
   const credited = mine.filter((m) => m.role !== "director").map(card);

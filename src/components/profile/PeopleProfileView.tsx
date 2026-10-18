@@ -15,6 +15,9 @@ import type { HeroBackgroundId } from "@/lib/heroBackgroundPresets";
 import type { DirectorNameChangeRequest } from "@/types/user";
 import styles from "@/components/society/EditorialProfile.module.css";
 
+/** Someone else credited on a work (its owner, or a confirmed credit). */
+type Collaborator = { uid: string; displayName: string; role: string; characterName?: string; avatarUrl?: string | null; profileHref: string | null };
+
 type WorkCard = {
   workId: string;
   ownerUid: string;
@@ -24,6 +27,7 @@ type WorkCard = {
   thumbnailUrl?: string | null;
   watchPath: string;
   profileNote?: string | null;
+  collaborators?: Collaborator[];
 };
 
 export type PeopleProfilePayload = {
@@ -158,13 +162,25 @@ export default function PeopleProfileView({ handle }: Props) {
 
   const isSelf = !!user && data.viewer?.uid === user.uid && data.profile.uid === user.uid;
 
-  // Their own works first, then the ones they're credited on, each once.
+  const roleLabel = (role: string) => {
+    const key = `watch.creditRole.${role.toLowerCase()}`;
+    const label = t(key);
+    return label === key ? role : label;
+  };
+  // Their own works first, then the ones they're credited on, each once, with
+  // the people they made them with.
   const seen = new Set<string>();
   const constellation = [...data.directed, ...data.credited].flatMap((work) => {
     const key = `${work.ownerUid}:${work.workId}`;
     if (seen.has(key)) return [];
     seen.add(key);
-    return [{ key, title: work.title, role: work.characterName ? `${work.role} · ${work.characterName}` : work.role, watchPath: work.watchPath }];
+    return [{
+      key,
+      title: work.title,
+      role: roleLabel(work.role),
+      watchPath: work.watchPath,
+      people: (work.collaborators ?? []).map((c) => ({ uid: c.uid, name: c.displayName, role: c.characterName ?? roleLabel(c.role), href: c.profileHref })),
+    }];
   });
 
   return (

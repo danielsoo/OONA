@@ -8,6 +8,7 @@ import { gradientForTitle } from "@/lib/works/catalog-ui";
 import styles from "./EditorialProfile.module.css";
 import UiText from "@/components/i18n/UiText";
 import { useUiCopy } from "@/components/i18n/UiText";
+import { useTranslations } from "@/context/LocaleContext";
 
 export type ProfileTab = "works" | "about" | "credits";
 
@@ -34,12 +35,19 @@ function WorkImage({ work }: { work: ProfileWorkListItem }) {
  */
 export function ProfileWorksSection({ works, isSelf, ownerUid, kind = "works" }: { works: ProfileWorkListItem[]; isSelf: boolean; ownerUid: string; kind?: "works" | "credits" }) {
   const _copy = useUiCopy();
+  const { t } = useTranslations();
+  // Roles arrive as their ids ("director"); shown in the reader's language.
+  const roleLabel = (role: string) => {
+    const key = `watch.creditRole.${role.toLowerCase()}`;
+    const label = t(key);
+    return label === key ? role : label;
+  };
   const credits = kind === "credits";
   const eyebrow = credits ? _copy("CREDITS") : isSelf ? _copy("YOUR PORTFOLIO") : _copy("SELECTED WORK");
   const title = credits ? _copy("Credited on other works") : isSelf ? _copy("My works") : _copy("Stories and collaborations");
   return <section id="works" className={styles.worksSection}>
     <header><div><p>{eyebrow}</p><h2>{title}</h2></div>{isSelf && !credits && <div className={styles.worksActions}><Link href="/uploader/upload"><UiText text={"＋ Upload a work"} /></Link><Link href="/uploader/works"><UiText text={"Manage works ↗"} /></Link></div>}</header>
-    {works.length ? <div className={styles.workGrid}>{works.map((work) => <article key={`${work.ownerUid}-${work.workId}`}><Link href={work.watchPath}><WorkImage work={work} /><div><h3>{work.title}</h3><p>{work.role}{work.characterName ? ` · ${work.characterName}` : ""}</p>{work.profileNote && <span>{work.profileNote}</span>}</div></Link>{isSelf && work.ownerUid === ownerUid && <Link className={styles.editWork} href={`/uploader/works/${work.workId}/edit`}><UiText text={"Edit work ↗"} /></Link>}</article>)}</div> : <div className={styles.emptyWorks}><p>{credits ? _copy("No credits on other works yet.") : isSelf ? _copy("Your next work can begin here.") : _copy("No published works yet.")}</p>{isSelf && !credits && <Link href="/uploader/upload"><UiText text={"Upload the first work →"} /></Link>}</div>}
+    {works.length ? <div className={styles.workGrid}>{works.map((work) => <article key={`${work.ownerUid}-${work.workId}`}><Link href={work.watchPath}><WorkImage work={work} /><div><h3>{work.title}</h3><p>{roleLabel(work.role)}{work.characterName ? ` · ${work.characterName}` : ""}</p>{work.profileNote && <span>{work.profileNote}</span>}</div></Link>{isSelf && work.ownerUid === ownerUid && <Link className={styles.editWork} href={`/uploader/works/${work.workId}/edit`}><UiText text={"Edit work ↗"} /></Link>}</article>)}</div> : <div className={styles.emptyWorks}><p>{credits ? _copy("No credits on other works yet.") : isSelf ? _copy("Your next work can begin here.") : _copy("No published works yet.")}</p>{isSelf && !credits && <Link href="/uploader/upload"><UiText text={"Upload the first work →"} /></Link>}</div>}
   </section>;
 }
 

@@ -6,59 +6,133 @@ import ProfileAvatar from "@/components/profile/ProfileAvatar";
 import { hashString } from "@/lib/society-sky";
 import styles from "./EditorialProfile.module.css";
 
-export type ConstellationWork = { key: string; title: string; role: string; watchPath: string };
+export type ConstellationPerson = { uid: string; name: string; role: string; href: string | null };
+export type ConstellationWork = { key: string; title: string; role: string; watchPath: string; people: ConstellationPerson[] };
 
-export const CONSTELLATION_MAX = 7;
+const WORKS_MAX = 6;
+const PER_WORK = 4;
+
+type Spot = { x: number; y: number };
+const at = (angle: number, r: number): Spot => ({ x: 50 + Math.cos(angle) * r, y: 50 + Math.sin(angle) * r });
+/** A branch that bows a little to one side, as in the Society sky's neurons. */
+const curve = (a: Spot, b: Spot, bow = 0.14) =>
+  `M${a.x},${a.y} Q${(a.x + b.x) / 2 + (b.y - a.y) * bow},${(a.y + b.y) / 2 - (b.x - a.x) * bow} ${b.x},${b.y}`;
 
 /**
- * Someone's own corner of the Society sky: their star in the middle (their
- * picture, or just the star), and what they made around it, each work a
- * smaller star on a branch out from them. Works link to where they play.
+ * Someone's own corner of the Society sky: them in the middle (their picture,
+ * or just a star), a branch out to each work they made, and at its tip the
+ * people they made it with. Someone they worked with more than once sits on
+ * the first branch, with a faint line from the others. Works link to where
+ * they play; people to their profiles.
  */
-export default function ProfileConstellation({ name, seed, avatarUrl, works }: { name: string; seed: string; avatarUrl?: string | null; works: ConstellationWork[] }) {
-  const [lit, setLit] = useState<number | null>(null);
-  const shown = works.slice(0, CONSTELLATION_MAX);
-  // Spread evenly round the star, turned a little differently for each person,
-  // alternately nearer and farther so it reads as a figure, not a clock face.
-  const turn = (hashString(seed) % 360) * (Math.PI / 180);
-  const spots = shown.map((_, i) => {
-    const a = turn + (i / Math.max(1, shown.length)) * Math.PI * 2;
-    const r = i % 2 ? 28 : 35;
-    return { x: 50 + Math.cos(a) * r, y: 50 + Math.sin(a) * r };
+export default function ProfileConstellation({ name, seed, avatarUrl, works, peopleMax = 14 }: { name: string; seed: string; avatarUrl?: string | null; works: ConstellationWork[]; peopleMax?: number }) {
+  const [lit, setLit] = useState<string | null>(null);
+  const shown = works.slice(0, WORKS_MAX);
+  const n = shown.length;
+  const turn = ((hashString(seed) % 360) * Math.PI) / 180;
+
+  // People, a few per work and each only once, taken in turns so every work gets some.
+  const placed = new Map<string, number>();
+  const tips: ConstellationPerson[][] = shown.map(() => []);
+  for (let round = 0; round < PER_WORK && placed.size < peopleMax; round += 1) {
+    shown.forEach((work, wi) => {
+      if (placed.size >= peopleMax) return;
+      const next = work.people.find((p) => !placed.has(p.uid));
+      if (next && tips[wi]!.length === round) {
+        tips[wi]!.push(next);
+        placed.set(next.uid, wi);
+      }
+    });
+  }
+
+  const knots = shown.map((_, wi) => ({ angle: turn + (wi / Math.max(1, n)) * Math.PI * 2, ...at(turn + (wi / Math.max(1, n)) * Math.PI * 2, 19) }));
+  // Each work's people fan out round its branch, leaving its sides clear for its title.
+  const span = n > 1 ? Math.min(((Math.PI * 2) / n) * 0.62, Math.PI * 0.55) : Math.PI * 1.1;
+  const spots = new Map<string, Spot & { angle: number; wi: number }>();
+  tips.forEach((people, wi) => {
+    const step = Math.min(span / Math.max(1, people.length), 0.5);
+    people.forEach((p, j) => {
+      const angle = knots[wi]!.angle + (j - (people.length - 1) / 2) * step;
+      spots.set(p.uid, { ...at(angle, 38), angle, wi });
+    });
   });
+  // Someone also on another of these works: a faint line from that work too.
+  const echoes = shown.flatMap((work, wi) =>
+    work.people.filter((p) => spots.has(p.uid) && spots.get(p.uid)!.wi !== wi).map((p) => ({ wi, uid: p.uid }))
+  ).slice(0, 4);
+
+  const isLit = (wi: number, uid?: string) => lit === `w${wi}` || (!!uid && lit === uid);
   return (
     <div className={styles.constellation}>
       <svg className={styles.branches} viewBox="0 0 100 100" aria-hidden="true">
         <circle className={styles.orbit} cx="50" cy="50" r="17" />
-        {spots.map((p, i) => {
-          // A branch bows a little to one side, like the Society sky's neurons.
-          const mx = (50 + p.x) / 2 + (p.y - 50) * 0.16;
-          const my = (50 + p.y) / 2 - (p.x - 50) * 0.16;
-          return <path key={shown[i]!.key} className={lit === i ? styles.branchLit : undefined} d={`M50,50 Q${mx},${my} ${p.x},${p.y}`} />;
-        })}
+        {echoes.map(({ wi, uid }) => (
+          <path key={`echo:${wi}:${uid}`} className={styles.echo} d={curve(knots[wi]!, spots.get(uid)!, 0.2)} />
+        ))}
+        {knots.map((k, wi) => (
+          <g key={shown[wi]!.key}>
+            <path className={`${styles.trunk} ${isLit(wi) ? styles.branchLit : ""}`} d={curve({ x: 50, y: 50 }, k, 0.1)} />
+            {tips[wi]!.map((p) => (
+              <path key={p.uid} className={isLit(wi, p.uid) ? styles.branchLit : undefined} d={curve(k, spots.get(p.uid)!)} />
+            ))}
+          </g>
+        ))}
       </svg>
       <div className={styles.core} aria-hidden="true">
         {avatarUrl ? <ProfileAvatar displayName={name} avatarUrl={avatarUrl} className={styles.coreAvatar} /> : <span className={styles.coreStar} />}
       </div>
-      {shown.map((work, i) => {
-        const p = spots[i]!;
-        const left = p.x < 50;
+
+      {shown.map((work, wi) => {
+        const k = knots[wi]!;
+        // The title beside its trunk, running away from it.
+        const px = -Math.sin(k.angle);
+        const py = Math.cos(k.angle);
+        const flip = py > 0 || (py === 0 && px < 0) ? -1 : 1;
+        const anchor = Math.abs(px) > Math.abs(py) ? (px * flip > 0 ? "start" : "end") : py * flip < 0 ? "above" : "below";
+        const more = work.people.filter((p) => placed.get(p.uid) !== wi && !echoes.some((e) => e.wi === wi && e.uid === p.uid)).length;
         return (
           <Link
             key={work.key}
             href={work.watchPath}
-            className={`${styles.workStar} ${left ? styles.workStarLeft : ""}`}
-            style={{ left: `${p.x}%`, top: `${p.y}%` }}
-            onMouseEnter={() => setLit(i)}
-            onMouseLeave={() => setLit((n) => (n === i ? null : n))}
-            onFocus={() => setLit(i)}
-            onBlur={() => setLit((n) => (n === i ? null : n))}
+            className={`${styles.workKnot} ${styles[`knot_${anchor}`]}`}
+            style={{ left: `${k.x + px * flip * 2.5}%`, top: `${k.y + py * flip * 2.5}%` }}
+            onMouseEnter={() => setLit(`w${wi}`)}
+            onMouseLeave={() => setLit((v) => (v === `w${wi}` ? null : v))}
+            onFocus={() => setLit(`w${wi}`)}
+            onBlur={() => setLit((v) => (v === `w${wi}` ? null : v))}
           >
-            <span className={styles.workLabel}>
-              <strong>{work.title}</strong>
-              {work.role ? <small>{work.role}</small> : null}
-            </span>
+            <strong>{work.title}</strong>
+            <small>{[work.role, more > 0 ? `+${more}` : ""].filter(Boolean).join(" · ")}</small>
           </Link>
+        );
+      })}
+      {knots.map((k, wi) => (
+        <span key={`dot:${shown[wi]!.key}`} className={styles.knotDot} style={{ left: `${k.x}%`, top: `${k.y}%` }} aria-hidden="true" />
+      ))}
+
+      {[...spots].map(([uid, s]) => {
+        const p = tips[s.wi]!.find((x) => x.uid === uid)!;
+        const className = `${styles.personStar} ${s.x < 50 ? styles.personLeft : ""}`;
+        const label = (
+          <span className={styles.personLabel}>
+            <strong>{p.name}</strong>
+            {p.role ? <small>{p.role}</small> : null}
+          </span>
+        );
+        const events = {
+          onMouseEnter: () => setLit(uid),
+          onMouseLeave: () => setLit((v) => (v === uid ? null : v)),
+          onFocus: () => setLit(uid),
+          onBlur: () => setLit((v) => (v === uid ? null : v)),
+        };
+        return p.href ? (
+          <Link key={uid} href={p.href} className={className} style={{ left: `${s.x}%`, top: `${s.y}%` }} aria-label={p.name} {...events}>
+            {label}
+          </Link>
+        ) : (
+          <span key={uid} className={className} style={{ left: `${s.x}%`, top: `${s.y}%` }} {...events}>
+            {label}
+          </span>
         );
       })}
     </div>
