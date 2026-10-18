@@ -1,225 +1,451 @@
-/* Society profile pages (people/[handle], the profile hero and works). */
+/* Society profile pages (people/[handle]): the same night as Society —
+   its sky photo over the hero, night-blue page, serif names, blue hairlines
+   and glowing pills (SocietyDiscover.module.css, SocietySky.module.css). */
 .page {
-  min-height: calc(100svh - 82px);
-  padding: 28px clamp(24px, 5.2vw, 88px) 100px;
-  background: #070809;
-  color: #eff0f1;
+  --bg: 7, 17, 27;
+  --pad: clamp(24px, 4.9vw, 76px);
+  --serif: var(--font-serif), "Noto Serif KR", Georgia, serif;
+  --line: rgba(150, 190, 230, 0.14);
+  --muted: rgba(196, 214, 236, 0.6);
+  min-height: 100svh;
+  overflow-x: clip;
+  padding-bottom: 110px;
+  background: rgb(var(--bg));
+  color: #f2f4fb;
 }
 .inner {
+  max-width: calc(1540px + 2 * var(--pad));
+  margin: 0 auto;
+  padding: 0 var(--pad);
+}
+
+/* ---- The first screen: their name under the night sky ---- */
+.hero {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  min-height: min(880px, 100svh);
+  overflow: hidden;
+  /* The site header lies over the sky (CinematicAppHeader.module.css). */
+  padding: 100px var(--pad) 0;
+}
+/* Only the photo's sky: drawn taller than the hero so its sea stays below. */
+.heroSky {
+  position: absolute;
+  z-index: -2;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 175%;
+}
+.heroSky img {
+  filter: brightness(0.92) saturate(0.95);
+}
+.hero::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(2, 8, 15, 0.84) 0%, rgba(2, 8, 15, 0.5) 38%, rgba(2, 8, 15, 0.08) 72%),
+    linear-gradient(180deg, rgba(var(--bg), 0) 58%, rgb(var(--bg)) 100%);
+}
+.heroInner {
+  display: flex;
+  width: 100%;
   max-width: 1540px;
   margin: 0 auto;
+  flex-direction: column;
 }
 .backRow {
   display: flex;
   justify-content: space-between;
-  padding: 5px 0 16px;
-  border-bottom: 1px solid rgba(181, 196, 210, 0.15);
-  color: #76848e;
-  font-size: 12px;
-  letter-spacing: 0.16em;
+  gap: 16px;
+  padding: 6px 0 15px;
+  border-bottom: 1px solid var(--line);
+  color: rgba(176, 200, 228, 0.6);
+  font-size: 11px;
+  letter-spacing: 0.24em;
 }
 .backRow a {
+  color: rgba(220, 232, 246, 0.78);
+  font-size: 12px;
   letter-spacing: 0;
-  color: #aab3b9;
+  transition: color 150ms ease;
 }
-.hero {
+.backRow a:hover {
+  color: #fff;
+}
+.heroGrid {
   display: grid;
-  grid-template-columns: minmax(250px, 0.72fr) minmax(300px, 1fr) minmax(
-      260px,
-      0.7fr
-    );
-  gap: clamp(28px, 4vw, 70px);
+  flex: 1;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 0.86fr);
+  gap: clamp(28px, 5vw, 96px);
   align-items: center;
-  padding: 52px 0 42px;
+  padding: clamp(28px, 5vh, 64px) 0 clamp(24px, 4vh, 44px);
 }
-.titleColumn > p,
+.eyebrow,
 .worksSection > header p,
 .aboutSection > header p {
-  margin: 0 0 16px;
-  color: #8195a3;
-  font-size: 12px;
+  margin: 0 0 18px;
+  color: #9bb9dc;
+  font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.28em;
   text-transform: uppercase;
 }
-.titleColumn h1 {
+.name {
   margin: 0;
-  font-family: var(--font-serif), Georgia, serif;
-  font-size: clamp(60px, 6.4vw, 104px);
+  color: #f2f4fb;
+  font-family: var(--serif);
+  font-size: clamp(60px, 8vw, 128px);
   font-weight: 400;
-  line-height: 0.82;
-  letter-spacing: -0.055em;
+  line-height: 0.86;
+  letter-spacing: -0.045em;
+  overflow-wrap: anywhere;
 }
-.titleColumn h1 span {
+.name span {
   display: block;
 }
-.titleColumn small {
-  display: block;
-  margin-top: 20px;
-  color: #7f8a92;
-  font-size: 14px;
-}
-.portrait {
-  position: relative;
-  aspect-ratio: 1.16/1;
-  overflow: hidden;
-  border: 1px solid rgba(181, 196, 210, 0.16);
-  background: #101315;
-}
-.portrait > img,
-.portraitAvatar {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  filter: grayscale(26%) saturate(0.68) brightness(0.7);
-}
-.portrait:after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, transparent 60%, rgba(4, 7, 9, 0.5));
-}
-.online {
-  position: absolute;
-  z-index: 2;
-  left: 15px;
-  bottom: 14px;
+.handleLine {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 7px;
-  color: #dce9ed;
-  font-size: 12px;
-  letter-spacing: 0.12em;
-}
-.online:before {
-  content: "";
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: #78dcf9;
-}
-.profileInfo {
-  align-self: stretch;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding-left: clamp(20px, 3vw, 48px);
-  border-left: 1px solid rgba(181, 196, 210, 0.16);
+  gap: 6px 14px;
+  margin: 22px 0 0;
+  color: var(--muted);
+  font-size: 14px;
 }
 .role {
-  margin: 0;
-  color: #9aa5ac;
-  font-size: 14px;
+  color: rgba(226, 236, 248, 0.86);
+}
+.role::before {
+  content: "";
+  display: inline-block;
+  width: 3px;
+  height: 3px;
+  margin: 0 14px 3px 0;
+  border-radius: 50%;
+  background: rgba(196, 214, 236, 0.5);
 }
 .bio {
-  margin: 28px 0;
-  color: #ced2d5;
-  font-family: var(--font-serif), Georgia, serif;
-  font-size: 18px;
-  line-height: 1.5;
+  max-width: 34em;
+  margin: 24px 0 0;
+  color: rgba(232, 238, 248, 0.86);
+  font-family: var(--serif);
+  font-size: clamp(17px, 1.3vw, 20px);
+  line-height: 1.55;
+  white-space: pre-line;
 }
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 22px;
+  margin: 22px 0 0;
+}
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: #cfe9fb;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.badge::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #8fe0ff;
+  box-shadow: 0 0 10px rgba(109, 196, 255, 0.85);
+}
+
+/* Follow, Message, Send an invite (PeopleProfileActions) as the site's pills. */
+.heroActions,
+.heroActions > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.heroActions {
+  margin-top: 30px;
+}
+.heroActions a,
+.heroActions :global(button) {
+  display: inline-flex;
+  height: 44px;
+  align-items: center;
+  padding: 0 20px !important;
+  border: 1px solid rgba(179, 206, 230, 0.24) !important;
+  border-radius: 999px !important;
+  background: rgba(4, 17, 28, 0.36) !important;
+  color: rgba(240, 246, 253, 0.84) !important;
+  font: inherit !important;
+  font-size: 13px !important;
+  backdrop-filter: blur(6px);
+  transition: transform 180ms ease, background 180ms ease, box-shadow 180ms ease, color 180ms ease;
+}
+.heroActions .primary,
+.heroActions button[aria-pressed="false"] {
+  border-color: rgba(119, 203, 255, 0.82) !important;
+  color: #fff !important;
+  box-shadow: 0 0 22px rgba(61, 163, 232, 0.14), inset 0 0 18px rgba(83, 171, 233, 0.07);
+}
+.heroActions a:hover,
+.heroActions button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  background: rgba(49, 119, 168, 0.22) !important;
+  color: #fff !important;
+}
+.heroActions button:disabled {
+  opacity: 0.5;
+}
+.external {
+  display: inline-block;
+  margin-top: 18px;
+  color: rgba(176, 210, 240, 0.72);
+  font-size: 13px;
+}
+.external:hover {
+  color: #fff;
+}
+
 .stats {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  border-top: 1px solid rgba(181, 196, 210, 0.14);
-  border-bottom: 1px solid rgba(181, 196, 210, 0.14);
+  grid-template-columns: repeat(4, minmax(0, max-content));
+  gap: 0 clamp(30px, 4.6vw, 76px);
+  padding: 20px 0 34px;
+  border-top: 1px solid var(--line);
 }
 .stats span {
   display: flex;
   flex-direction: column;
-  padding: 14px 0;
-  color: #707e87;
-  font-size: 12px;
+  gap: 4px;
+  color: rgba(176, 200, 228, 0.56);
+  font-size: 11px;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
 }
 .stats b {
-  margin-bottom: 3px;
-  color: #e4e8ea;
-  font-family: var(--font-serif), Georgia, serif;
-  font-size: 24px;
+  color: #eef3fa;
+  font-family: var(--serif);
+  font-size: 30px;
   font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
 }
-.heroActions {
-  margin-top: 24px;
+
+/* ---- Their star, with what they made around it (ProfileConstellation) ---- */
+.constellation {
+  position: relative;
+  width: 100%;
+  max-width: 540px;
+  aspect-ratio: 1;
+  justify-self: center;
 }
-.heroActions > div,
-.heroActions {
+.branches {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  fill: none;
+}
+.branches path {
+  stroke: rgba(190, 225, 255, 0.34);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+  transition: stroke 200ms ease;
+}
+.branches .branchLit {
+  stroke: rgba(214, 240, 255, 0.92);
+  filter: drop-shadow(0 0 3px rgba(109, 196, 255, 0.6));
+}
+.orbit {
+  stroke: rgba(150, 200, 245, 0.14);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+.core {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  width: 25%;
+  aspect-ratio: 1;
+  place-items: center;
+  transform: translate(-50%, -50%);
+}
+.coreAvatar {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  place-items: center;
+  border: 1px solid rgba(160, 215, 255, 0.5);
+  border-radius: 50%;
+  background: #0b1a29;
+  color: rgba(214, 230, 247, 0.6);
+  font-family: var(--serif);
+  font-size: 34px;
+  box-shadow: 0 0 0 6px rgba(109, 196, 255, 0.06), 0 0 46px rgba(109, 196, 255, 0.3);
+}
+.coreAvatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(0.8) brightness(0.92);
+}
+/* No picture: they're a star, as in the sky. */
+.coreStar {
+  position: relative;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 0 30%, rgba(214, 238, 255, 0.95) 45%, rgba(214, 238, 255, 0) 72%);
+  box-shadow: 0 0 34px 10px rgba(150, 214, 255, 0.4), 0 0 90px 26px rgba(109, 196, 255, 0.16);
+  animation: twinkle 4.2s ease-in-out infinite;
+}
+.coreStar::before,
+.coreStar::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 120px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(214, 238, 255, 0.5), transparent);
+  transform: translate(-50%, -50%);
+}
+.coreStar::after {
+  transform: translate(-50%, -50%) rotate(90deg);
+}
+@keyframes twinkle {
+  50% {
+    opacity: 0.82;
+    transform: scale(0.94);
+  }
+}
+.workStar {
+  position: absolute;
+  width: 26px;
+  height: 26px;
+  margin: -13px 0 0 -13px;
+  border-radius: 50%;
+}
+.workStar::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 0 30%, rgba(228, 236, 248, 0.9) 45%, rgba(228, 236, 248, 0) 72%);
+  box-shadow: 0 0 12px 2px rgba(196, 214, 240, 0.35);
+  transform: translate(-50%, -50%);
+  transition: box-shadow 200ms ease;
+}
+.workStar:hover::before,
+.workStar:focus-visible::before {
+  box-shadow: 0 0 18px 5px rgba(150, 214, 255, 0.6);
+}
+.workStar:focus-visible {
+  outline: 1px solid rgba(185, 237, 255, 0.8);
+  outline-offset: 2px;
+}
+.workLabel {
+  position: absolute;
+  top: 50%;
+  left: 24px;
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  width: max-content;
+  max-width: 160px;
+  flex-direction: column;
+  gap: 2px;
+  transform: translateY(-58%);
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.8);
 }
-.heroActions a,
-.heroActions :global(button) {
-  min-height: 42px;
-  display: inline-flex;
-  align-items: center;
-  padding: 0 18px !important;
-  border: 1px solid rgba(190, 204, 214, 0.28) !important;
-  border-radius: 0 !important;
-  background: transparent !important;
-  color: #dce2e6 !important;
-  font: inherit !important;
-  font-size: 13px !important;
+.workStarLeft .workLabel {
+  right: 24px;
+  left: auto;
+  align-items: flex-end;
+  text-align: right;
 }
-.heroActions .primary,
-.heroActions button[aria-pressed="false"] {
-  border-color: #72d8f6 !important;
-  color: #92e7ff !important;
+.workLabel strong {
+  color: rgba(236, 242, 250, 0.9);
+  font-family: var(--serif);
+  font-size: 16px;
+  font-style: italic;
+  font-weight: 400;
+  line-height: 1.2;
+  transition: color 160ms ease;
 }
-.heroActions a:hover,
-.heroActions button:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.05) !important;
+.workLabel small {
+  color: rgba(190, 208, 230, 0.6);
+  font-size: 11px;
 }
-.external {
-  margin-top: 18px;
-  color: #73838d;
-  font-size: 13px;
+.workStar:hover strong,
+.workStar:focus-visible strong {
+  color: #fff;
 }
+
+/* ---- Tabs ---- */
 .profileTabs {
   display: flex;
-  gap: 42px;
-  border-top: 1px solid rgba(181, 196, 210, 0.15);
-  border-bottom: 1px solid rgba(181, 196, 210, 0.15);
+  gap: 36px;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--line);
+  scrollbar-width: none;
 }
 .profileTabs button {
   position: relative;
   display: inline-flex;
+  flex: none;
   align-items: center;
   gap: 8px;
   padding: 16px 0;
   border: 0;
   background: transparent;
-  color: #7e8991;
+  color: rgba(196, 214, 236, 0.62);
   font: inherit;
   font-size: 14px;
   cursor: pointer;
   transition: color 150ms ease;
 }
 .profileTabs button:hover {
-  color: #c9d1d6;
+  color: #fff;
 }
 .profileTabs button:focus-visible {
-  outline: 2px solid #70d8f6;
+  outline: 1px solid rgba(119, 203, 255, 0.8);
   outline-offset: 2px;
 }
 .profileTabs .profileTabOn {
-  color: #edf0f2;
+  color: #fff;
 }
-.profileTabs .profileTabOn:after {
+.profileTabs .profileTabOn::after {
   content: "";
   position: absolute;
-  left: 0;
   right: 0;
   bottom: -1px;
+  left: 0;
   height: 1px;
-  background: #70d8f6;
+  background: #77cbff;
+  box-shadow: 0 0 10px rgba(119, 203, 255, 0.8);
+}
+.profileTabs button:disabled {
+  cursor: default;
 }
 .tabCount {
-  color: #6f7c85;
+  color: rgba(176, 200, 228, 0.5);
   font-size: 12px;
 }
-.worksSection {
-  padding: 46px 0;
+
+/* ---- Works and credits: the home's film cards ---- */
+.worksSection,
+.aboutSection {
+  padding: 48px 0;
 }
 .worksSection > header,
 .aboutSection > header {
@@ -227,41 +453,62 @@
   align-items: flex-end;
   justify-content: space-between;
   gap: 20px;
-  padding-bottom: 17px;
-  border-bottom: 1px solid rgba(181, 196, 210, 0.15);
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--line);
 }
 .worksSection > header p,
 .aboutSection > header p {
-  margin-bottom: 9px;
+  margin-bottom: 10px;
 }
 .worksSection > header h2,
 .aboutSection > header h2 {
   margin: 0;
-  font-family: var(--font-serif), Georgia, serif;
-  font-size: 42px;
+  color: #f3f5fa;
+  font-family: var(--serif);
+  font-size: clamp(30px, 3vw, 42px);
   font-weight: 400;
 }
 .worksActions {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
 }
 .worksSection > header a,
 .aboutSection > header a {
-  padding: 10px 14px;
-  border: 1px solid rgba(184, 200, 211, 0.22);
-  color: #bdc6cc;
+  display: inline-flex;
+  height: 40px;
+  align-items: center;
+  padding: 0 16px;
+  border: 1px solid rgba(179, 206, 230, 0.22);
+  border-radius: 999px;
+  background: rgba(4, 17, 28, 0.3);
+  color: rgba(240, 246, 253, 0.8);
   font-size: 13px;
+  transition: background 180ms ease, color 180ms ease;
+}
+.worksSection > header a:hover,
+.aboutSection > header a:hover {
+  background: rgba(49, 119, 168, 0.2);
+  color: #fff;
 }
 .workGrid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
-  margin-top: 22px;
+  gap: 16px;
+  margin-top: 24px;
 }
 .workGrid article {
   position: relative;
-  border: 1px solid rgba(181, 196, 210, 0.14);
-  background: #090a0b;
+  overflow: hidden;
+  border: 1px solid rgba(119, 174, 216, 0.24);
+  border-radius: 5px;
+  background: #06101a;
+  transition: transform 220ms ease, border-color 220ms ease, box-shadow 220ms ease;
+}
+.workGrid article:hover {
+  transform: translateY(-3px);
+  border-color: rgba(114, 200, 255, 0.56);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
 }
 .workImage {
   position: relative;
@@ -270,43 +517,45 @@
 }
 .workImage img {
   object-fit: cover;
-  filter: grayscale(22%) saturate(0.7) brightness(0.75);
+  filter: saturate(0.66) brightness(0.72) contrast(1.05);
+  transition: transform 500ms ease, filter 300ms ease;
+}
+.workGrid article:hover .workImage img {
+  transform: scale(1.035);
+  filter: saturate(0.8) brightness(0.86);
 }
 .workImage i {
   position: absolute;
   inset: 0;
 }
 .workGrid article > a > div:last-child {
-  padding: 15px;
+  padding: 15px 16px 17px;
 }
 .workGrid h3 {
   margin: 0;
-  color: #eceeef;
-  font-family: var(--font-serif), Georgia, serif;
-  font-size: 21px;
+  color: #f3f1f4;
+  font-family: var(--serif);
+  font-size: 20px;
   font-weight: 400;
 }
 .workGrid p {
   margin: 6px 0 0;
-  color: #7c8992;
+  color: rgba(196, 214, 236, 0.62);
   font-size: 13px;
 }
 .workGrid article span {
   display: block;
   margin-top: 12px;
-  color: #9aa4aa;
+  color: rgba(214, 226, 240, 0.7);
   font-size: 12px;
   line-height: 1.5;
 }
 .editWork {
   position: absolute;
-  right: 11px;
-  bottom: 11px;
-  color: #83d5eb;
+  right: 12px;
+  bottom: 12px;
+  color: #8fd8ff;
   font-size: 12px;
-}
-.aboutSection {
-  padding: 46px 0;
 }
 .aboutGrid {
   display: grid;
@@ -316,8 +565,8 @@
 }
 .aboutBio {
   margin: 0;
-  color: #d6dadd;
-  font-family: var(--font-serif), Georgia, serif;
+  color: rgba(232, 238, 248, 0.88);
+  font-family: var(--serif);
   font-size: 22px;
   line-height: 1.55;
   white-space: pre-line;
@@ -325,105 +574,135 @@
 .aboutFacts {
   display: grid;
   align-content: start;
-  gap: 0;
   margin: 0;
-  border-top: 1px solid rgba(181, 196, 210, 0.15);
+  border-top: 1px solid var(--line);
 }
 .aboutFacts > div {
-  padding: 16px 0;
-  border-bottom: 1px solid rgba(181, 196, 210, 0.15);
+  padding: 15px 0;
+  border-bottom: 1px solid var(--line);
 }
 .aboutFacts dt {
-  margin-bottom: 6px;
-  color: #7f8a92;
-  font-size: 12px;
-  letter-spacing: 0.14em;
+  margin-bottom: 5px;
+  color: rgba(176, 200, 228, 0.56);
+  font-size: 11px;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
 }
 .aboutFacts dd {
   margin: 0;
-  color: #e4e8ea;
+  color: #e6edf6;
   font-size: 15px;
-  line-height: 1.5;
 }
 .aboutFacts a {
-  color: #78d9f4;
+  color: #8fd8ff;
 }
 .emptyWorks {
-  min-height: 240px;
-  display: grid;
-  place-content: center;
-  gap: 12px;
-  color: #7f8a91;
-  text-align: center;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 24px;
+  padding: 28px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: rgba(6, 16, 26, 0.6);
+  color: rgba(196, 214, 236, 0.66);
+  font-family: var(--serif);
+  font-size: 18px;
+}
+.emptyWorks p {
+  margin: 0;
 }
 .emptyWorks a {
-  color: #78d9f4;
-  font-size: 13px;
+  color: #8fd8ff;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 14px;
 }
-/* A profile while it loads (PeopleProfileSkeleton): soft bars that breathe. */
+
+/* ---- Someone who isn't there ---- */
+.missing {
+  display: grid;
+  min-height: 60svh;
+  place-content: center;
+  gap: 18px;
+  padding: 120px var(--pad) 80px;
+  text-align: center;
+}
+.missing p {
+  margin: 0;
+  color: rgba(232, 238, 248, 0.86);
+  font-family: var(--serif);
+  font-size: clamp(24px, 3vw, 34px);
+}
+.missing a {
+  color: #8fd8ff;
+  font-size: 14px;
+}
+
+/* ---- While it loads (PeopleProfileSkeleton): soft bars that breathe ---- */
 .skel {
   display: block;
-  border-radius: 2px;
-  background: linear-gradient(100deg, rgba(181, 196, 210, 0.05) 30%, rgba(181, 196, 210, 0.12) 50%, rgba(181, 196, 210, 0.05) 70%) 0 0 / 250% 100%;
+  border-radius: 3px;
+  background: linear-gradient(100deg, rgba(160, 200, 240, 0.06) 30%, rgba(160, 200, 240, 0.14) 50%, rgba(160, 200, 240, 0.06) 70%) 0 0 / 250% 100%;
   animation: skelSweep 1.8s ease-in-out infinite;
-}
-.portrait.skel {
-  border-radius: 0;
 }
 .skelName {
   display: grid;
   gap: 14px;
 }
 .skelName .skel {
-  width: min(78%, 300px);
-  height: clamp(48px, 5.2vw, 84px);
+  width: min(78%, 360px);
+  height: clamp(52px, 6.6vw, 104px);
 }
 .skelName .skel + .skel {
-  width: min(62%, 240px);
+  width: min(58%, 270px);
 }
 .skelLine {
   height: 12px;
 }
 .skelBio {
   display: grid;
+  max-width: 30em;
   gap: 12px;
-  margin: 32px 0;
+  margin: 28px 0 0;
 }
 .skelBio .skel {
   height: 15px;
 }
-.skelStat {
-  width: 46%;
-  height: 22px;
-  margin: 2px 0 17px;
-}
 .skelActions {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  max-width: 190px;
-  margin-top: 24px;
+  gap: 10px;
+  margin-top: 30px;
 }
 .skelActions .skel {
-  width: 78px;
-  height: 42px;
+  width: 92px;
+  height: 44px;
+  border-radius: 999px;
 }
 .skelActions .skel:nth-child(2) {
-  width: 94px;
+  width: 104px;
 }
 .skelActions .skel:nth-child(3) {
   width: 124px;
 }
+.skelStat {
+  width: 54px;
+  height: 30px;
+}
 .skelWorks {
-  margin-top: 46px;
+  margin-top: 72px;
 }
 .skelWorks article {
   display: grid;
   gap: 12px;
+  padding-bottom: 16px;
 }
-.profileTabs button:disabled {
-  cursor: default;
+.skelWorks article:hover {
+  transform: none;
+}
+.skelWorks .skelLine {
+  margin: 0 16px;
 }
 @keyframes skelSweep {
   from {
@@ -433,44 +712,65 @@
     background-position: 0 0;
   }
 }
+
 @media (prefers-reduced-motion: reduce) {
-  .skel {
+  .skel,
+  .coreStar {
     animation: none;
   }
 }
+
 @media (max-width: 980px) {
+  .hero {
+    min-height: 0;
+  }
+  .heroGrid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .constellation {
+    max-width: 440px;
+  }
   .aboutGrid {
     grid-template-columns: 1fr;
   }
-  .hero {
-    grid-template-columns: 0.8fr 1.2fr;
-  }
-  .profileInfo {
-    grid-column: 1/-1;
-    padding: 28px 0 0;
-    border-left: 0;
-    border-top: 1px solid rgba(181, 196, 210, 0.15);
-  }
   .workGrid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
 @media (max-width: 640px) {
-  .page {
-    padding: 20px 18px 95px;
-  }
   .hero {
-    grid-template-columns: 1fr;
-    padding-top: 36px;
+    padding-top: 86px;
   }
-  .titleColumn h1 {
-    font-size: 64px;
+  .heroGrid {
+    padding-top: 26px;
   }
-  .portrait {
-    aspect-ratio: 1.35/1;
+  .name {
+    font-size: clamp(52px, 15vw, 72px);
   }
-  .profileTabs {
-    overflow-x: auto;
+  .constellation {
+    width: 72%;
+  }
+  .workLabel {
+    max-width: 104px;
+  }
+  .workLabel strong {
+    font-size: 13px;
+  }
+  .workLabel small {
+    display: none;
+  }
+  .coreStar::before,
+  .coreStar::after {
+    width: 80px;
+  }
+  .stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px 24px;
+  }
+  .stats b {
+    font-size: 26px;
   }
   .worksSection > header {
     align-items: flex-start;

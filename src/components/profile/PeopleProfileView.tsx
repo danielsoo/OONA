@@ -1,6 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
+import UiText from "@/components/i18n/UiText";
 import { useAuth } from "@/context/AuthContext";
 import { useTranslations } from "@/context/LocaleContext";
 import SocietyProfileBody, { type ProfileTab } from "@/components/society/SocietyProfileBody";
@@ -127,14 +129,29 @@ export default function PeopleProfileView({ handle }: Props) {
   }
 
   if (err || !data) {
-    return <p className="px-4 text-red-400 lg:px-12">{err ?? t("network.people.notFound")}</p>;
+    return (
+      <main className={styles.page}>
+        <div className={styles.missing} role="alert">
+          <p>{err ?? t("network.people.notFound")}</p>
+          <Link href="/society?tab=discover"><UiText text={"← Back to Society"} /></Link>
+        </div>
+      </main>
+    );
   }
 
   const isSelf = !!user && data.viewer?.uid === user.uid && data.profile.uid === user.uid;
 
+  // Their own works first, then the ones they're credited on, each once.
+  const seen = new Set<string>();
+  const constellation = [...data.directed, ...data.credited].flatMap((work) => {
+    const key = `${work.ownerUid}:${work.workId}`;
+    if (seen.has(key)) return [];
+    seen.add(key);
+    return [{ key, title: work.title, role: work.characterName ? `${work.role} · ${work.characterName}` : work.role, watchPath: work.watchPath }];
+  });
+
   return (
     <main className={styles.page}>
-      <div className={styles.inner}>
       <SocietyPublicProfileHero
         displayName={data.profile.displayName}
         handle={data.profile.handle}
@@ -148,13 +165,16 @@ export default function PeopleProfileView({ handle }: Props) {
         followingCount={data.profile.followingCount}
         stats={data.stats}
         isOnline={data.isOnline}
+        openToCollaborate={data.profile.openToCollaborate}
         profileUid={data.profile.uid}
         isSelf={isSelf}
         isFollowing={!!user && data.viewer?.uid === user.uid && !!data.viewer.isFollowing}
         tab={tab}
         onTab={setTab}
         counts={{ works: data.directed.length, credits: data.credited.length }}
+        works={constellation}
       />
+      <div className={styles.inner}>
         <SocietyProfileBody
           tab={tab}
           works={data.directed}

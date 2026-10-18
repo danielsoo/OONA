@@ -1,9 +1,10 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import UiText, { useUiCopy } from "@/components/i18n/UiText";
 import ProfileAvatar from "@/components/profile/ProfileAvatar";
-import { displayLines } from "@/components/society/SocietyPublicProfileHero";
+import { displayLines, PROFILE_SKY, PROFILE_SKY_POSITION } from "@/components/society/SocietyPublicProfileHero";
 import { useTranslations } from "@/context/LocaleContext";
 import type { ProfilePreview } from "@/lib/profilePreview";
 import styles from "@/components/society/EditorialProfile.module.css";
@@ -11,10 +12,10 @@ import styles from "@/components/society/EditorialProfile.module.css";
 const TABS = ["Selected works", "About", "Credits"];
 
 /**
- * A profile while it loads, in the profile's own layout: what's already known
- * (the handle, and the name and picture when they came from Society) in
- * place, the rest as soft placeholders, so the page settles rather than
- * appearing out of an empty screen.
+ * A profile while it loads, in the profile's own layout: the sky, and what's
+ * already known (the handle, and the name and picture when they came from
+ * Society) in place, the rest as soft placeholders, so the page settles
+ * rather than appearing out of an empty screen.
  */
 export default function PeopleProfileSkeleton({ handle, preview }: { handle: string; preview: ProfilePreview | null }) {
   const copy = useUiCopy();
@@ -23,43 +24,49 @@ export default function PeopleProfileSkeleton({ handle, preview }: { handle: str
   return (
     <main className={styles.page} aria-busy="true">
       <span className="sr-only" role="status">{t("common.loading")}</span>
-      <div className={styles.inner}>
-        <div className={styles.backRow}>
-          <Link href="/society?tab=discover"><UiText text={"← Back to Society"} /></Link>
-          <span>{copy("CREATOR PROFILE")}</span>
+      <section className={styles.hero} data-society-hero="">
+        <div className={styles.heroSky} aria-hidden="true">
+          <Image src={PROFILE_SKY} alt="" fill priority sizes="100vw" style={{ objectFit: "cover", objectPosition: PROFILE_SKY_POSITION }} />
         </div>
-        <section className={styles.hero}>
-          <div className={styles.titleColumn}>
-            <p><UiText text={"OONA SOCIETY"} /></p>
-            {name ? (
-              <h1>{displayLines(name).map((line) => <span key={line}>{line}</span>)}</h1>
-            ) : (
-              <div className={styles.skelName} aria-hidden="true"><i className={styles.skel} /><i className={styles.skel} /></div>
-            )}
-            <small>@{decodeHandle(handle)}</small>
+        <div className={styles.heroInner}>
+          <div className={styles.backRow}>
+            <Link href="/society?tab=discover"><UiText text={"← Back to Society"} /></Link>
+            <span>{copy("CREATOR PROFILE")}</span>
           </div>
-          <div className={`${styles.portrait} ${preview?.avatarUrl ? "" : styles.skel}`} aria-hidden="true">
-            {preview?.avatarUrl ? <ProfileAvatar displayName={name ?? handle} avatarUrl={preview.avatarUrl} className={styles.portraitAvatar} /> : null}
+          <div className={styles.heroGrid}>
+            <div className={styles.identity}>
+              <p className={styles.eyebrow}><UiText text={"OONA SOCIETY"} /></p>
+              {name ? (
+                <h1 className={styles.name}>{displayLines(name).map((line) => <span key={line}>{line}</span>)}</h1>
+              ) : (
+                <div className={styles.skelName} aria-hidden="true"><i className={styles.skel} /><i className={styles.skel} /></div>
+              )}
+              <p className={styles.handleLine}>@{decodeHandle(handle)}{preview?.headline ? <span className={styles.role}>{preview.headline}</span> : null}</p>
+              <div className={styles.skelBio} aria-hidden="true">
+                <i className={styles.skel} />
+                <i className={styles.skel} style={{ width: "72%" }} />
+              </div>
+              <div className={styles.skelActions} aria-hidden="true">
+                <i className={styles.skel} />
+                <i className={styles.skel} />
+                <i className={styles.skel} />
+              </div>
+            </div>
+            <div className={styles.constellation} aria-hidden="true">
+              <svg className={styles.branches} viewBox="0 0 100 100"><circle className={styles.orbit} cx="50" cy="50" r="17" /></svg>
+              <div className={styles.core}>
+                {preview?.avatarUrl ? <ProfileAvatar displayName={name ?? handle} avatarUrl={preview.avatarUrl} className={styles.coreAvatar} /> : <span className={styles.coreStar} />}
+              </div>
+            </div>
           </div>
-          <aside className={styles.profileInfo} aria-hidden="true">
-            {preview?.headline ? <p className={styles.role}>{preview.headline}</p> : <i className={`${styles.skel} ${styles.skelLine}`} style={{ width: "42%" }} />}
-            <div className={styles.skelBio}>
-              <i className={styles.skel} />
-              <i className={styles.skel} />
-              <i className={styles.skel} style={{ width: "58%" }} />
-            </div>
-            <div className={styles.stats}>
-              {[0, 1, 2, 3].map((i) => (
-                <span key={i}><i className={`${styles.skel} ${styles.skelStat}`} /></span>
-              ))}
-            </div>
-            <div className={styles.skelActions}>
-              <i className={styles.skel} />
-              <i className={styles.skel} />
-              <i className={styles.skel} />
-            </div>
-          </aside>
-        </section>
+          <div className={styles.stats} aria-hidden="true">
+            {[0, 1, 2, 3].map((i) => (
+              <span key={i}><i className={`${styles.skel} ${styles.skelStat}`} /><i className={`${styles.skel} ${styles.skelLine}`} style={{ width: 60 }} /></span>
+            ))}
+          </div>
+        </div>
+      </section>
+      <div className={styles.inner}>
         <nav className={styles.profileTabs} aria-hidden="true">
           {TABS.map((label, i) => (
             <button key={label} type="button" disabled tabIndex={-1} className={i === 0 ? styles.profileTabOn : undefined}>
@@ -71,8 +78,8 @@ export default function PeopleProfileSkeleton({ handle, preview }: { handle: str
           {[0, 1, 2].map((i) => (
             <article key={i}>
               <div className={`${styles.workImage} ${styles.skel}`} />
-              <i className={`${styles.skel} ${styles.skelLine}`} style={{ width: "62%" }} />
-              <i className={`${styles.skel} ${styles.skelLine}`} style={{ width: "34%" }} />
+              <i className={`${styles.skel} ${styles.skelLine}`} style={{ width: "58%" }} />
+              <i className={`${styles.skel} ${styles.skelLine}`} style={{ width: "32%" }} />
             </article>
           ))}
         </div>
