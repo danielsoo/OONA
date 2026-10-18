@@ -3,7 +3,8 @@
  * visit from a reload in the middle of one (the home's light intro plays only
  * for a new visit, the way an app's intro plays on a fresh launch).
  */
-const LAST_ACTIVE_KEY = "oona.lastActiveAt";
+/** Also read by the pre-hydration boot script (src/components/home/intro-boot.ts). */
+export const LAST_ACTIVE_KEY = "oona.lastActiveAt";
 
 /** Away longer than this, the next arrival counts as a new visit. */
 export const VISIT_GAP_MS = 30 * 60 * 1000;

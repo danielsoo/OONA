@@ -30,6 +30,26 @@ html[data-locale-pending] body > * {
   }
 }
 
+/* The home's light intro, held over the page from the first paint so the home
+   is never seen before it (src/components/home/intro-boot.ts decides this
+   before React runs). CreditsLightIntro's own dark takes over the moment it
+   mounts, and useIntroOnce drops the attribute; it lifts after 3s regardless,
+   should scripts never run. */
+html[data-home-intro-pending]::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: #000;
+  animation: home-intro-cover-lift 0s linear 3s forwards;
+}
+
+@keyframes home-intro-cover-lift {
+  to {
+    visibility: hidden;
+  }
+}
+
 h1,
 h2,
 h3 {
