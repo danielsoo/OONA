@@ -34,10 +34,22 @@ function loader(resolveMock) {
 }
 
 let auth = { user: null, loading: false };
-let firstArray = true;
-let firstLoading = true;
 let requestedTab = 'discover';
 const person = { uid:'public-creator', handle:'public-creator', displayName:'Public Creator', roleTags:['director'], openToCollaborate:true };
+// The same person as Discover builds them (lib/society-directory). The hook
+// that fetches them runs in an effect, which a static render never reaches,
+// so it is stood in for here; that guests may fetch at all is the
+// /api/discover/people check at the end of this file.
+const dirPerson = {
+  uid: person.uid, name: person.displayName, handle: person.handle, avatarUrl: null,
+  headline: null, bio: null, available: person.openToCollaborate, roleTags: person.roleTags,
+  groups: ['director'], credits: [], schools: [], collaborators: [],
+};
+const societyDirectory = () => ({
+  directory: { people: [dirPerson], works: [] },
+  sky: { people: [dirPerson], me: null, newest: [], rankOf: () => 0 },
+  failed: false, demo: false, demoKnown: true,
+});
 const t = key => key;
 const fakeRouter = { push() { throw Error('Rendering must not redirect a guest'); } };
 let renderedButtons = [];
@@ -45,9 +57,6 @@ let stateUpdates = [];
 let streamProps;
 const loadUi = loader(id => {
   if (id === 'react') return { ...React, useState(initial) {
-    if (Array.isArray(initial) && firstArray) { firstArray = false; initial = [person]; }
-    // Render the populated-directory state, rather than the initial loading skeleton.
-    if (initial === true && firstLoading) { firstLoading = false; initial = false; }
     const [value, setValue] = React.useState(initial);
     return [value, next => { stateUpdates.push(next); setValue(next); }];
   } };
@@ -61,11 +70,17 @@ const loadUi = loader(id => {
   if (id === 'next/navigation') return { useRouter:()=>fakeRouter, useSearchParams:()=>new URLSearchParams('tab='+requestedTab) };
   if (id === 'next/link') return ({children, ...props}) => React.createElement('a', props, children);
   if (id === 'next/image') return () => null;
-  if (id.endsWith('.css')) return new Proxy({}, {get:(_,key)=>String(key)});
+  // A CSS module's default export: every class name is its own name. It has
+  // to say it is an ES module, or `import styles from` takes the proxy's
+  // __esModule instead and styles ends up the string "default", where
+  // styles.search is String.prototype.search and React drops the className.
+  if (id.endsWith('.css')) return {__esModule:true, default:new Proxy({}, {get:(_,key)=>typeof key==='string'?key:undefined})};
   if (id.endsWith('.webp')) return {src:'/test-image.webp'};
   if (id === '@/context/AuthContext') return {useAuth:()=>auth};
   if (id === '@/context/LocaleContext') return {useTranslations:()=>({t,locale:'en'})};
   if (id === '@/components/i18n/UiText') return {__esModule:true,default:({text})=>text,useUiCopy:()=>s=>s};
+  if (/useSocietyDirectory$/.test(id)) return {useSocietyDirectory:societyDirectory};
+  if (id === 'react-dom') return {...require('react-dom'), createPortal:children=>children};
   if (id.includes('BusinessInviteComposerModal')) return () => { throw Error('Unexpected invitation composer'); };
   if (id.includes('SocietySelfProfileSection')) return () => 'PRIVATE PORTFOLIO';
   if (id.includes('ProfileAvatar')) return () => null;
@@ -79,7 +94,7 @@ const loadUi = loader(id => {
 });
 const Page = loadUi('src/components/society/SocietyPage.tsx').default;
 const Actions = loadUi('src/components/profile/PeopleProfileActions.tsx').default;
-function render(Component, props={}) { firstArray=true; firstLoading=true; renderedButtons=[]; stateUpdates=[]; return renderToStaticMarkup(React.createElement(Component, props)); }
+function render(Component, props={}) { renderedButtons=[]; stateUpdates=[]; return renderToStaticMarkup(React.createElement(Component, props)); }
 function clickButton(label) {
   const found = renderedButtons.find(props => renderToStaticMarkup(React.createElement('span',null,props.children)).replace(/<[^>]*>/g,'').replace(/[+✓↗]$/, '').trim() === label);
   assert.ok(found && !found.disabled && found.onClick, 'Missing clickable action '+label);
@@ -90,19 +105,26 @@ function button(html, label) {
   assert.ok(found, 'Missing button '+label);
   return found[1];
 }
+// What a guest can reach on Discover: the one action on a person, and every
+// section of Society (the private ones prompt rather than refuse — below).
+const GUEST_ACTIONS = ['Ask to work together','Discover','My Connections','Requests','Sent','My Works'];
 for (const tab of ['discover','connections','requests','sent','works']) {
   requestedTab=tab;
   const html=render(Page);
   assert.ok(html.includes('Public Creator'), 'Guests must still see public creators on '+tab);
   assert.ok(!html.includes('society.guest.browseHint'), 'No persistent login banner');
   assert.doesNotMatch(html, /<dialog[^>]*\bopen(?:=|\s|>)/, 'No automatic popup');
-  for (const label of ['Connect','Message','Invite to project','My Connections','Requests','Sent','My Works']) assert.doesNotMatch(button(html,label), /disabled/);
-  assert.doesNotMatch(button(html,'Discover'), /disabled/);
+  for (const label of GUEST_ACTIONS) assert.doesNotMatch(button(html,label), /disabled/);
   assert.ok(html.includes('/people/public-creator'), 'Public profile navigation must stay available');
   assert.ok(!html.includes('PRIVATE PORTFOLIO'));
 }
 const profileProps={profileUid:'public-creator',handle:'public-creator',isSelf:false,initialFollowing:false};
+// The profile's login dialog hangs off document.body through a portal, which
+// a static render leaves out; stand the document up so it renders in place
+// and the link it would send a guest to can still be read.
+global.document={body:{}};
 const guestProfile=render(Actions,profileProps);
+delete global.document;
 for(const label of ['follow.follow','dm.message','dm.invites.composerTitle']) {
   assert.doesNotMatch(button(guestProfile,label),/ disabled=""/);
   clickButton(label);
@@ -111,10 +133,10 @@ for(const label of ['follow.follow','dm.message','dm.invites.composerTitle']) {
 assert.ok(guestProfile.includes('returnTo=%2Fpeople%2Fpublic-creator'));
 auth={user:{uid:'member'},loading:false};requestedTab='discover';
 const memberHtml=render(Page);
-for(const label of ['Connect','Message','Invite to project','My Connections'])assert.doesNotMatch(button(memberHtml,label),/disabled/);
+for(const label of GUEST_ACTIONS)assert.doesNotMatch(button(memberHtml,label),/disabled/);
 assert.ok(!memberHtml.includes('society.guest.browseHint'));
 auth={user:{uid:'member'},loading:true};
-assert.match(button(render(Page),'Connect'),/disabled/);
+assert.match(button(render(Page),'Ask to work together'),/disabled/);
 auth={user:null,loading:false};requestedTab='works';
 assert.ok(render(Page).includes('Public Creator'), 'Signing out must restore public browsing');
 
@@ -161,10 +183,8 @@ const loadApi=loader(id=>{
   if(previousWindow===undefined) delete global.window; else global.window=previousWindow;
   global.fetch=realFetch;
   requestedTab='discover'; render(Page);
-  for (const label of ['Connect','Message','Invite to project']) {
-    await clickButton(label);
-    assert.equal(stateUpdates.at(-1), '/society?tab=discover', label+' should open dialog without a mutation or redirect');
-  }
+  await clickButton('Ask to work together');
+  assert.equal(stateUpdates.at(-1), '/society', 'Asking to work together should open the dialog without a mutation or redirect');
   for (const [label,tab] of [['My Connections','connections'],['Requests','requests'],['Sent','sent'],['My Works','works']]) {
     await clickButton(label);
     assert.equal(stateUpdates.at(-1), '/society?tab='+tab, 'Private tabs should prompt and preserve their login destination');
