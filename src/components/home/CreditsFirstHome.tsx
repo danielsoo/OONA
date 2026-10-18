@@ -415,6 +415,11 @@ function loadStartedAtHome(): boolean {
  * plays when someone arrives at "/" after being away a while (lib/visit-clock),
  * not on a reload or a new tab mid-visit, nor on coming back to "/" from
  * another page. "/?intro" always plays it.
+ *
+ * On a fresh load at "/" the same conditions were already read before the
+ * first paint (./intro-boot), and the dark has been over the page since; this
+ * decides again, now that React is running, and either hands that dark to the
+ * intro (CreditsLightIntro clears the attribute as it mounts) or lifts it.
  */
 function useIntroOnce(): [boolean, () => void] {
   const [playing, setPlaying] = useState(false);
@@ -422,8 +427,16 @@ function useIntroOnce(): [boolean, () => void] {
   useLayoutEffect(() => {
     const asked = new URLSearchParams(window.location.search).has("intro");
     if (!asked) {
-      if (introPlayedThisLoad || prefersReducedMotion() || window.location.hash || !loadStartedAtHome()) return;
-      if (!isNewVisit(readLastActiveAt(), Date.now())) return;
+      if (
+        introPlayedThisLoad ||
+        prefersReducedMotion() ||
+        window.location.hash ||
+        !loadStartedAtHome() ||
+        !isNewVisit(readLastActiveAt(), Date.now())
+      ) {
+        delete document.documentElement.dataset.homeIntroPending;
+        return;
+      }
     }
     introPlayedThisLoad = true;
     markActive();
