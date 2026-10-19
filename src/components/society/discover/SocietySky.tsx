@@ -113,6 +113,7 @@ export default function SocietySky({
   // A work opened into a neuron of the people who made it (null: the sky).
   const [focusKey, setFocusKey] = useState<string | null>(null);
   const [hovered, setHovered] = useState<string | null>(null);
+  const [hoveredWork, setHoveredWork] = useState<string | null>(null);
   // Leaving a star, its card stays a moment so the pointer can move onto it.
   const leaveTimer = useRef(0);
   const enter = useCallback((uid: string) => {
@@ -299,6 +300,7 @@ export default function SocietySky({
   const open = (key: string) => {
     if (sky.constellations.some((c) => c.work.key === key)) setSelectedKey(key);
     setHovered(null);
+    setHoveredWork(null);
     setFocusKey(key);
   };
   // The arrows move between the sky's works (and, with one open, open the next).
@@ -310,9 +312,16 @@ export default function SocietySky({
     else setSelectedKey(next);
   };
 
-  const hoveredWorks = hovered ? starAt.get(hovered)?.works ?? [] : [];
-  const lit = (key: string) => key === selected?.work.key || hoveredWorks.includes(key);
-  const named = new Set([...(selected?.members ?? []), ...(hovered ? [hovered] : []), ...(me && starAt.has(me) ? [me] : [])]);
+  // A figure lights up when it's picked, or when its lines or name are pointed
+  // at; pointing at a star lights only that star (and its name and card).
+  const lit = (key: string) => key === selected?.work.key || key === hoveredWork;
+  const hoveredFigure = hoveredWork ? sky.constellations.find((c) => c.work.key === hoveredWork) : null;
+  const named = new Set([
+    ...(selected?.members ?? []),
+    ...(hoveredFigure?.members ?? []),
+    ...(hovered ? [hovered] : []),
+    ...(me && starAt.has(me) ? [me] : []),
+  ]);
   // A name goes right of its star, or left when that would cover another
   // shown name or star, or run off the edge (widths are a rough guess).
   const leftNames = new Set<string>();
@@ -393,6 +402,25 @@ export default function SocietySky({
                   })
                 )}
               </g>
+              {/* Wider, invisible: pointing at a line lights its whole figure; a click opens it. */}
+              <g>
+                {sky.constellations.map((c) =>
+                  c.lines.map(([a, b]) => {
+                    const sa = starAt.get(a)!;
+                    const sb = starAt.get(b)!;
+                    return (
+                      <path
+                        key={`hit:${c.work.key}:${a}:${b}`}
+                        className={styles.lineHit}
+                        d={`M${sa.x},${sa.y} L${sb.x},${sb.y}`}
+                        onMouseEnter={() => setHoveredWork(c.work.key)}
+                        onMouseLeave={() => setHoveredWork((w) => (w === c.work.key ? null : w))}
+                        onClick={() => open(c.work.key)}
+                      />
+                    );
+                  })
+                )}
+              </g>
             </svg>
 
             {sky.constellations.map((c, ci) => (
@@ -402,6 +430,10 @@ export default function SocietySky({
                 className={`${styles.title} ${lit(c.work.key) ? styles.titleLit : ""}`}
                 style={{ left: c.labelX, top: c.labelY, "--i": ci } as CSSProperties}
                 onClick={() => open(c.work.key)}
+                onMouseEnter={() => setHoveredWork(c.work.key)}
+                onMouseLeave={() => setHoveredWork((w) => (w === c.work.key ? null : w))}
+                onFocus={() => setHoveredWork(c.work.key)}
+                onBlur={() => setHoveredWork((w) => (w === c.work.key ? null : w))}
                 tabIndex={awake ? 0 : -1}
               >
                 {c.work.title}
@@ -412,7 +444,7 @@ export default function SocietySky({
               const person = byUid.get(s.uid);
               if (!person) return null;
               const credits = new Set(person.credits.map((c) => c.work.key)).size;
-              const inLit = s.works.some(lit);
+              const inLit = s.works.some(lit) || s.uid === hovered;
               const className = [styles.star, person.available ? styles.open : "", s.works.length === 0 ? styles.lone : "", inLit ? styles.starLit : "", s.uid === me ? styles.me : ""].join(" ");
               const style = { left: s.x, top: s.y, "--size": `${2.6 + Math.min(credits, 5) * 0.8}px`, "--i": i } as CSSProperties;
               const label = named.has(s.uid) ? (

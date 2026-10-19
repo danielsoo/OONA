@@ -83,6 +83,19 @@
   overflow: visible;
 }
 
+.lineHit {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 14;
+  stroke-linecap: round;
+  pointer-events: none;
+}
+
+.awake .lineHit {
+  cursor: pointer;
+  pointer-events: stroke;
+}
+
 .line,
 .lineLit {
   fill: none;
@@ -611,6 +624,8 @@ a.tip:hover { border-color: rgba(119, 203, 255, 0.6); }
   opacity: 0.12 !important;
   pointer-events: none !important;
 }
+
+.focused .lineHit { pointer-events: none; }
 
 /* Their names now sit on the neuron. */
 .focused .star .name { visibility: hidden; }
