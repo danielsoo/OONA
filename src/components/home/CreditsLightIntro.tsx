@@ -41,9 +41,12 @@ export default function CreditsLightIntro({ ready, onDone }: { ready: boolean | 
   onDoneRef.current = onDone;
 
   // The header's wordmark stays hidden until the O arrives (CinematicAppHeader).
+  // The dark held over the page since the first paint (./intro-boot) is this
+  // intro's now, so it hands over here, with the backdrop already in the DOM.
   useLayoutEffect(() => {
     const root = document.documentElement;
     root.dataset.homeIntro = "";
+    delete root.dataset.homeIntroPending;
     return () => {
       delete root.dataset.homeIntro;
     };

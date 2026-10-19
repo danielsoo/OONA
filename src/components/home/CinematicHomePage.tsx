@@ -92,15 +92,6 @@ const fallbackImages = [
   "/images/hero/show-catalog-v1.png",
 ];
 
-const categories = [
-  { title: "Films", image: "/images/hero/campus-wave1.png", href: "/movies" },
-  { title: "Series", image: "/images/hero/campus-wave2.png", href: "/series" },
-  { title: "Shows", image: "/images/hero/home-wave.png", href: "/entertainment" },
-  { title: "Shorts", image: "/images/hero/campus-wave3.png", href: "/shorts" },
-  { title: "Schools", image: "/images/hero/home-under-water.png", href: "/schools" },
-  { title: "Society", image: "/images/hero-landscape.webp", href: "/society" },
-] as const;
-
 function ArrowIcon({ direction = "right" }: { direction?: "left" | "right" }) {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true" className={styles.icon}>
@@ -375,19 +366,6 @@ export default function CinematicHomePage() {
         {shortCards.length > 0 ? (
           <FilmSection title={_copy("Fresh Shorts")} href="/shorts" items={shortCards} />
         ) : null}
-
-        <section className={styles.section}>
-          <SectionHeading href="/discover"><UiText text={"Explore by Category"} /></SectionHeading>
-          <div className={styles.categoryGrid}>
-            {categories.map((category) => (
-              <Link key={category.title} href={category.href} prefetch={false} className={styles.categoryCard}>
-                <Image src={category.image} alt="" fill sizes="(max-width: 760px) 50vw, 230px" className={styles.cardImage} />
-                <span className={styles.categoryShade} aria-hidden="true" />
-                <span>{copy(category.title)}</span>
-              </Link>
-            ))}
-          </div>
-        </section>
 
         {creators.length > 0 ? (
           <section className={styles.section}>

@@ -2124,13 +2124,25 @@ export const uiMessages: Record<string, readonly [string, string]> = {
     "고개를 들어 보세요.",
     "見上げてみて。"
   ],
-  "above the same sea, everyone who makes something on oona is a star, and every work they made together is a constellation.": [
-    "같은 바다 위, OONA에서 무언가를 만드는 사람은 모두 별이에요. 함께 만든 작품 하나하나가 별자리가 돼요.",
-    "同じ海の上、OONAで何かをつくる人はみんな星。一緒につくった作品が、ひとつひとつ星座になります。"
+  "everyone who makes something on oona is a star, and every work they made together is a constellation.": [
+    "OONA에서 무언가를 만드는 사람은 모두 별이에요. 함께 만든 작품 하나하나가 별자리가 돼요.",
+    "OONAで何かをつくる人はみんな星。一緒につくった作品が、ひとつひとつ星座になります。"
   ],
-  "scroll to look up": [
-    "스크롤해서 하늘 보기",
-    "スクロールして空を見上げる"
+  "scrolling": [
+    "스크롤",
+    "スクロール"
+  ],
+  "screen by screen": [
+    "화면 단위",
+    "画面ごと"
+  ],
+  "free scroll": [
+    "일반 스크롤",
+    "通常スクロール"
+  ],
+  "scroll to find them": [
+    "스크롤해서 찾아보기",
+    "スクロールして探す"
   ],
   "constellations": [
     "별자리",

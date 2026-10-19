@@ -22,46 +22,41 @@ const SECTIONS: { id: SocietyTabId; label: string }[] = [
 ];
 
 /**
- * The home's night sea with the night sky above it, as one photograph:
- * Society starts on the sea and looks up. The sky above the sea photo is
- * SKY_SHARE of its height (public/images/society/society_sky.jpg is made
- * that way), so with the sea filling the screen the sky is SKY_SHARE of a
- * screen above it.
+ * Society is in space. It used to open on the home's night sea and tilt up
+ * into a photographed sky, but that sky had thousands of stars of its own
+ * and the constellations were lost among them — so the scene is deep space,
+ * the dust of it, and no stars but the people's.
  */
-const SCENE = "/images/society/society_sky.jpg";
-/**
- * The scene at 96×60, softened (OpenCV INTER_AREA + a 0.8px blur, WebP):
- * shows at once, sea and portal glow included, while the photo loads.
- */
-const SCENE_PREVIEW = "data:image/webp;base64,UklGRmABAABXRUJQVlA4IFQBAACQDQCdASpgADwAPsFSn0qnpSKhrVs8kPAYCWcAx+Q1dGr13Vdg1p/CYiqJtFePqs8gi4T23TLCDrRUjRtvvQ6Z5Z2cz+UvtMZya6nq90O/UH0hg6Y1slJQ2u8T6QI2MUdF8TZH93Rvj/pix2SfuH2ZS3B4twAA/vblJJNE2tBuJtu+1pgdXefoMmsxq3KnDPlQ+j/UvCBf31BmUlY4v+7o5p+wWRZd38hyPT4LZdHlwZfxr44C7iNHNxVy5WCxwthV7DwoUnX2dYp2g1ND7gVNP5GQeQVdF1yvtD2f0AKfQnhY7AZiR81iKUmOkLF1Pr85Hm6Dy8QCz4pNFi8z9BAo24rWTKXRqcrICvnOePVEJYuN0NC3/rnwYWimODmvaKdoUOQZtYvfgXkNDKsf8CUi03U5YrGeWI6E6zGXtxSrygvc4HTBsSinquE0L9Fr5bTpAAAA";
-const SKY_SHARE = 0.47;
-/** The photo's width over the sea's height: its rendered width when it fills the screen's height. */
-const SEA_ASPECT = SKY_IMAGE.width / (SKY_IMAGE.height / (1 + SKY_SHARE));
-/** Across the photo's crop: keeps the portal a little right of centre on any screen shape. */
+const SCENE = "/images/society/society_space.webp";
+/** The scene at 96×41, softened: shows at once while the picture loads. */
+const SCENE_PREVIEW = "data:image/webp;base64,UklGRmIAAABXRUJQVlA4IFYAAADQBACdASpgACkAPu10rlOppqSio4qBMB2JaQDVBArhzUpITBb+IgJCgOko0C1L0AD+8PoS5MloeH8GsIaRIRPS3Mj4wzaLGxUitby5V2m9VbS/qcAAAA==";
+/** Its own shape: below this the picture fills the height instead of the width. */
+const SCENE_ASPECT = SKY_IMAGE.width / SKY_IMAGE.height;
+/** Across the picture's crop: keeps the dust a little right of centre on any screen shape. */
 const SCENE_X = 0.64;
+/** How far the scene drifts over the whole section, as a share of a screen. */
+const DRIFT = 0.1;
 
 /**
- * Where the photograph's real stars land on screen once the view is up in the
- * sky (the scene drawn with object-fit: cover in a box the screen's width and
- * 1 + SKY_SHARE screens tall), keeping those inside the area for figures.
- */
-/**
- * Where figures go up in the sky: clear of the header, the panel (on the left
- * on wide screens, below otherwise; SocietySky.module.css) and the clouds.
+ * Where figures go: clear of the header and of the panel, which is on the
+ * left on wide screens and below otherwise (SocietySky.module.css).
  */
 function skyArea(w: number, h: number) {
   return w <= 1040
-    ? { left: w * 0.06, right: w * 0.94, top: Math.max(96, h * 0.12), bottom: h * 0.64 }
-    : { left: w * 0.34, right: w * 0.97, top: Math.max(110, h * 0.13), bottom: h * 0.76 };
+    ? { left: w * 0.06, right: w * 0.94, top: Math.max(96, h * 0.12), bottom: h * 0.86 }
+    : { left: w * 0.34, right: w * 0.97, top: Math.max(110, h * 0.13), bottom: h * 0.88 };
 }
 
+/**
+ * Where a seat lands on screen: the scene is drawn with object-fit: cover
+ * over the whole screen, so the seats follow the same crop.
+ */
 function seatsOnScreen(w: number, h: number): Seat[] {
-  const boxH = h * (1 + SKY_SHARE);
-  const scale = Math.max(w / SKY_IMAGE.width, boxH / SKY_IMAGE.height);
+  const scale = Math.max(w / SKY_IMAGE.width, h / SKY_IMAGE.height);
   const rw = SKY_IMAGE.width * scale;
   const rh = SKY_IMAGE.height * scale;
   const ox = (w - rw) * SCENE_X;
-  const oy = boxH - rh;
+  const oy = (h - rh) / 2;
   const area = skyArea(w, h);
   const seats: Seat[] = [];
   for (const [sx, sy, b] of SKY_SEATS) {
@@ -266,12 +261,15 @@ export default function SocietySky({
       const h = stage.clientHeight;
       const rect = section.getBoundingClientRect();
       const p = still ? 1 : clamp(-rect.top / Math.max(1, rect.height - h), 0, 1);
-      world.style.transform = `translate3d(0, ${-h * SKY_SHARE * (1 - smooth(ramp(p, 0, 0.7)))}px, 0)`;
-      section.style.setProperty("--intro", String(1 - ramp(p, 0.02, 0.22)));
-      section.style.setProperty("--glow", String(ramp(p, 0.15, 0.65)));
-      section.style.setProperty("--labels", String(ramp(p, 0.78, 0.94)));
-      section.style.setProperty("--panel", String(ramp(p, 0.84, 1)));
-      const draw = ramp(p, 0.4, 0.85);
+      // The view no longer tilts up out of a sea; it drifts a little through
+      // the dust instead, so the scene is not quite still while the
+      // constellations come in.
+      world.style.transform = `translate3d(0, ${-h * DRIFT * smooth(ramp(p, 0, 1))}px, 0)`;
+      section.style.setProperty("--intro", String(1 - ramp(p, 0.03, 0.3)));
+      section.style.setProperty("--glow", String(ramp(p, 0.05, 0.5)));
+      section.style.setProperty("--labels", String(ramp(p, 0.62, 0.88)));
+      section.style.setProperty("--panel", String(ramp(p, 0.72, 1)));
+      const draw = ramp(p, 0.18, 0.75);
       const paths = linesRef.current?.querySelectorAll<SVGPathElement>("path") ?? [];
       paths.forEach((path) => {
         const order = Number(path.dataset.order ?? 0);
@@ -372,8 +370,8 @@ export default function SocietySky({
               fill
               priority
               placeholder={SCENE_PREVIEW}
-              style={{ objectFit: "cover", objectPosition: `${SCENE_X * 100}% 100%` }}
-              sizes={`(max-aspect-ratio: ${Math.round(SEA_ASPECT * 100)}/100) ${Math.round(SEA_ASPECT * 100)}vh, 100vw`}
+              style={{ objectFit: "cover", objectPosition: `${SCENE_X * 100}% 50%` }}
+              sizes={`(max-aspect-ratio: ${Math.round(SCENE_ASPECT * 100)}/100) ${Math.round(SCENE_ASPECT * 100)}vh, 100vw`}
             />
           </div>
 
@@ -598,9 +596,9 @@ export default function SocietySky({
         <div className={styles.intro}>
           <p className={styles.eyebrow}>OONA Society</p>
           <h1 className={styles.heading}><UiText text="Look up." /></h1>
-          <p className={styles.lede}><UiText text="Above the same sea, everyone who makes something on OONA is a star, and every work they made together is a constellation." /></p>
+          <p className={styles.lede}><UiText text="Everyone who makes something on OONA is a star, and every work they made together is a constellation." /></p>
         </div>
-        <div className={styles.cue} aria-hidden="true"><UiText text="Scroll to look up" /><i /></div>
+        <div className={styles.cue} aria-hidden="true"><UiText text="Scroll to find them" /><i /></div>
 
         <aside className={`${styles.panel} ${awake ? styles.awake : ""}`}>
           <p className={styles.eyebrow}><UiText text="Constellations" /></p>
