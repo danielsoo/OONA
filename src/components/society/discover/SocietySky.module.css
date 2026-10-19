@@ -1,30 +1,22 @@
-/* Society's first screen: deep space, and the constellations coming in over
-   it. The stage stays pinned while the section scrolls by; SocietySky.tsx
-   turns the scroll into --intro, --glow, --labels and --panel (0–1) and
-   drifts .world a little. Type and colours follow the cinematic home. */
+/* Society's first screen: deep space with the constellations already in it.
+   One screen tall — the reader sees what Society is on arrival, and only the
+   lines draw themselves in (SocietySky.tsx). Type and colours follow the
+   cinematic home. */
 .sky {
   --bg: 7, 17, 27;
   --pad: clamp(24px, 4.9vw, 76px);
   --serif: var(--font-serif), "Noto Serif KR", Georgia, serif;
-  /* The drift (DRIFT in SocietySky.tsx) is taken off the top of .world. */
-  --drift: 10vh;
   --screen: 100vh;
   position: relative;
-  height: 200vh;
+  height: var(--screen);
   background: #01050b;
   color: #f2f4fb;
 }
 
 @supports (height: 100svh) {
   .sky {
-    --drift: 10svh;
     --screen: 100svh;
-    height: 200svh;
   }
-}
-
-.still {
-  height: var(--screen);
 }
 
 .stage {
@@ -40,9 +32,7 @@
   top: 0;
   right: 0;
   left: 0;
-  /* A drift's worth taller than the screen, so there is somewhere to drift to. */
-  height: calc(var(--screen) + var(--drift));
-  will-change: transform;
+  height: var(--screen);
 }
 
 /* Deep space, filling the screen. */
@@ -58,7 +48,6 @@
   z-index: 3;
   inset: 0;
   background: linear-gradient(90deg, rgba(2, 6, 12, 0.62) 0%, rgba(2, 6, 12, 0.36) 24%, rgba(2, 6, 12, 0) 42%);
-  opacity: var(--panel, 0);
   pointer-events: none;
 }
 
@@ -110,7 +99,7 @@
   margin: -14px 0 0 -14px;
   border-radius: 50%;
   outline: none;
-  opacity: calc(0.38 + 0.5 * var(--glow, 0));
+  opacity: 0.88;
   pointer-events: none;
 }
 
@@ -133,7 +122,7 @@
 }
 
 .lone {
-  opacity: calc(0.3 + 0.4 * var(--glow, 0));
+  opacity: 0.7;
 }
 
 .lone::before {
@@ -142,7 +131,7 @@
 }
 
 .starLit {
-  opacity: calc(0.4 + 0.6 * var(--glow, 0));
+  opacity: 1;
 }
 
 .starLit::before {
@@ -151,7 +140,7 @@
 
 /* Your own star: always named, with a faint ring. */
 .me {
-  opacity: calc(0.6 + 0.4 * var(--glow, 0));
+  opacity: 1;
 }
 
 .me::after {
@@ -187,7 +176,7 @@
   line-height: 1.3;
   white-space: nowrap;
   text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
-  opacity: var(--labels, 0);
+  opacity: 1;
   pointer-events: none;
 }
 
@@ -215,7 +204,7 @@
   font-size: 15px;
   font-style: italic;
   white-space: nowrap;
-  opacity: var(--labels, 0);
+  opacity: 1;
   cursor: pointer;
   pointer-events: none;
   transition: color 160ms ease;
@@ -232,29 +221,29 @@
   font-size: 22px;
 }
 
-.awake .star,
-.awake .title,
-.awake .name,
-.awake .tip {
+.box .star,
+.box .title,
+.box .name,
+.box .tip {
   pointer-events: auto;
 }
 
 /* A star's name is part of its link: pointing at it lights the star too. */
-.awake .name { cursor: pointer; }
-.awake .star:hover .name { color: #fff; }
+.box .name { cursor: pointer; }
+.box .star:hover .name { color: #fff; }
 
-/* Arriving in the sky: each star flares up in turn, then the names settle. */
-.awake .star::before {
+/* Arriving: each star flares up in turn, then the names settle. */
+.box .star::before {
   animation: starPop 900ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
   animation-delay: calc(var(--i, 0) * 45ms);
 }
 
-.awake .title {
+.box .title {
   animation: titlePop 700ms ease both;
   animation-delay: calc(260ms + var(--i, 0) * 80ms);
 }
 
-.awake .name {
+.box .name {
   animation: namePop 600ms ease both;
   animation-delay: calc(220ms + var(--i, 0) * 45ms);
 }
@@ -349,11 +338,7 @@ a.tip:hover { border-color: rgba(119, 203, 255, 0.6); }
   pointer-events: none;
 }
 
-/* Up in the sky, what was on the sea can't be clicked. */
-.isAwake .sections,
-.isAwake .cue { visibility: hidden; }
-
-/* ---- On the sea ---- */
+/* ---- Over the sky ---- */
 
 .sections {
   position: absolute;
@@ -365,7 +350,6 @@ a.tip:hover { border-color: rgba(119, 203, 255, 0.6); }
   gap: 28px;
   overflow-x: auto;
   scrollbar-width: none;
-  opacity: var(--intro, 1);
 }
 
 .sections::-webkit-scrollbar { display: none; }
@@ -395,78 +379,16 @@ a.tip:hover { border-color: rgba(119, 203, 255, 0.6); }
   text-transform: uppercase;
 }
 
-.intro {
-  position: absolute;
-  z-index: 4;
-  bottom: 150px;
-  left: var(--pad);
-  width: min(500px, calc(100% - 2 * var(--pad)));
-  opacity: var(--intro, 1);
-  transform: translateY(calc((1 - var(--intro, 1)) * -40px));
-}
-
-.heading {
-  margin: 0;
-  color: #f0f1fa;
-  font-family: var(--serif);
-  font-size: clamp(52px, 4.7vw, 68px);
-  font-weight: 400;
-  line-height: 1.03;
-  letter-spacing: -0.025em;
-  text-shadow: 0 2px 22px rgba(0, 0, 0, 0.5);
-}
-
-.lede {
-  margin: 16px 0 0;
-  color: rgba(228, 234, 246, 0.88);
-  font-size: 16px;
-  line-height: 1.55;
-}
-
-.cue {
-  position: absolute;
-  z-index: 4;
-  bottom: 30px;
-  left: 50%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  transform: translateX(-50%);
-  color: rgba(200, 215, 235, 0.72);
-  font-size: 11px;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  white-space: nowrap;
-  opacity: var(--intro, 1);
-}
-
-.cue i {
-  width: 1px;
-  height: 38px;
-  background: linear-gradient(180deg, rgba(185, 237, 255, 0.9), transparent);
-  animation: cue 2.4s ease-in-out infinite;
-}
-
-@keyframes cue {
-  0%, 100% { transform: scaleY(0.6); transform-origin: top; opacity: 0.5; }
-  50% { transform: scaleY(1); transform-origin: top; opacity: 1; }
-}
-
 /* ---- In the sky ---- */
 
 .panel {
   position: absolute;
   z-index: 4;
-  top: max(120px, calc(var(--screen) * 0.15));
+  /* Clear of the sections nav, which now stays on screen under the header. */
+  top: max(152px, calc(var(--screen) * 0.17));
   left: var(--pad);
   width: min(360px, 27vw);
-  opacity: var(--panel, 0);
-  transform: translateY(calc((1 - var(--panel, 0)) * 12px));
-  pointer-events: none;
 }
-
-.panel.awake { pointer-events: auto; }
 
 .panelTitle {
   margin: 0;
@@ -899,9 +821,6 @@ a.tip:hover { border-color: rgba(119, 203, 255, 0.6); }
 
 @media (max-width: 600px) {
   .sections { top: 84px; gap: 20px; }
-  .intro { bottom: 110px; }
-  .heading { font-size: clamp(44px, 13vw, 56px); }
-  .lede { font-size: 15px; }
   .name { font-size: 11.5px; }
   .titleLit { font-size: 18px; }
   /* Too little room for every name: the arrows in the panel move between works. */
@@ -909,9 +828,8 @@ a.tip:hover { border-color: rgba(119, 203, 255, 0.6); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .cue i,
-  .awake .star::before,
-  .awake .title,
-  .awake .name { animation: none; }
+  .box .star::before,
+  .box .title,
+  .box .name { animation: none; }
   .watch:hover { transform: none; }
 }

@@ -34,8 +34,22 @@ const SCENE_PREVIEW = "data:image/webp;base64,UklGRmIAAABXRUJQVlA4IFYAAADQBACdAS
 const SCENE_ASPECT = SKY_IMAGE.width / SKY_IMAGE.height;
 /** Across the picture's crop: keeps the dust a little right of centre on any screen shape. */
 const SCENE_X = 0.64;
-/** How far the scene drifts over the whole section, as a share of a screen. */
-const DRIFT = 0.1;
+/**
+ * How long the lines take to draw themselves in, once. The sky is already
+ * there when the page opens — this is the constellations joining up over it,
+ * not a curtain the reader has to pull back.
+ */
+const DRAW_MS = 1500;
+
+/**
+ * What a phone's panel takes off the bottom of the sky: the card itself, the
+ * 126px it is lifted by to clear the tab bar and the scroll-mode toggle, and
+ * a little air. It holds one work's title and buttons and nothing else
+ * (SocietySky.module.css hides the rest under 1040px), so its height is
+ * steady enough to reserve for — and now that the sky is the first screen
+ * rather than the end of a scroll, figures must not land behind it.
+ */
+const PANEL_BAND = 314;
 
 /**
  * Where figures go: clear of the header and of the panel, which is on the
@@ -43,7 +57,7 @@ const DRIFT = 0.1;
  */
 function skyArea(w: number, h: number) {
   return w <= 1040
-    ? { left: w * 0.06, right: w * 0.94, top: Math.max(96, h * 0.12), bottom: h * 0.86 }
+    ? { left: w * 0.06, right: w * 0.94, top: Math.max(96, h * 0.12), bottom: Math.max(h * 0.45, h - PANEL_BAND) }
     : { left: w * 0.34, right: w * 0.97, top: Math.max(110, h * 0.13), bottom: h * 0.88 };
 }
 
@@ -73,13 +87,14 @@ const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
 /** A branch from a to b that bows a little to one side, as a neuron's do. */
 const curve = (a: { x: number; y: number }, b: { x: number; y: number }, bow: number) =>
   `M${a.x},${a.y} Q${(a.x + b.x) / 2 + (b.y - a.y) * bow},${(a.y + b.y) / 2 - (b.x - a.x) * bow} ${b.x},${b.y}`;
-const ramp = (p: number, a: number, b: number) => clamp((p - a) / (b - a), 0, 1);
 const smooth = (t: number) => t * t * (3 - 2 * t);
 
 /**
- * Society's first screen: the home's portal sea. Scrolling tilts the view up
- * into the sky above it, where everyone on OONA is a star and each work they
- * made together is a constellation joining them.
+ * Society's first screen: deep space, where everyone on OONA is a star and
+ * each work they made together is a constellation joining them. It used to
+ * open on an empty sky and hand the reader two screens of scrolling before
+ * showing any of that; now the sky arrives whole and only the lines draw
+ * themselves in, so what Society is is on the first screen.
  */
 export default function SocietySky({
   directory,
@@ -100,7 +115,6 @@ export default function SocietySky({
   const [boxSize, setBoxSize] = useState({ w: 1440, h: 900 });
   const [narrow, setNarrow] = useState(false);
   const [still, setStill] = useState(false);
-  const [awake, setAwake] = useState(false);
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   // A work opened into a neuron of the people who made it (null: the sky).
   const [focusKey, setFocusKey] = useState<string | null>(null);
@@ -175,10 +189,10 @@ export default function SocietySky({
     [copy, t]
   );
 
-  // One scroll on the sea glides up into the sky (useSnapGlide, in SocietyDiscover:
-  // this section is marked data-glide-sky).
+  // One scroll leaves the sky for the sections below (useSnapGlide, in
+  // SocietyDiscover: this section is marked data-glide-sky).
 
-  // An open neuron closes with Esc, or on leaving the sky.
+  // An open neuron closes with Esc.
   useEffect(() => {
     if (!focusKey) return;
     const onKey = (e: KeyboardEvent) => {
@@ -187,9 +201,6 @@ export default function SocietySky({
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [focusKey]);
-  useEffect(() => {
-    if (!awake) setFocusKey(null);
-  }, [awake]);
 
   // Reduced motion: no tilt, just the sky.
   useEffect(() => {
@@ -222,50 +233,35 @@ export default function SocietySky({
     };
   }, []);
 
-  // Scroll drives the tilt, the stars brightening and the lines drawing.
+  // The lines draw themselves in, once, as the page opens. Everything else —
+  // the stars, their names, the panel — is there from the first frame.
+  // Re-running because the sky was laid out again (a resize) must not replay
+  // it: the new paths are simply set to drawn.
+  const drawnRef = useRef(false);
   useEffect(() => {
-    const section = sectionRef.current;
-    const stage = stageRef.current;
-    const world = worldRef.current;
-    if (!section || !stage || !world) return;
-    let frame = 0;
-    let lastAwake = false;
-    const apply = () => {
-      frame = 0;
-      const h = stage.clientHeight;
-      const rect = section.getBoundingClientRect();
-      const p = still ? 1 : clamp(-rect.top / Math.max(1, rect.height - h), 0, 1);
-      // The view no longer tilts up out of a sea; it drifts a little through
-      // the dust instead, so the scene is not quite still while the
-      // constellations come in.
-      world.style.transform = `translate3d(0, ${-h * DRIFT * smooth(ramp(p, 0, 1))}px, 0)`;
-      section.style.setProperty("--intro", String(1 - ramp(p, 0.03, 0.3)));
-      section.style.setProperty("--glow", String(ramp(p, 0.05, 0.5)));
-      section.style.setProperty("--labels", String(ramp(p, 0.62, 0.88)));
-      section.style.setProperty("--panel", String(ramp(p, 0.72, 1)));
-      const draw = ramp(p, 0.18, 0.75);
+    const paint = (drawn: number) => {
       const paths = linesRef.current?.querySelectorAll<SVGPathElement>("path") ?? [];
       paths.forEach((path) => {
         const order = Number(path.dataset.order ?? 0);
-        path.style.strokeDashoffset = String(1 - clamp(draw * 1.6 - order * 0.07, 0, 1));
+        path.style.strokeDashoffset = String(1 - clamp(drawn * 1.6 - order * 0.07, 0, 1));
       });
-      const nowAwake = p > 0.8;
-      if (nowAwake !== lastAwake) {
-        lastAwake = nowAwake;
-        setAwake(nowAwake);
-      }
     };
-    const onScroll = () => {
-      if (!frame) frame = window.requestAnimationFrame(apply);
+    if (still || drawnRef.current) {
+      drawnRef.current = true;
+      paint(1);
+      return;
+    }
+    let frame = 0;
+    const start = performance.now();
+    const tick = (now: number) => {
+      const t = clamp((now - start) / DRAW_MS, 0, 1);
+      paint(smooth(t));
+      if (t < 1) frame = window.requestAnimationFrame(tick);
+      else drawnRef.current = true;
     };
-    apply();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
-    return () => {
-      window.cancelAnimationFrame(frame);
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
-    };
+    paint(0);
+    frame = window.requestAnimationFrame(tick);
+    return () => window.cancelAnimationFrame(frame);
   }, [still, sky]);
 
   // Opening a work: its constellation lights up and its people spread out.
@@ -326,7 +322,7 @@ export default function SocietySky({
       : [];
 
   return (
-    <section ref={sectionRef} data-glide-sky="" className={`${styles.sky} ${still ? styles.still : ""} ${awake ? styles.isAwake : ""}`} aria-label={copy("Constellations")}>
+    <section ref={sectionRef} data-glide-sky="" className={styles.sky} aria-label={copy("Constellations")}>
       <div ref={stageRef} className={styles.stage}>
         <div ref={worldRef} className={styles.world}>
           <div className={styles.scene} aria-hidden="true">
@@ -335,6 +331,11 @@ export default function SocietySky({
               alt=""
               fill
               priority
+              // Served exactly as encoded. The picture is almost all
+              // near-black (its brightest pixel is 107/255), so a second
+              // lossy pass through the image optimiser blotches the dust it
+              // is made of — and at 51 kB there is nothing to save.
+              unoptimized
               placeholder={SCENE_PREVIEW}
               style={{ objectFit: "cover", objectPosition: `${SCENE_X * 100}% 50%` }}
               sizes={`(max-aspect-ratio: ${Math.round(SCENE_ASPECT * 100)}/100) ${Math.round(SCENE_ASPECT * 100)}vh, 100vw`}
@@ -343,7 +344,7 @@ export default function SocietySky({
 
           <div
             ref={boxRef}
-            className={`${styles.box} ${awake ? styles.awake : ""} ${neuron ? styles.focused : ""}`}
+            className={`${styles.box} ${neuron ? styles.focused : ""}`}
             onClick={(e) => {
               if (neuron && e.target === e.currentTarget) setFocusKey(null);
             }}
@@ -375,7 +376,7 @@ export default function SocietySky({
                 className={`${styles.title} ${lit(c.work.key) ? styles.titleLit : ""}`}
                 style={{ left: c.labelX, top: c.labelY, "--i": ci } as CSSProperties}
                 onClick={() => open(c.work.key)}
-                tabIndex={awake ? 0 : -1}
+                tabIndex={0}
               >
                 {c.work.title}
               </button>
@@ -399,7 +400,7 @@ export default function SocietySky({
                 onMouseLeave: () => leave(s.uid),
                 onFocus: () => enter(s.uid),
                 onBlur: () => leave(s.uid),
-                tabIndex: awake ? 0 : -1,
+                tabIndex: 0,
               };
               return person.handle ? (
                 <Link key={s.uid} href={`/people/${person.handle}`} className={className} style={style} aria-label={person.name} {...events}>
@@ -527,16 +528,9 @@ export default function SocietySky({
           ))}
         </nav>
 
-        <div className={styles.intro}>
-          <p className={styles.eyebrow}>OONA Society</p>
-          <h1 className={styles.heading}><UiText text="Look up." /></h1>
-          <p className={styles.lede}><UiText text="Everyone who makes something on OONA is a star, and every work they made together is a constellation." /></p>
-        </div>
-        <div className={styles.cue} aria-hidden="true"><UiText text="Scroll to find them" /><i /></div>
-
-        <aside className={`${styles.panel} ${awake ? styles.awake : ""}`}>
+        <aside className={styles.panel}>
           <p className={styles.eyebrow}><UiText text="Constellations" /></p>
-          <h2 className={styles.panelTitle}><UiText text="Every work is" /><br /><UiText text="a constellation." /></h2>
+          <h1 className={styles.panelTitle}><UiText text="Every work is" /><br /><UiText text="a constellation." /></h1>
           <p className={styles.panelLede}><UiText text="Lines join the people who made a work together. The brightest stars are open to work." /></p>
           {panelWork ? (
             <div className={styles.pick}>
@@ -545,10 +539,10 @@ export default function SocietySky({
                 <h3 className={styles.pickTitle}>{panelWork.title}</h3>
                 {sky.constellations.length > 1 ? (
                   <span className={styles.step}>
-                    <button type="button" aria-label={copy("Previous work")} onClick={() => step(-1)} tabIndex={awake ? 0 : -1}>
+                    <button type="button" aria-label={copy("Previous work")} onClick={() => step(-1)} tabIndex={0}>
                       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6" /></svg>
                     </button>
-                    <button type="button" aria-label={copy("Next work")} onClick={() => step(1)} tabIndex={awake ? 0 : -1}>
+                    <button type="button" aria-label={copy("Next work")} onClick={() => step(1)} tabIndex={0}>
                       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>
                     </button>
                   </span>
@@ -563,16 +557,16 @@ export default function SocietySky({
                 ))}
               </ul>
               <div className={styles.pickActions}>
-                <Link href={watchHref(panelWork)} className={styles.watch} tabIndex={awake ? 0 : -1}>
+                <Link href={watchHref(panelWork)} className={styles.watch} tabIndex={0}>
                   {copy("Watch {title}", { title: panelWork.title })}
                   <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>
                 </Link>
                 {neuron ? (
-                  <button type="button" className={styles.back} onClick={() => setFocusKey(null)} tabIndex={awake ? 0 : -1}>
+                  <button type="button" className={styles.back} onClick={() => setFocusKey(null)} tabIndex={0}>
                     <UiText text="Back to the sky" />
                   </button>
                 ) : (
-                  <button type="button" className={styles.back} onClick={() => open(panelWork.key)} tabIndex={awake ? 0 : -1}>
+                  <button type="button" className={styles.back} onClick={() => open(panelWork.key)} tabIndex={0}>
                     <UiText text="Meet the crew" />
                   </button>
                 )}
