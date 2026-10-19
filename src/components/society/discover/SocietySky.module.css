@@ -1,24 +1,25 @@
-/* Society's first screen: the home's portal sea, then the sky above it.
-   The stage stays pinned while the section scrolls by; SocietySky.tsx turns
-   the scroll into --intro, --glow, --labels and --panel (0–1) and moves
-   .world up by the sky's height. Type and colours follow the cinematic home. */
+/* Society's first screen: deep space, and the constellations coming in over
+   it. The stage stays pinned while the section scrolls by; SocietySky.tsx
+   turns the scroll into --intro, --glow, --labels and --panel (0–1) and
+   drifts .world a little. Type and colours follow the cinematic home. */
 .sky {
   --bg: 7, 17, 27;
   --pad: clamp(24px, 4.9vw, 76px);
   --serif: var(--font-serif), "Noto Serif KR", Georgia, serif;
-  --sky-h: 47vh;
+  /* The drift (DRIFT in SocietySky.tsx) is taken off the top of .world. */
+  --drift: 10vh;
   --screen: 100vh;
   position: relative;
-  height: 270vh;
+  height: 200vh;
   background: #01050b;
   color: #f2f4fb;
 }
 
 @supports (height: 100svh) {
   .sky {
-    --sky-h: 47svh;
+    --drift: 10svh;
     --screen: 100svh;
-    height: 270svh;
+    height: 200svh;
   }
 }
 
@@ -39,14 +40,12 @@
   top: 0;
   right: 0;
   left: 0;
-  height: calc(var(--sky-h) + var(--screen));
-  transform: translate3d(0, calc(-1 * var(--sky-h)), 0);
+  /* A drift's worth taller than the screen, so there is somewhere to drift to. */
+  height: calc(var(--screen) + var(--drift));
   will-change: transform;
 }
 
-/* One photograph, the sky above the sea: its sea fills the screen's height
-   (the sky is --sky-h above it), and on screens wider than the photo it
-   fills the width instead, keeping the sea at the bottom. */
+/* Deep space, filling the screen. */
 .scene {
   position: absolute;
   inset: 0;
@@ -876,8 +875,9 @@ a.tip:hover { border-color: rgba(119, 203, 255, 0.6); }
   .panel {
     top: auto;
     right: var(--pad);
-    /* Above the phone's tab bar. */
-    bottom: calc(84px + env(safe-area-inset-bottom, 0px));
+    /* Above the phone's tab bar, and above the scroll-mode toggle that sits
+       between the two (ScrollModeToggle, SocietyDiscover.module.css). */
+    bottom: calc(126px + env(safe-area-inset-bottom, 0px));
     width: auto;
     padding: 16px 18px;
     border: 1px solid rgba(119, 174, 216, 0.24);

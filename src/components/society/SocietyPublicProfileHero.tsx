@@ -21,9 +21,9 @@ const TABS: { id: ProfileTab; label: string }[] = [
   { id: "credits", label: "Credits" },
 ];
 
-/** The Society sky photo; its top is open sky. */
-export const PROFILE_SKY = "/images/society/society_sky.jpg";
-export const PROFILE_SKY_POSITION = "64% 0%";
+/** The same deep space Society is in, so a profile is a corner of it. */
+export const PROFILE_SKY = "/images/society/society_space.webp";
+export const PROFILE_SKY_POSITION = "64% 50%";
 
 /** A name over two lines: the last word on its own. */
 export function displayLines(value: string) { const pieces = value.trim().split(/\s+/); return pieces.length < 2 ? [value] : [pieces.slice(0, -1).join(" "), pieces.at(-1)!]; }
