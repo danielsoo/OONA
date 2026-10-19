@@ -35,11 +35,22 @@
   height: var(--screen);
 }
 
-/* Deep space, filling the screen. */
+/* Deep space. The picture is 1915x821, so making it cover a tall screen
+   means scaling it up two or three times and the dust falls apart. Instead
+   it hangs at its own shape across the full width — 1:1 on a 1920 screen —
+   and dissolves into the page's dark below, which is where the picture was
+   headed anyway (.bottomFade). A narrow screen would be left with a strip
+   of sky above a lot of nothing, so under that floor it covers as before.
+   --scene-aspect comes from SKY_IMAGE so the two cannot drift apart. */
 .scene {
   position: absolute;
-  inset: 0;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: max(68%, min(100%, calc(100vw / var(--scene-aspect))));
   background: #02060d;
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 180px), transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 180px), transparent 100%);
 }
 
 /* In the sky, the panel's side of it is a little darker so its text reads. */

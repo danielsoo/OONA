@@ -29,8 +29,9 @@ const SECTIONS: { id: SocietyTabId; label: string }[] = [
  */
 const SCENE = "/images/society/society_space.webp";
 /** The scene at 96×41, softened: shows at once while the picture loads. */
-const SCENE_PREVIEW = "data:image/webp;base64,UklGRmIAAABXRUJQVlA4IFYAAADQBACdASpgACkAPu10rlOppqSio4qBMB2JaQDVBArhzUpITBb+IgJCgOko0C1L0AD+8PoS5MloeH8GsIaRIRPS3Mj4wzaLGxUitby5V2m9VbS/qcAAAA==";
-/** Its own shape: below this the picture fills the height instead of the width. */
+const SCENE_PREVIEW = "data:image/webp;base64,UklGRp4AAABXRUJQVlA4IJIAAACwBQCdASpgACkAPrVQo0wnJKsiqPmacWAWiWkAyUwQfx3VITUNk4X+ybZ4jrB4YGRNxjJrUgAA/vUmU4/MvU90CW2F5Jk6IEGyB6j7cfkeFDmn1wcrJhcl89Hi7Pt5TSV0EwMj0LDKAwfNW5sx5qqhN5aS7Wk6fMdjYEk5AhEwdUpEnxRgXWOvz4gbAX0pFjKAAA==";
+/** Its own shape, handed to the CSS as --scene-aspect: how tall the picture
+ *  hangs at full width, before it has to start covering (SocietySky.module.css). */
 const SCENE_ASPECT = SKY_IMAGE.width / SKY_IMAGE.height;
 /** Across the picture's crop: keeps the dust a little right of centre on any screen shape. */
 const SCENE_X = 0.64;
@@ -353,7 +354,13 @@ export default function SocietySky({
       : [];
 
   return (
-    <section ref={sectionRef} data-glide-sky="" className={styles.sky} aria-label={copy("Constellations")}>
+    <section
+      ref={sectionRef}
+      data-glide-sky=""
+      className={styles.sky}
+      style={{ "--scene-aspect": SCENE_ASPECT } as CSSProperties}
+      aria-label={copy("Constellations")}
+    >
       <div ref={stageRef} className={styles.stage}>
         <div ref={worldRef} className={styles.world}>
           <div className={styles.scene} aria-hidden="true">
@@ -369,7 +376,7 @@ export default function SocietySky({
               unoptimized
               placeholder={SCENE_PREVIEW}
               style={{ objectFit: "cover", objectPosition: `${SCENE_X * 100}% 50%` }}
-              sizes={`(max-aspect-ratio: ${Math.round(SCENE_ASPECT * 100)}/100) ${Math.round(SCENE_ASPECT * 100)}vh, 100vw`}
+              sizes="100vw"
             />
           </div>
 
