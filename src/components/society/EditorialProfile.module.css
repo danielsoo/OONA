@@ -252,20 +252,41 @@
   overflow: visible;
   fill: none;
 }
+/* Arriving, it draws itself the way the Society sky does: every line is
+   pathLength 1, so one dash offset runs them all, trunks first, then the
+   branches out to each person, then the faint second lines. */
+/* Widths are in viewBox units, not screen pixels: non-scaling-stroke would
+   resolve stroke-dasharray in screen space too, and the one dash that should
+   cover the whole line would come out as a row of dashes. At this box's
+   600px the scale is 6, so 0.18 lands on about a pixel. */
 .branches path {
   stroke: rgba(190, 225, 255, 0.34);
-  stroke-width: 1;
-  vector-effect: non-scaling-stroke;
+  stroke-width: 0.18;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
   transition: stroke 200ms ease;
+  animation: constellationGrow 820ms cubic-bezier(0.3, 0.7, 0.2, 1) forwards;
 }
 .branches .branchLit {
   stroke: rgba(214, 240, 255, 0.92);
   filter: drop-shadow(0 0 3px rgba(109, 196, 255, 0.6));
 }
+@keyframes constellationGrow {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
 .orbit {
   stroke: rgba(150, 200, 245, 0.14);
   stroke-width: 1;
   vector-effect: non-scaling-stroke;
+  animation: constellationFade 600ms 200ms ease both;
+}
+@keyframes constellationFade {
+  from {
+    opacity: 0;
+  }
 }
 .core {
   position: absolute;
@@ -276,6 +297,13 @@
   aspect-ratio: 1;
   place-items: center;
   transform: translate(-50%, -50%);
+  animation: coreArrive 620ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@keyframes coreArrive {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.4);
+  }
 }
 .coreAvatar {
   display: grid;
@@ -329,11 +357,22 @@
 }
 .branches .trunk {
   stroke: rgba(210, 236, 255, 0.6);
-  stroke-width: 1.5;
+  stroke-width: 0.28;
+  animation-delay: 160ms;
 }
+.branches .branch {
+  animation-delay: 640ms;
+}
+/* The faint second line, last, and dashed once it is there. */
 .branches .echo {
   stroke: rgba(190, 225, 255, 0.16);
-  stroke-dasharray: 3 4;
+  animation: constellationGrow 820ms 1400ms cubic-bezier(0.3, 0.7, 0.2, 1) forwards,
+    constellationDash 0s 2220ms forwards;
+}
+@keyframes constellationDash {
+  to {
+    stroke-dasharray: 0.5 0.7;
+  }
 }
 /* A work: a small ring where its branch splits, its title beside it. */
 .knotDot {
@@ -346,6 +385,24 @@
   background: rgba(7, 17, 27, 0.9);
   box-shadow: 0 0 10px rgba(109, 196, 255, 0.4);
   pointer-events: none;
+  animation: constellationStar 760ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: calc(520ms + var(--i, 0) * 70ms);
+}
+/* Each star strikes before it settles, as in the sky. */
+@keyframes constellationStar {
+  0% {
+    opacity: 0;
+    transform: scale(0.2);
+  }
+  45% {
+    opacity: 1;
+    transform: scale(1.7);
+    box-shadow: 0 0 22px 5px rgba(185, 237, 255, 0.55);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 .workKnot {
   position: absolute;
@@ -356,6 +413,8 @@
   flex-direction: column;
   gap: 1px;
   text-shadow: 0 1px 8px rgba(0, 0, 0, 0.85);
+  animation: constellationFade 520ms ease both;
+  animation-delay: calc(760ms + var(--i, 0) * 70ms);
 }
 .knot_start { transform: translate(6px, -50%); }
 .knot_end { align-items: flex-end; text-align: right; transform: translate(calc(-100% - 6px), -50%); }
@@ -391,7 +450,26 @@
   height: 24px;
   margin: -12px 0 0 -12px;
   border-radius: 50%;
+  animation: constellationSpark 800ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: calc(900ms + var(--i, 0) * 55ms);
 }
+/* The dot flares and settles. No shadow here: it would ring the 24px box
+   this sits in rather than the 6px star inside it. */
+@keyframes constellationSpark {
+  0% {
+    opacity: 0;
+    transform: scale(0.2);
+  }
+  45% {
+    opacity: 1;
+    transform: scale(1.5);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+/* The dot itself keeps twinkling once its line has reached it. */
 .personStar::before {
   content: "";
   position: absolute;
@@ -404,6 +482,13 @@
   box-shadow: 0 0 12px 2px rgba(150, 214, 255, 0.42);
   transform: translate(-50%, -50%);
   transition: box-shadow 200ms ease;
+  animation: starTwinkle 4.6s ease-in-out infinite;
+  animation-delay: calc(1800ms + var(--i, 0) * 310ms);
+}
+@keyframes starTwinkle {
+  50% {
+    opacity: 0.45;
+  }
 }
 .personStar:hover::before,
 .personStar:focus-visible::before {
@@ -423,6 +508,8 @@
   flex-direction: column;
   transform: translateY(-58%);
   text-shadow: 0 1px 8px rgba(0, 0, 0, 0.85);
+  animation: constellationFade 500ms ease both;
+  animation-delay: calc(1180ms + var(--i, 0) * 55ms);
 }
 .personLeft .personLabel {
   right: 19px;
@@ -773,8 +860,23 @@
 
 @media (prefers-reduced-motion: reduce) {
   .skel,
-  .coreStar {
+  .coreStar,
+  .core,
+  .orbit,
+  .knotDot,
+  .workKnot,
+  .personStar,
+  .personStar::before,
+  .personLabel {
     animation: none;
+  }
+  /* Drawn, not drawing. */
+  .branches path {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+  .branches .echo {
+    stroke-dasharray: 0.5 0.7;
   }
 }
 
