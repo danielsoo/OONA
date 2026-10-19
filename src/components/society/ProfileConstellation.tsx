@@ -64,16 +64,23 @@ export default function ProfileConstellation({ name, seed, avatarUrl, works, peo
   const isLit = (wi: number, uid?: string) => lit === `w${wi}` || (!!uid && lit === uid);
   return (
     <div className={styles.constellation}>
+      {/* It draws itself on arrival, trunk first, as the sky does: pathLength
+          normalises every line to 1 so one dash offset animates them all. */}
       <svg className={styles.branches} viewBox="0 0 100 100" aria-hidden="true">
         <circle className={styles.orbit} cx="50" cy="50" r="17" />
         {echoes.map(({ wi, uid }) => (
-          <path key={`echo:${wi}:${uid}`} className={styles.echo} d={curve(knots[wi]!, spots.get(uid)!, 0.2)} />
+          <path key={`echo:${wi}:${uid}`} className={styles.echo} d={curve(knots[wi]!, spots.get(uid)!, 0.2)} pathLength={1} />
         ))}
         {knots.map((k, wi) => (
           <g key={shown[wi]!.key}>
-            <path className={`${styles.trunk} ${isLit(wi) ? styles.branchLit : ""}`} d={curve({ x: 50, y: 50 }, k, 0.1)} />
+            <path className={`${styles.trunk} ${isLit(wi) ? styles.branchLit : ""}`} d={curve({ x: 50, y: 50 }, k, 0.1)} pathLength={1} />
             {tips[wi]!.map((p) => (
-              <path key={p.uid} className={isLit(wi, p.uid) ? styles.branchLit : undefined} d={curve(k, spots.get(p.uid)!)} />
+              <path
+                key={p.uid}
+                className={`${styles.branch} ${isLit(wi, p.uid) ? styles.branchLit : ""}`}
+                d={curve(k, spots.get(p.uid)!)}
+                pathLength={1}
+              />
             ))}
           </g>
         ))}
@@ -95,7 +102,7 @@ export default function ProfileConstellation({ name, seed, avatarUrl, works, peo
             key={work.key}
             href={work.watchPath}
             className={`${styles.workKnot} ${styles[`knot_${anchor}`]}`}
-            style={{ left: `${k.x + px * flip * 2.5}%`, top: `${k.y + py * flip * 2.5}%` }}
+            style={{ left: `${k.x + px * flip * 2.5}%`, top: `${k.y + py * flip * 2.5}%`, ["--i" as string]: wi }}
             onMouseEnter={() => setLit(`w${wi}`)}
             onMouseLeave={() => setLit((v) => (v === `w${wi}` ? null : v))}
             onFocus={() => setLit(`w${wi}`)}
@@ -107,10 +114,15 @@ export default function ProfileConstellation({ name, seed, avatarUrl, works, peo
         );
       })}
       {knots.map((k, wi) => (
-        <span key={`dot:${shown[wi]!.key}`} className={styles.knotDot} style={{ left: `${k.x}%`, top: `${k.y}%` }} aria-hidden="true" />
+        <span
+          key={`dot:${shown[wi]!.key}`}
+          className={styles.knotDot}
+          style={{ left: `${k.x}%`, top: `${k.y}%`, ["--i" as string]: wi }}
+          aria-hidden="true"
+        />
       ))}
 
-      {[...spots].map(([uid, s]) => {
+      {[...spots].map(([uid, s], si) => {
         const p = tips[s.wi]!.find((x) => x.uid === uid)!;
         const className = `${styles.personStar} ${s.x < 50 ? styles.personLeft : ""}`;
         const label = (
@@ -125,12 +137,13 @@ export default function ProfileConstellation({ name, seed, avatarUrl, works, peo
           onFocus: () => setLit(uid),
           onBlur: () => setLit((v) => (v === uid ? null : v)),
         };
+        const place = { left: `${s.x}%`, top: `${s.y}%`, ["--i" as string]: si };
         return p.href ? (
-          <Link key={uid} href={p.href} className={className} style={{ left: `${s.x}%`, top: `${s.y}%` }} aria-label={p.name} {...events}>
+          <Link key={uid} href={p.href} className={className} style={place} aria-label={p.name} {...events}>
             {label}
           </Link>
         ) : (
-          <span key={uid} className={className} style={{ left: `${s.x}%`, top: `${s.y}%` }} {...events}>
+          <span key={uid} className={className} style={place} {...events}>
             {label}
           </span>
         );
