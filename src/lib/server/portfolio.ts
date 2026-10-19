@@ -5,6 +5,8 @@ import { resolvePlaybackUrl } from "@/lib/cloudflare/stream";
 import { getUidByHandle } from "@/lib/server/handles";
 import { parseUserProfileDoc } from "@/lib/userAccess";
 import { parseWorkDoc, resolveWorkListThumbnailUrl, worksCol } from "@/lib/server/works";
+import { listWorkCollaborators } from "@/lib/server/work-collaborators";
+import { listWorkProfileNotes, workProfileNoteDocId } from "@/lib/server/work-profile-notes";
 import {
   PORTFOLIO_SHARE_VISIBILITY,
   type PortfolioShareDoc,
@@ -136,7 +138,10 @@ export async function buildPublicPortfolio(
   const profile = parseUserProfileDoc(userSnap.data() as Record<string, unknown>);
   const handle = profile.handle ?? uid.slice(0, 8);
 
-  const eligible = await listEligibleWorksForUser(db, uid);
+  const [eligible, noteByKey] = await Promise.all([
+    listEligibleWorksForUser(db, uid),
+    listWorkProfileNotes(db, uid),
+  ]);
   const works: PortfolioWorkItem[] = [];
 
   for (const item of eligible) {
@@ -163,13 +168,24 @@ export async function buildPublicPortfolio(
       streamUid: work.streamUid,
       playbackUrl,
       thumbnailUrl,
+      ...(noteByKey[workProfileNoteDocId(item.ownerUid, item.workId)]
+        ? { profileNote: noteByKey[workProfileNoteDocId(item.ownerUid, item.workId)] }
+        : {}),
     });
   }
+
+  // Who they made each one with: the credits a portfolio is proof of.
+  const collaborators = await listWorkCollaborators(db, uid, works);
+  works.forEach((work, i) => {
+    work.collaborators = collaborators[i];
+  });
 
   return {
     profile: {
       displayName: profile.displayName,
       handle,
+      avatarUrl: profile.avatarUrl ?? null,
+      schoolName: profile.schoolName?.trim() || null,
       headline: profile.headline,
       bio: profile.bio,
       openToCollaborate: profile.openToCollaborate === true,

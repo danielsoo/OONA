@@ -2228,4 +2228,184 @@ export const uiMessages: Record<string, readonly [string, string]> = {
     "다음 작품",
     "次の作品"
   ],
+  "portfolio": [
+    "포트폴리오",
+    "ポートフォリオ"
+  ],
+  "a portfolio on oona": [
+    "OONA 포트폴리오",
+    "OONAのポートフォリオ"
+  ],
+  "see the work": [
+    "작품 보기",
+    "作品を見る"
+  ],
+  "contact on oona": [
+    "OONA에서 연락하기",
+    "OONAで連絡する"
+  ],
+  "link copied": [
+    "링크를 복사했어요",
+    "リンクをコピーしました"
+  ],
+  "people worked with": [
+    "함께 일한 사람",
+    "一緒に仕事をした人"
+  ],
+  "what they made, and with whom": [
+    "무엇을, 누구와 만들었는지",
+    "何を、誰とつくったか"
+  ],
+  "nothing in this portfolio yet.": [
+    "아직 이 포트폴리오에 담긴 작품이 없어요.",
+    "このポートフォリオにはまだ作品がありません。"
+  ],
+  "play {title}": [
+    "{title} 재생",
+    "{title}を再生"
+  ],
+  "directed by {name}": [
+    "연출 {name}",
+    "監督 {name}"
+  ],
+  "made with {names}": [
+    "함께 만든 사람: {names}",
+    "一緒につくった人：{names}"
+  ],
+  "+{count} more": [
+    "외 {count}명",
+    "ほか{count}人"
+  ],
+  "full credits": [
+    "전체 크레딧",
+    "クレジット全体"
+  ],
+  "the film itself can't be played here yet.": [
+    "이 작품은 아직 여기서 재생할 수 없어요.",
+    "この作品はまだここで再生できません。"
+  ],
+  "made on oona": [
+    "OONA에서 만든 포트폴리오",
+    "OONAでつくったポートフォリオ"
+  ],
+  "your credits are already a portfolio.": [
+    "당신의 크레딧은 이미 포트폴리오예요.",
+    "あなたのクレジットは、もうポートフォリオです。"
+  ],
+  "every work you upload, and every one you're credited on, adds itself to your oona portfolio with the people you made it with. send it as one link.": [
+    "올린 작품도, 크레딧에 이름이 오른 작품도 함께 만든 사람들과 함께 OONA 포트폴리오에 저절로 쌓여요. 링크 하나로 보내면 돼요.",
+    "アップロードした作品も、クレジットされた作品も、一緒につくった人たちと一緒にOONAのポートフォリオに自然と積み重なります。リンクひとつで送れます。"
+  ],
+  "make your portfolio link": [
+    "내 포트폴리오 링크 만들기",
+    "自分のポートフォリオリンクをつくる"
+  ],
+  "make your portfolio, free": [
+    "무료로 내 포트폴리오 만들기",
+    "無料でポートフォリオをつくる"
+  ],
+  "look around society": [
+    "Society 둘러보기",
+    "Societyを見てまわる"
+  ],
+  "go to oona →": [
+    "OONA로 가기 →",
+    "OONAへ →"
+  ],
+  "{name} — selected work": [
+    "{name} — 작품 모음",
+    "{name} — 作品集"
+  ],
+  "my portfolio": [
+    "내 포트폴리오",
+    "私のポートフォリオ"
+  ],
+  "portfolio link": [
+    "포트폴리오 링크",
+    "ポートフォリオリンク"
+  ],
+  "share your portfolio": [
+    "포트폴리오 공유하기",
+    "ポートフォリオを共有する"
+  ],
+  "one link with your works, your part in each, and the people you made them with. anyone can open it, no account needed.": [
+    "내 작품과 각 작품에서 맡은 역할, 함께 만든 사람들을 링크 하나에 담아요. 계정이 없어도 누구나 열어볼 수 있어요.",
+    "作品と、それぞれで担った役割、一緒につくった人たちをリンクひとつにまとめます。アカウントがなくても誰でも開けます。"
+  ],
+  "your portfolio fills itself: every work you upload, and every one you're credited on, lands here.": [
+    "포트폴리오는 저절로 채워져요. 올린 작품도, 크레딧에 이름이 오른 작품도 모두 여기에 담겨요.",
+    "ポートフォリオは自然と埋まっていきます。アップロードした作品も、クレジットされた作品も、すべてここに入ります。"
+  ],
+  "your link is ready, and copied.": [
+    "링크가 만들어졌고, 복사해 두었어요.",
+    "リンクができました。コピーもしてあります。"
+  ],
+  "your link is ready.": [
+    "링크가 만들어졌어요.",
+    "リンクができました。"
+  ],
+  "open it": [
+    "열어 보기",
+    "開いてみる"
+  ],
+  "make another": [
+    "하나 더 만들기",
+    "もうひとつつくる"
+  ],
+  "{count} of {total} works": [
+    "작품 {total}개 중 {count}개",
+    "{total}作品中{count}作品"
+  ],
+  "clear all": [
+    "모두 해제",
+    "すべて外す"
+  ],
+  "pick all": [
+    "모두 선택",
+    "すべて選ぶ"
+  ],
+  "hidden by its owner": [
+    "작품 주인이 숨겼어요",
+    "作品の持ち主が非表示にしています"
+  ],
+  "works you add later join the link on their own.": [
+    "나중에 추가되는 작품도 이 링크에 저절로 들어가요.",
+    "あとから増えた作品も、このリンクに自動で加わります。"
+  ],
+  "title, shown at the top of the page": [
+    "제목 (페이지 맨 위에 보여요)",
+    "タイトル（ページの上部に表示されます）"
+  ],
+  "making the link…": [
+    "링크 만드는 중…",
+    "リンクをつくっています…"
+  ],
+  "make the link": [
+    "링크 만들기",
+    "リンクをつくる"
+  ],
+  "your links": [
+    "내 링크",
+    "自分のリンク"
+  ],
+  "turn this link off for good?": [
+    "이 링크를 완전히 끌까요?",
+    "このリンクを完全に無効にしますか？"
+  ],
+  "turn off": [
+    "끄기",
+    "無効にする"
+  ],
+  "keep it": [
+    "그대로 두기",
+    "そのままにする"
+  ],
+  "share my portfolio": [
+    "포트폴리오 공유",
+    "ポートフォリオを共有"
+  ],
+  "see their portfolio": [
+    "포트폴리오 보기",
+    "ポートフォリオを見る"
+  ],
 };

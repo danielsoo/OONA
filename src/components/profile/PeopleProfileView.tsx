@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
-import UiText from "@/components/i18n/UiText";
+import UiText, { useUiCopy } from "@/components/i18n/UiText";
 import { useAuth } from "@/context/AuthContext";
 import { useTranslations } from "@/context/LocaleContext";
 import SocietyProfileBody, { type ProfileTab } from "@/components/society/SocietyProfileBody";
 import SocietyPublicProfileHero from "@/components/society/SocietyPublicProfileHero";
 import PeopleProfileSkeleton from "@/components/profile/PeopleProfileSkeleton";
 import DemoBadge from "@/components/society/DemoBadge";
+import { PortfolioShareDialog } from "@/components/portfolio/PortfolioSharePanel";
 import { DEMO_SOCIETY_HREF, isDemoHandle } from "@/lib/demo-flags";
 import { profilePreview } from "@/lib/profilePreview";
 import type { HeroBackgroundId } from "@/lib/heroBackgroundPresets";
@@ -86,11 +87,14 @@ function useProfileTab(): [ProfileTab, (tab: ProfileTab) => void] {
 
 export default function PeopleProfileView({ handle }: Props) {
   const { t } = useTranslations();
+  const copy = useUiCopy();
   const { user } = useAuth();
   const [data, setData] = useState<PeopleProfilePayload | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useProfileTab();
+  const [sharing, setSharing] = useState(false);
+  const closeSharing = useCallback(() => setSharing(false), []);
 
   // Signing in finishes after the first request; asking again then (for the
   // viewer's follow state) refreshes quietly instead of going back to loading,
@@ -144,6 +148,18 @@ export default function PeopleProfileView({ handle }: Props) {
     void load();
   }, [load]);
 
+  // ?portfolio=new (from "Make your portfolio link" on someone's shared
+  // portfolio): open the share dialog once it's known this is their own.
+  const ownProfile = !!user && !!data && data.viewer?.uid === user.uid && data.profile.uid === user.uid;
+  useEffect(() => {
+    if (!ownProfile) return;
+    const url = new URL(window.location.href);
+    if (url.searchParams.get("portfolio") !== "new") return;
+    url.searchParams.delete("portfolio");
+    window.history.replaceState(window.history.state, "", `${url.pathname}${url.search}${url.hash}`);
+    setSharing(true);
+  }, [ownProfile]);
+
   const demo = isDemoHandle(handle);
   if (loading) {
     return <PeopleProfileSkeleton handle={handle} preview={profilePreview(handle)} backHref={demo ? DEMO_SOCIETY_HREF : undefined} />;
@@ -160,7 +176,7 @@ export default function PeopleProfileView({ handle }: Props) {
     );
   }
 
-  const isSelf = !!user && data.viewer?.uid === user.uid && data.profile.uid === user.uid;
+  const isSelf = ownProfile;
 
   const roleLabel = (role: string) => {
     const key = `watch.creditRole.${role.toLowerCase()}`;
@@ -208,7 +224,16 @@ export default function PeopleProfileView({ handle }: Props) {
         onTab={setTab}
         counts={{ works: data.directed.length, credits: data.credited.length }}
         works={constellation}
+        onSharePortfolio={isSelf ? () => setSharing(true) : undefined}
       />
+      {isSelf ? (
+        <PortfolioShareDialog
+          open={sharing}
+          onClose={closeSharing}
+          defaultTitle={copy("{name} — selected work", { name: data.profile.displayName || data.profile.handle })}
+          thumbs={Object.fromEntries([...data.directed, ...data.credited].map((w) => [`${w.ownerUid}:${w.workId}`, w.thumbnailUrl]))}
+        />
+      ) : null}
       <div className={styles.inner}>
         <SocietyProfileBody
           tab={tab}

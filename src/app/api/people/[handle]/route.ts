@@ -15,10 +15,7 @@ import {
   workProfileNoteDocId,
 } from "@/lib/server/work-profile-notes";
 import { isAccountDeleted, parseUserProfileDoc } from "@/lib/userAccess";
-import { resolveWorkCreditDisplayName } from "@/lib/credit-display-name";
-import { peopleProfileHref } from "@/lib/dm/peopleProfileHref";
-import { listWorkCredits } from "@/lib/server/credits";
-import type { WorkCreditRole } from "@/types/credits";
+import { listWorkCollaborators } from "@/lib/server/work-collaborators";
 
 /** Works whose collaborators come with a profile (the constellation shows fewer). */
 const COLLABORATOR_WORKS = 12;
@@ -88,42 +85,11 @@ export async function GET(request: Request, { params }: Params) {
     }
   }
 
-  // Who they made each work with, for the profile's constellation: the work's
-  // other confirmed credits (as its watch page shows them) and its owner.
+  // Who they made each work with, for the profile's constellation.
   const shown = [...directed, ...credited].slice(0, COLLABORATOR_WORKS) as { ownerUid: string; workId: string; collaborators?: unknown[] }[];
-  const creditLists = await Promise.all(shown.map((w) => listWorkCredits(db, w.ownerUid, w.workId).catch(() => [])));
-  const others = shown.map((w, i) => {
-    const people: { userId: string; role: WorkCreditRole; characterName?: string }[] = [];
-    for (const c of creditLists[i] ?? []) {
-      if (c.status !== "accepted" || c.userId === uid || people.some((p) => p.userId === c.userId)) continue;
-      people.push({ userId: c.userId, role: c.role, ...(c.characterName ? { characterName: c.characterName } : {}) });
-    }
-    if (w.ownerUid !== uid && !people.some((p) => p.userId === w.ownerUid)) people.unshift({ userId: w.ownerUid, role: "director" });
-    return people;
-  });
-  const otherIds = [...new Set(others.flat().map((p) => p.userId))];
-  const otherSnaps = otherIds.length > 0 ? await db.getAll(...otherIds.map((id) => db.collection("users").doc(id))) : [];
-  const otherProfiles = new Map(
-    otherSnaps.filter((snap) => snap.exists).map((snap) => [snap.id, parseUserProfileDoc(snap.data() as Record<string, unknown>)])
-  );
+  const collaborators = await listWorkCollaborators(db, uid, shown);
   shown.forEach((w, i) => {
-    w.collaborators = others[i]!.flatMap((p) => {
-      const other = otherProfiles.get(p.userId);
-      if (!other || isAccountDeleted(other)) return [];
-      const displayName = resolveWorkCreditDisplayName(
-        { displayName: other.displayName, defaultDirectorName: other.defaultDirectorName, handle: other.handle },
-        p.role
-      );
-      if (!displayName) return [];
-      return [{
-        uid: p.userId,
-        displayName,
-        role: p.role,
-        ...(p.characterName ? { characterName: p.characterName } : {}),
-        avatarUrl: other.avatarUrl ?? null,
-        profileHref: peopleProfileHref(other.handle, p.userId),
-      }];
-    });
+    w.collaborators = collaborators[i];
   });
 
   const heroMeta = await getPeopleProfileHeroMeta(db, uid, profile);

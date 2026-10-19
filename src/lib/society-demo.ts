@@ -4,7 +4,7 @@ import { hashString } from "@/lib/society-sky";
 import type { SocietyPerson } from "@/lib/societyTypes";
 import type { WorkCreditRole } from "@/types/credits";
 import type { CreditsRollWork } from "@/types/creditsRoll";
-import type { ProfileRoleTag } from "@/types/portfolio";
+import type { ProfileRoleTag, PublicPortfolioPayload } from "@/types/portfolio";
 // Stills that live beside the app rather than in public/: imported for their URLs.
 import discoverHero from "../../discover_hero.webp";
 import filmHero from "../../film_hero.webp";
@@ -311,5 +311,51 @@ export function demoProfile(handle: string): PeopleProfilePayload | null {
     viewer: null,
     directed,
     credited,
+  };
+}
+
+/** A few works say what they're about, and a few people what they did on them, so the demo portfolio shows both. */
+const SYNOPSES: Record<string, string> = {
+  "low-tide": "Two sisters wait out a storm in their late mother's house by the sea.",
+  "almost-maine": "A night of small miracles in a town that isn't on any map.",
+  "midnight-ferry": "The last boat of the night, and everyone on it is running from something.",
+  "sink-or-swim": "A swimmer who stopped racing comes back to the pool she grew up in.",
+};
+const NOTES: Record<string, string> = {
+  "lena:low-tide": "My first film as director. We had one night and one house, so every shot was planned around the tide.",
+  "lena:almost-maine": "I wrote it over a winter, scene by scene, for the actors who ended up playing it.",
+  "park:midnight-ferry": "Minsu barely speaks. I spent the shoot learning to act with my hands.",
+  "yuna:midnight-ferry": "Shot on a real ferry, three crossings a night for a week.",
+};
+
+/** A made-up person's shared portfolio (/p/demo-<id>), built from their works in the demo. */
+export function demoPortfolio(token: string): PublicPortfolioPayload | null {
+  const profile = demoProfile(token);
+  if (!profile) return null;
+  const id = profile.profile.uid.slice(DEMO_HANDLE_PREFIX.length);
+  return {
+    profile: {
+      displayName: profile.profile.displayName,
+      handle: profile.profile.handle,
+      avatarUrl: null,
+      schoolName: profile.profile.schoolName ?? null,
+      headline: profile.profile.headline,
+      bio: profile.profile.bio,
+      openToCollaborate: profile.profile.openToCollaborate,
+      followerCount: profile.profile.followerCount,
+      followingCount: profile.profile.followingCount,
+    },
+    shareTitle: `${profile.profile.displayName} — selected work`,
+    works: [...profile.directed, ...profile.credited].map((w) => ({
+      workId: w.workId,
+      ownerUid: w.ownerUid,
+      title: w.title,
+      role: w.role,
+      ...(w.characterName ? { characterName: w.characterName } : {}),
+      ...(w.thumbnailUrl ? { thumbnailUrl: w.thumbnailUrl } : {}),
+      ...(SYNOPSES[w.workId] ? { description: SYNOPSES[w.workId] } : {}),
+      ...(NOTES[`${id}:${w.workId}`] ? { profileNote: NOTES[`${id}:${w.workId}`] } : {}),
+      collaborators: w.collaborators ?? [],
+    })),
   };
 }

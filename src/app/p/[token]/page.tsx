@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import AppPageShell from "@/components/layout/AppPageShell";
-import PortfolioSubmissionWork from "@/components/profile/PortfolioSubmissionWork";
-import PublicProfileCard from "@/components/profile/PublicProfileCard";
+import PortfolioView, { PortfolioMissing, PortfolioSkeleton } from "@/components/portfolio/PortfolioView";
+import DemoBadge from "@/components/society/DemoBadge";
 import { useTranslations } from "@/context/LocaleContext";
+import { isDemoHandle } from "@/lib/demo-flags";
 import type { PublicPortfolioPayload } from "@/types/portfolio";
 
 export default function PublicPortfolioPage() {
@@ -14,70 +14,49 @@ export default function PublicPortfolioPage() {
   const [data, setData] = useState<PublicPortfolioPayload | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [copied, setCopied] = useState(false);
-
-  const copyShareLink = () => {
-    void navigator.clipboard.writeText(window.location.href).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
-  };
 
   useEffect(() => {
     if (!token) return;
+    let live = true;
     void (async () => {
       setLoading(true);
       try {
+        // A made-up person's (/p/demo-<id>) answers from the demo set, not the API.
+        if (isDemoHandle(token)) {
+          const payload = (await import("@/lib/society-demo")).demoPortfolio(token);
+          if (!live) return;
+          setData(payload);
+          setErr(payload ? null : t("portfolio.public.notFound"));
+          return;
+        }
         const res = await fetch(`/api/portfolio/${encodeURIComponent(token)}`);
+        if (!live) return;
         if (!res.ok) {
           setErr(res.status === 410 ? t("portfolio.public.expired") : t("portfolio.public.notFound"));
           setData(null);
           return;
         }
-        setData((await res.json()) as PublicPortfolioPayload);
+        const payload = (await res.json()) as PublicPortfolioPayload;
+        if (!live) return;
+        setData(payload);
+        setErr(null);
       } catch {
-        setErr(t("portfolio.public.loadError"));
+        if (live) setErr(t("portfolio.public.loadError"));
       } finally {
-        setLoading(false);
+        if (live) setLoading(false);
       }
     })();
+    return () => {
+      live = false;
+    };
   }, [token, t]);
 
+  if (loading) return <PortfolioSkeleton />;
+  if (err || !data) return <PortfolioMissing message={err ?? t("portfolio.public.notFound")} />;
   return (
-    <AppPageShell>
-      {loading ? (
-        <p className="text-xiio-muted">{t("common.loading")}</p>
-      ) : err || !data ? (
-        <p className="text-red-400">{err}</p>
-      ) : (
-        <div className="max-w-[1100px] mx-auto w-full space-y-8">
-          <div className="flex justify-end">
-            <button
-              type="button"
-              onClick={copyShareLink}
-              className="rounded-full border border-white/15 px-5 py-2.5 text-[13px] text-white hover:bg-white/[0.06] transition"
-            >
-              {copied ? t("portfolio.public.linkCopied") : t("portfolio.public.copyShareLink")}
-            </button>
-          </div>
-          <PublicProfileCard
-            profile={data.profile}
-            submissionBadge={t("portfolio.public.badge")}
-            shareTitle={data.shareTitle}
-          />
-          <div className="min-w-0 w-full">
-            {data.works.length === 0 ? (
-              <p className="text-xiio-muted">{t("portfolio.public.empty")}</p>
-            ) : (
-              <ul className="grid gap-10 lg:grid-cols-2 lg:gap-8">
-                {data.works.map((w) => (
-                  <PortfolioSubmissionWork key={`${w.ownerUid}_${w.workId}`} work={w} />
-                ))}
-              </ul>
-            )}
-          </div>
-        </div>
-      )}
-    </AppPageShell>
+    <>
+      {isDemoHandle(token) ? <DemoBadge active /> : null}
+      <PortfolioView data={data} profileHref={`/people/${encodeURIComponent(data.profile.handle)}`} />
+    </>
   );
 }

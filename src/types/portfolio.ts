@@ -39,11 +39,26 @@ export type PortfolioWorkItem = {
   streamUid?: string;
   playbackUrl?: string;
   thumbnailUrl?: string;
+  /** What they wrote about their part in it (their profile's note on the work). */
+  profileNote?: string;
+  /** The others credited on it, its owner first when that isn't them. */
+  collaborators?: PortfolioCollaborator[];
+};
+
+export type PortfolioCollaborator = {
+  uid: string;
+  displayName: string;
+  role: string;
+  characterName?: string;
+  avatarUrl?: string | null;
+  profileHref: string | null;
 };
 
 export type PublicProfilePayload = {
   displayName: string;
   handle: string;
+  avatarUrl?: string | null;
+  schoolName?: string | null;
   headline?: string;
   bio?: string;
   openToCollaborate?: boolean;

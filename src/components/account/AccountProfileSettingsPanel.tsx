@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useTranslations } from "@/context/LocaleContext";
+import { useUiCopy } from "@/components/i18n/UiText";
 import ProfileAboutForm from "@/components/profile/ProfileAboutForm";
 import SchoolAffiliationSettings from "@/components/school/SchoolAffiliationSettings";
 import ProfileDiscoverSettings from "@/components/profile/ProfileDiscoverSettings";
@@ -31,6 +32,7 @@ export default function AccountProfileSettingsPanel({
 }: Props) {
   const { user } = useAuth();
   const { t } = useTranslations();
+  const copy = useUiCopy();
   const [data, setData] = useState<PeopleProfilePayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
@@ -196,7 +198,12 @@ export default function AccountProfileSettingsPanel({
     case "discover":
       return <ProfileDiscoverSettings initialDiscoverable={data.identity?.isDiscoverable} />;
     case "portfolio":
-      return <PortfolioShareSection />;
+      return (
+        <PortfolioShareSection
+          defaultTitle={copy("{name} — selected work", { name: data.profile.displayName || data.profile.handle })}
+          thumbs={Object.fromEntries([...data.directed, ...data.credited].map((w) => [`${w.ownerUid}:${w.workId}`, w.thumbnailUrl]))}
+        />
+      );
     case "preview":
       return (
         <div className="space-y-8">
