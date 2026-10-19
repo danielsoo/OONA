@@ -132,7 +132,7 @@ function Chevron({ left = false }: { left?: boolean }) {
  * (CinematicHomePage.module.css); the other sections (connections,
  * invitations, your works) are SocietyNetworkPanel.
  */
-export default function SocietyDiscover({ onTabChange }: { onTabChange: (tab: SocietyTabId) => void }) {
+export default function SocietyDiscover({ onTabChange, openWork = null }: { onTabChange: (tab: SocietyTabId) => void; openWork?: string | null }) {
   const copy = useUiCopy();
   const { t } = useTranslations();
   const { user, loading: authLoading } = useAuth();
@@ -276,7 +276,7 @@ export default function SocietyDiscover({ onTabChange }: { onTabChange: (tab: So
     <div className={`${styles.page} ${revealing ? styles.revealing : ""}`} data-society-hero="">
       {/* Once it's known which this is: the demo's badge, or the way into it. */}
       {demoKnown ? <DemoBadge active={demo} /> : null}
-      <SocietySky directory={sky} onOpenSection={openSection} />
+      <SocietySky directory={sky} onOpenSection={openSection} openWork={openWork} />
 
       <section
         className={styles.hero}

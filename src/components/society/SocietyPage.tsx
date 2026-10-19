@@ -19,15 +19,20 @@ function parseSocietyTab(raw: string | null): SocietyTabId {
  * Suspense, and the rest of the page (the sea, on the first screen) should
  * be in the first paint, not wait for the scripts.
  */
-function TabFromUrl({ onTab }: { onTab: (tab: SocietyTabId) => void }) {
-  const routeTab = parseSocietyTab(useSearchParams().get("tab"));
+function TabFromUrl({ onTab, onWork }: { onTab: (tab: SocietyTabId) => void; onWork: (work: string | null) => void }) {
+  const params = useSearchParams();
+  const routeTab = parseSocietyTab(params.get("tab"));
+  const work = params.get("work");
   useEffect(() => onTab(routeTab), [routeTab, onTab]);
+  useEffect(() => onWork(work), [work, onWork]);
   return null;
 }
 
 export default function SocietyPage() {
   const { user, loading: authLoading } = useAuth();
   const [activeTab, setActiveTab] = useState<SocietyTabId>("discover");
+  // ?work=<owner:workId>: open the sky on that work's people (the demo's works lead here).
+  const [openWork, setOpenWork] = useState<string | null>(null);
 
   const onTabChange = useCallback((tab: SocietyTabId) => {
     setActiveTab(tab);
@@ -42,10 +47,10 @@ export default function SocietyPage() {
   return (
     <>
       <Suspense fallback={null}>
-        <TabFromUrl onTab={setActiveTab} />
+        <TabFromUrl onTab={setActiveTab} onWork={setOpenWork} />
       </Suspense>
       {tab === "discover" ? (
-        <SocietyDiscover onTabChange={onTabChange} />
+        <SocietyDiscover onTabChange={onTabChange} openWork={openWork} />
       ) : (
         <SocietyNetworkPanel key={user?.uid ?? "guest"} activeTab={tab} onTabChange={onTabChange} />
       )}

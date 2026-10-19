@@ -7,7 +7,7 @@ import UiText, { useUiCopy } from "@/components/i18n/UiText";
 import type { SocietyTabId } from "@/components/society/SocietyNetworkPanel";
 import { useTranslations } from "@/context/LocaleContext";
 import { primaryRole, type DirPerson, type DirWork } from "@/lib/society-directory";
-import { watchHref } from "@/lib/demo-flags";
+import { isDemoWork, watchHref } from "@/lib/demo-flags";
 import { buildSky, layOutNeuron, neuronGroup, neuronTwigs, type NeuronGroup, type Seat, type SkyStar } from "@/lib/society-sky";
 import styles from "./SocietySky.module.css";
 import { SKY_IMAGE, SKY_SEATS } from "./skySeats";
@@ -89,9 +89,12 @@ const smooth = (t: number) => t * t * (3 - 2 * t);
 export default function SocietySky({
   directory,
   onOpenSection,
+  openWork = null,
 }: {
   directory: SkyDirectory | null;
   onOpenSection: (tab: SocietyTabId) => void;
+  /** A work key from ?work=: go up to the sky and open it. */
+  openWork?: string | null;
 }) {
   const people = directory?.people ?? null;
   const me = directory?.me ?? null;
@@ -195,6 +198,28 @@ export default function SocietySky({
   useEffect(() => {
     if (!awake) setFocusKey(null);
   }, [awake]);
+
+  // ?work= (a demo work's link, from a profile or below): up to the sky, then
+  // open it there once the view has arrived. Once picked up it comes off the
+  // address, so the same link opens it again later.
+  const [pendingWork, setPendingWork] = useState<string | null>(null);
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!openWork || !section || !crews.has(openWork)) return;
+    setPendingWork(openWork);
+    const top = section.getBoundingClientRect().top + window.scrollY + Math.max(0, section.offsetHeight - window.innerHeight);
+    window.scrollTo({ top, behavior: window.scrollY > 40 && !still ? "smooth" : "auto" });
+    const url = new URL(window.location.href);
+    url.searchParams.delete("work");
+    window.history.replaceState(window.history.state, "", `${url.pathname}${url.search}`);
+  }, [openWork, crews, still]);
+  // (Coming up from below, the sky counts as arrived already, so it opens at once.)
+  useEffect(() => {
+    if (!awake || !pendingWork) return;
+    setPendingWork(null);
+    if (sky.constellations.some((c) => c.work.key === pendingWork)) setSelectedKey(pendingWork);
+    setFocusKey(pendingWork);
+  }, [awake, pendingWork, sky]);
 
   // Reduced motion: no tilt, just the sky.
   useEffect(() => {
@@ -458,13 +483,22 @@ export default function SocietySky({
                   ))}
                 </svg>
                 <span className={styles.neuronCore} style={{ left: neuron.center.x, top: neuron.center.y }} aria-hidden="true" />
-                <Link
-                  href={watchHref(neuron.crew.work)}
-                  className={`${styles.neuronTitle} ${styles[`title_${neuron.layout.title.side}`]}`}
-                  style={{ left: neuron.layout.title.x, top: neuron.layout.title.y }}
-                >
-                  {neuron.crew.work.title}
-                </Link>
+                {isDemoWork(neuron.crew.work) ? (
+                  <span
+                    className={`${styles.neuronTitle} ${styles[`title_${neuron.layout.title.side}`]}`}
+                    style={{ left: neuron.layout.title.x, top: neuron.layout.title.y }}
+                  >
+                    {neuron.crew.work.title}
+                  </span>
+                ) : (
+                  <Link
+                    href={watchHref(neuron.crew.work)}
+                    className={`${styles.neuronTitle} ${styles[`title_${neuron.layout.title.side}`]}`}
+                    style={{ left: neuron.layout.title.x, top: neuron.layout.title.y }}
+                  >
+                    {neuron.crew.work.title}
+                  </Link>
+                )}
                 {neuron.layout.branches.map((b) => (
                   <span key={b.group} className={`${styles.groupLabel} ${styles[`group_${b.label.anchor}`]}`} style={{ left: b.label.x, top: b.label.y }}>
                     {copy(GROUP_LABEL[b.group])}
@@ -565,10 +599,14 @@ export default function SocietySky({
                 ))}
               </ul>
               <div className={styles.pickActions}>
-                <Link href={watchHref(panelWork)} className={styles.watch} tabIndex={awake ? 0 : -1}>
-                  {copy("Watch {title}", { title: panelWork.title })}
-                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>
-                </Link>
+                {isDemoWork(panelWork) ? (
+                  <span className={`${styles.watch} ${styles.watchDemo}`}><UiText text="A made-up work" /></span>
+                ) : (
+                  <Link href={watchHref(panelWork)} className={styles.watch} tabIndex={awake ? 0 : -1}>
+                    {copy("Watch {title}", { title: panelWork.title })}
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>
+                  </Link>
+                )}
                 {neuron ? (
                   <button type="button" className={styles.back} onClick={() => setFocusKey(null)} tabIndex={awake ? 0 : -1}>
                     <UiText text="Back to the sky" />
