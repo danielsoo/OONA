@@ -255,10 +255,13 @@
 /* Arriving, it draws itself the way the Society sky does: every line is
    pathLength 1, so one dash offset runs them all, trunks first, then the
    branches out to each person, then the faint second lines. */
+/* Widths are in viewBox units, not screen pixels: non-scaling-stroke would
+   resolve stroke-dasharray in screen space too, and the one dash that should
+   cover the whole line would come out as a row of dashes. At this box's
+   600px the scale is 6, so 0.18 lands on about a pixel. */
 .branches path {
   stroke: rgba(190, 225, 255, 0.34);
-  stroke-width: 1;
-  vector-effect: non-scaling-stroke;
+  stroke-width: 0.18;
   stroke-linecap: round;
   stroke-dasharray: 1;
   stroke-dashoffset: 1;
@@ -354,7 +357,7 @@
 }
 .branches .trunk {
   stroke: rgba(210, 236, 255, 0.6);
-  stroke-width: 1.5;
+  stroke-width: 0.28;
   animation-delay: 160ms;
 }
 .branches .branch {
@@ -368,7 +371,7 @@
 }
 @keyframes constellationDash {
   to {
-    stroke-dasharray: 3 4;
+    stroke-dasharray: 0.5 0.7;
   }
 }
 /* A work: a small ring where its branch splits, its title beside it. */
@@ -873,7 +876,7 @@
     stroke-dashoffset: 0;
   }
   .branches .echo {
-    stroke-dasharray: 3 4;
+    stroke-dasharray: 0.5 0.7;
   }
 }
 
