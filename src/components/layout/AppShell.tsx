@@ -37,6 +37,12 @@ const CINEMATIC_APP_PATHS = [
   "/about",
   "/uploader",
   "/credits",
+  // Links sent to someone outside: a shared portfolio and a credit invitation.
+  // They are read by people who may never have seen OONA, so they carry the
+  // site's own header — its wordmark, and a way in — rather than the sidebar
+  // the rest of the site left behind. Each page brings its own sign-in link.
+  "/p",
+  "/collab-invite",
 ] as const;
 
 function usesCinematicAppShell(pathname: string): boolean {

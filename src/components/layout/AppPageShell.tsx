@@ -36,7 +36,9 @@ export default function AppPageShell({
   const gutter = standalone ? PAGE_GUTTER_STANDALONE : PAGE_GUTTER_IN_SHELL;
   const height = fitViewport
     ? "h-[calc(100dvh-60px-64px-env(safe-area-inset-bottom))] lg:h-[calc(100dvh-60px)] min-h-0 overflow-hidden"
-    : "min-h-screen pb-16";
+    // Below lg the mobile tab bar is fixed over the foot of the page, and it
+    // is taller than the 64px this used to leave, so the last line sat under it.
+    : "min-h-screen pb-16 max-lg:pb-24";
 
   return (
     <main className={`${height} bg-xiio-bg ${pt} ${gutter} ${className}`.trim()}>
