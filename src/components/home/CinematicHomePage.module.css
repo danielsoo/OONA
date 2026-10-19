@@ -520,11 +520,9 @@
   to { opacity: 1; }
 }
 
-.filmCard:hover .cardImage,
-.categoryCard:hover .cardImage { transform: scale(1.035); filter: saturate(0.78) brightness(0.72); }
+.filmCard:hover .cardImage { transform: scale(1.035); filter: saturate(0.78) brightness(0.72); }
 
-.cardShade,
-.categoryShade {
+.cardShade {
   position: absolute;
   inset: 0;
   background: linear-gradient(180deg, rgba(1,7,12,0.02) 32%, rgba(1,7,12,0.9) 100%);
@@ -589,35 +587,6 @@
 }
 
 .railButton:hover { border-color: #6dc4ff; background: rgba(30, 83, 122, 0.46); }
-
-.categoryGrid {
-  display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 15px;
-}
-
-.categoryCard {
-  position: relative;
-  min-height: 97px;
-  overflow: hidden;
-  border: 1px solid rgba(119, 174, 216, 0.22);
-  border-radius: 6px;
-  background: #06101a;
-}
-
-.categoryShade {
-  background: linear-gradient(90deg, rgba(2,9,15,0.78), rgba(2,9,15,0.3)), linear-gradient(180deg, transparent, rgba(1,7,12,0.72));
-}
-
-.categoryCard > span:last-child {
-  position: absolute;
-  z-index: 2;
-  left: 16px;
-  bottom: 15px;
-  color: #f3f1f4;
-  font-family: var(--font-serif), Georgia, serif;
-  font-size: 14px;
-}
 
 .creatorGrid,
 .schoolGrid {
@@ -703,12 +672,9 @@
   .nav { gap: 24px; }
   .filmCard,
   .filmCardSkeleton { flex-basis: 185px; }
-  .categoryGrid { grid-template-columns: repeat(6, minmax(185px, 1fr)); }
   .creatorGrid,
   .schoolGrid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .trendingRail { padding-bottom: 5px; }
-  .categoryGrid { overflow-x: auto; scrollbar-width: none; }
-  .categoryGrid::-webkit-scrollbar { display: none; }
 }
 
 @media (max-width: 1040px) {
@@ -771,7 +737,6 @@
   .trendingRail { display: flex; margin-right: calc(-1 * var(--page-pad)); padding-right: var(--page-pad); }
   .filmCard { flex: 0 0 min(260px, 72vw); }
   .railButton { display: none; }
-  .categoryGrid { grid-template-columns: repeat(3, minmax(180px, 1fr)); margin-right: calc(-1 * var(--page-pad)); padding-right: var(--page-pad); }
   .creatorGrid,
   .schoolGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
@@ -805,8 +770,6 @@
   .heroPager { right: var(--page-pad); }
   .content { gap: 27px; padding-bottom: 30px; }
   .sectionHeader a { font-size: 17px; }
-  .categoryGrid { grid-template-columns: repeat(2, minmax(154px, 1fr)); gap: 11px; overflow: visible; margin-right: 0; padding-right: 0; }
-  .categoryCard { min-height: 92px; }
   .creatorGrid,
   .schoolGrid { grid-template-columns: 1fr; gap: 10px; }
   .footer { grid-template-columns: 1fr; gap: 18px; padding: 22px 0 10px; }
