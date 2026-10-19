@@ -530,9 +530,9 @@ export default function SocietySky({
         <div className={styles.intro}>
           <p className={styles.eyebrow}>OONA Society</p>
           <h1 className={styles.heading}><UiText text="Look up." /></h1>
-          <p className={styles.lede}><UiText text="Above the same sea, everyone who makes something on OONA is a star, and every work they made together is a constellation." /></p>
+          <p className={styles.lede}><UiText text="Everyone who makes something on OONA is a star, and every work they made together is a constellation." /></p>
         </div>
-        <div className={styles.cue} aria-hidden="true"><UiText text="Scroll to look up" /><i /></div>
+        <div className={styles.cue} aria-hidden="true"><UiText text="Scroll to find them" /><i /></div>
 
         <aside className={`${styles.panel} ${awake ? styles.awake : ""}`}>
           <p className={styles.eyebrow}><UiText text="Constellations" /></p>
