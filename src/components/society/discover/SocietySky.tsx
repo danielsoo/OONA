@@ -7,7 +7,7 @@ import UiText, { useUiCopy } from "@/components/i18n/UiText";
 import type { SocietyTabId } from "@/components/society/SocietyNetworkPanel";
 import { useTranslations } from "@/context/LocaleContext";
 import { primaryRole, type DirPerson, type DirWork } from "@/lib/society-directory";
-import { watchHref } from "@/lib/demo-flags";
+import { isDemoWork, watchHref } from "@/lib/demo-flags";
 import { buildSky, layOutNeuron, neuronGroup, neuronTwigs, type NeuronGroup, type Seat, type SkyStar } from "@/lib/society-sky";
 import styles from "./SocietySky.module.css";
 import { SKY_IMAGE, SKY_SEATS } from "./skySeats";
@@ -99,9 +99,12 @@ const smooth = (t: number) => t * t * (3 - 2 * t);
 export default function SocietySky({
   directory,
   onOpenSection,
+  openWork = null,
 }: {
   directory: SkyDirectory | null;
   onOpenSection: (tab: SocietyTabId) => void;
+  /** A work key from ?work=: go up to the sky and open it. */
+  openWork?: string | null;
 }) {
   const people = directory?.people ?? null;
   const me = directory?.me ?? null;
@@ -119,6 +122,7 @@ export default function SocietySky({
   // A work opened into a neuron of the people who made it (null: the sky).
   const [focusKey, setFocusKey] = useState<string | null>(null);
   const [hovered, setHovered] = useState<string | null>(null);
+  const [hoveredWork, setHoveredWork] = useState<string | null>(null);
   // Leaving a star, its card stays a moment so the pointer can move onto it.
   const leaveTimer = useRef(0);
   const enter = useCallback((uid: string) => {
@@ -202,6 +206,25 @@ export default function SocietySky({
     return () => window.removeEventListener("keydown", onKey);
   }, [focusKey]);
 
+  // ?work= (a demo work's link, from a profile or below): back up to the sky
+  // and open it. The sky shows its constellations on arrival now, so there is
+  // nothing to wait for. Once picked up the key comes off the address, so the
+  // same link opens it again later; the ref keeps a re-layout from reopening
+  // what the reader has since closed.
+  const tookWork = useRef<string | null>(null);
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!openWork || tookWork.current === openWork || !section || !crews.has(openWork)) return;
+    tookWork.current = openWork;
+    const top = section.getBoundingClientRect().top + window.scrollY;
+    window.scrollTo({ top, behavior: window.scrollY > 40 && !still ? "smooth" : "auto" });
+    if (sky.constellations.some((c) => c.work.key === openWork)) setSelectedKey(openWork);
+    setFocusKey(openWork);
+    const url = new URL(window.location.href);
+    url.searchParams.delete("work");
+    window.history.replaceState(window.history.state, "", `${url.pathname}${url.search}`);
+  }, [openWork, crews, still, sky]);
+
   // Reduced motion: no tilt, just the sky.
   useEffect(() => {
     const media = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -268,6 +291,7 @@ export default function SocietySky({
   const open = (key: string) => {
     if (sky.constellations.some((c) => c.work.key === key)) setSelectedKey(key);
     setHovered(null);
+    setHoveredWork(null);
     setFocusKey(key);
   };
   // The arrows move between the sky's works (and, with one open, open the next).
@@ -279,9 +303,16 @@ export default function SocietySky({
     else setSelectedKey(next);
   };
 
-  const hoveredWorks = hovered ? starAt.get(hovered)?.works ?? [] : [];
-  const lit = (key: string) => key === selected?.work.key || hoveredWorks.includes(key);
-  const named = new Set([...(selected?.members ?? []), ...(hovered ? [hovered] : []), ...(me && starAt.has(me) ? [me] : [])]);
+  // A figure lights up when it's picked, or when its lines or name are pointed
+  // at; pointing at a star lights only that star (and its name and card).
+  const lit = (key: string) => key === selected?.work.key || key === hoveredWork;
+  const hoveredFigure = hoveredWork ? sky.constellations.find((c) => c.work.key === hoveredWork) : null;
+  const named = new Set([
+    ...(selected?.members ?? []),
+    ...(hoveredFigure?.members ?? []),
+    ...(hovered ? [hovered] : []),
+    ...(me && starAt.has(me) ? [me] : []),
+  ]);
   // A name goes right of its star, or left when that would cover another
   // shown name or star, or run off the edge (widths are a rough guess).
   const leftNames = new Set<string>();
@@ -367,6 +398,25 @@ export default function SocietySky({
                   })
                 )}
               </g>
+              {/* Wider, invisible: pointing at a line lights its whole figure; a click opens it. */}
+              <g>
+                {sky.constellations.map((c) =>
+                  c.lines.map(([a, b]) => {
+                    const sa = starAt.get(a)!;
+                    const sb = starAt.get(b)!;
+                    return (
+                      <path
+                        key={`hit:${c.work.key}:${a}:${b}`}
+                        className={styles.lineHit}
+                        d={`M${sa.x},${sa.y} L${sb.x},${sb.y}`}
+                        onMouseEnter={() => setHoveredWork(c.work.key)}
+                        onMouseLeave={() => setHoveredWork((w) => (w === c.work.key ? null : w))}
+                        onClick={() => open(c.work.key)}
+                      />
+                    );
+                  })
+                )}
+              </g>
             </svg>
 
             {sky.constellations.map((c, ci) => (
@@ -376,6 +426,10 @@ export default function SocietySky({
                 className={`${styles.title} ${lit(c.work.key) ? styles.titleLit : ""}`}
                 style={{ left: c.labelX, top: c.labelY, "--i": ci } as CSSProperties}
                 onClick={() => open(c.work.key)}
+                onMouseEnter={() => setHoveredWork(c.work.key)}
+                onMouseLeave={() => setHoveredWork((w) => (w === c.work.key ? null : w))}
+                onFocus={() => setHoveredWork(c.work.key)}
+                onBlur={() => setHoveredWork((w) => (w === c.work.key ? null : w))}
                 tabIndex={0}
               >
                 {c.work.title}
@@ -386,7 +440,7 @@ export default function SocietySky({
               const person = byUid.get(s.uid);
               if (!person) return null;
               const credits = new Set(person.credits.map((c) => c.work.key)).size;
-              const inLit = s.works.some(lit);
+              const inLit = s.works.some(lit) || s.uid === hovered;
               const className = [styles.star, person.available ? styles.open : "", s.works.length === 0 ? styles.lone : "", inLit ? styles.starLit : "", s.uid === me ? styles.me : ""].join(" ");
               const style = { left: s.x, top: s.y, "--size": `${2.6 + Math.min(credits, 5) * 0.8}px`, "--i": i } as CSSProperties;
               const label = named.has(s.uid) ? (
@@ -457,13 +511,22 @@ export default function SocietySky({
                   ))}
                 </svg>
                 <span className={styles.neuronCore} style={{ left: neuron.center.x, top: neuron.center.y }} aria-hidden="true" />
-                <Link
-                  href={watchHref(neuron.crew.work)}
-                  className={`${styles.neuronTitle} ${styles[`title_${neuron.layout.title.side}`]}`}
-                  style={{ left: neuron.layout.title.x, top: neuron.layout.title.y }}
-                >
-                  {neuron.crew.work.title}
-                </Link>
+                {isDemoWork(neuron.crew.work) ? (
+                  <span
+                    className={`${styles.neuronTitle} ${styles[`title_${neuron.layout.title.side}`]}`}
+                    style={{ left: neuron.layout.title.x, top: neuron.layout.title.y }}
+                  >
+                    {neuron.crew.work.title}
+                  </span>
+                ) : (
+                  <Link
+                    href={watchHref(neuron.crew.work)}
+                    className={`${styles.neuronTitle} ${styles[`title_${neuron.layout.title.side}`]}`}
+                    style={{ left: neuron.layout.title.x, top: neuron.layout.title.y }}
+                  >
+                    {neuron.crew.work.title}
+                  </Link>
+                )}
                 {neuron.layout.branches.map((b) => (
                   <span key={b.group} className={`${styles.groupLabel} ${styles[`group_${b.label.anchor}`]}`} style={{ left: b.label.x, top: b.label.y }}>
                     {copy(GROUP_LABEL[b.group])}
@@ -557,10 +620,14 @@ export default function SocietySky({
                 ))}
               </ul>
               <div className={styles.pickActions}>
-                <Link href={watchHref(panelWork)} className={styles.watch} tabIndex={0}>
-                  {copy("Watch {title}", { title: panelWork.title })}
-                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>
-                </Link>
+                {isDemoWork(panelWork) ? (
+                  <span className={`${styles.watch} ${styles.watchDemo}`}><UiText text="A made-up work" /></span>
+                ) : (
+                  <Link href={watchHref(panelWork)} className={styles.watch} tabIndex={0}>
+                    {copy("Watch {title}", { title: panelWork.title })}
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>
+                  </Link>
+                )}
                 {neuron ? (
                   <button type="button" className={styles.back} onClick={() => setFocusKey(null)} tabIndex={0}>
                     <UiText text="Back to the sky" />

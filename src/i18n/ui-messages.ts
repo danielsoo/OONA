@@ -2152,6 +2152,10 @@ export const uiMessages: Record<string, readonly [string, string]> = {
     "가짜 사람들로 가득 찬 Society를 둘러볼 수 있어요.",
     "架空の人たちでいっぱいのSocietyを見て回れます。"
   ],
+  "a made-up work": [
+    "지어낸 작품이에요",
+    "架空の作品です"
+  ],
   "try the demo": [
     "데모 보기",
     "デモを見る"

@@ -1,5 +1,5 @@
 import type { PeopleProfilePayload } from "@/components/profile/PeopleProfileView";
-import { DEMO_HANDLE_PREFIX, DEMO_OWNER, DEMO_SOCIETY_HREF } from "@/lib/demo-flags";
+import { DEMO_HANDLE_PREFIX, DEMO_OWNER, watchHref } from "@/lib/demo-flags";
 import { hashString } from "@/lib/society-sky";
 import type { SocietyPerson } from "@/lib/societyTypes";
 import type { WorkCreditRole } from "@/types/credits";
@@ -278,7 +278,7 @@ export function demoProfile(handle: string): PeopleProfilePayload | null {
     role,
     ...(character ? { characterName: character } : {}),
     thumbnailUrl: w.still,
-    watchPath: DEMO_SOCIETY_HREF,
+    watchPath: watchHref({ ownerUid: DEMO_OWNER, workId: w.id }),
     collaborators: w.crew
       .filter(([cid]) => cid !== id)
       .map(([cid, crole, ccharacter]) => ({

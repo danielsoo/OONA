@@ -71,6 +71,19 @@
   overflow: visible;
 }
 
+.lineHit {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 14;
+  stroke-linecap: round;
+  pointer-events: none;
+}
+
+.box .lineHit {
+  cursor: pointer;
+  pointer-events: stroke;
+}
+
 .line,
 .lineLit {
   fill: none;
@@ -533,6 +546,8 @@ a.tip:hover { border-color: rgba(119, 203, 255, 0.6); }
   pointer-events: none !important;
 }
 
+.focused .lineHit { pointer-events: none; }
+
 /* Their names now sit on the neuron. */
 .focused .star .name { visibility: hidden; }
 .focused .titleLit { opacity: 0 !important; }
@@ -761,6 +776,21 @@ a.tip:hover { border-color: rgba(119, 203, 255, 0.6); }
 .twig:focus-visible { outline: 1px solid rgba(185, 237, 255, 0.7); }
 
 .tipNeuron { pointer-events: auto; }
+
+/* A demo work: nothing to watch, said plainly. */
+.watchDemo {
+  border-color: rgba(179, 206, 230, 0.22);
+  background: none;
+  color: rgba(226, 238, 250, 0.6);
+  box-shadow: none;
+  cursor: default;
+}
+
+.watchDemo:hover {
+  transform: none;
+  background: none;
+  box-shadow: none;
+}
 
 .pickActions {
   display: flex;
