@@ -42,3 +42,25 @@ These are estimates for operational monitoring, not invoices. Taxes, provider di
 - CSV export is generated locally in the browser.
 - Missing provider configuration is shown explicitly as unavailable.
 - Existing Firestore view totals remain visible while new watch telemetry accumulates.
+
+## Activity log
+
+`/admin/activity` (and the "Activity log" section of `/admin/users/{uid}`) lists what people do on the site, one event at a time, newest first:
+
+- every page opened (path and the page's main heading),
+- every button and link clicked (by its label, and the link's target),
+- every video played, paused, passed 25/50/75%, and finished (position and seconds actually watched),
+- every search typed into a search box (the words, and which box),
+- signing in, signing up, and signing out.
+
+Nothing else typed is kept, and the admin console's own pages are not recorded. The demo (`?demo=1`) records nothing.
+
+Visitors who aren't signed in are followed by a per-browser id (`oona.visitorId` in localStorage). When that browser first signs in to an account, what it did before is added to that account (marked "before sign-in").
+
+- **Browser:** `src/components/ActivityRecorder.tsx` and `src/lib/activity/client.ts` batch events to `POST /api/activity` every few seconds and when the page is left.
+- **Server:** `src/lib/server/activity-log.ts` writes one `activityEvents` doc per event and one `activityVisitors` doc per browser. Only the Admin SDK touches either; `firestore.rules` denies clients. It stores country/city from Vercel's geolocation headers and the device/browser from the user agent, but never the IP address. Crawlers are skipped.
+- **Retention:** one year, via the TTL on `expiresAt` in `firestore.indexes.json`.
+- **Reading:** `GET /api/admin/activity` (admins only) filters by person (uid, @handle, email or visitor id), signed in or not, and kind.
+- **Indexes:** the composite indexes it needs are in `firestore.indexes.json` and deploy with the Firebase workflow on push to main. Until they finish building (a few minutes), the page says the log is still getting ready.
+
+Because this records individual behaviour, the site's privacy policy should say so before launch.

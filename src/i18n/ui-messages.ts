@@ -2428,4 +2428,164 @@ export const uiMessages: Record<string, readonly [string, string]> = {
     "여기 있는 건 모두 가짜라서 실제로 올라가지 않아요. 대신 작품, 학교, 소사이어티를 둘러보세요.",
     "ここにあるものはすべて架空なので、実際にはアップロードされません。代わりに作品、学校、ソサエティを見てみてください。"
   ],
+  "couldn't load the activity log.": [
+    "활동 기록을 불러오지 못했어요.",
+    "アクティビティ記録を読み込めませんでした。"
+  ],
+  "nobody found for “{who}”.": [
+    "“{who}”에 해당하는 사람이 없어요.",
+    "“{who}”に該当する人が見つかりません。"
+  ],
+  "the log is still getting ready (its database index is being built). try again in a few minutes.": [
+    "기록을 준비하는 중이에요(데이터베이스 색인을 만드는 중). 몇 분 뒤에 다시 시도해 주세요.",
+    "記録の準備中です（データベースのインデックスを作成中）。数分後にもう一度お試しください。"
+  ],
+  "opened {path}": [
+    "{path} 열람",
+    "{path}を開いた"
+  ],
+  "clicked “{label}”": [
+    "“{label}” 클릭",
+    "“{label}”をクリック"
+  ],
+  "clicked a link to {href}": [
+    "{href} 링크 클릭",
+    "{href}へのリンクをクリック"
+  ],
+  "searched “{query}”": [
+    "“{query}” 검색",
+    "“{query}”を検索"
+  ],
+  "played “{title}” from {position}": [
+    "“{title}” {position}부터 재생",
+    "“{title}”を{position}から再生"
+  ],
+  "left “{title}” at {position} ({watched} watched)": [
+    "“{title}” {position}에서 나감 ({watched} 시청)",
+    "“{title}”を{position}で離脱（{watched}視聴）"
+  ],
+  "left the site during “{title}” at {position} ({watched} watched)": [
+    "“{title}” 보던 중 {position}에서 사이트를 떠남 ({watched} 시청)",
+    "“{title}”の視聴中、{position}でサイトを離脱（{watched}視聴）"
+  ],
+  "paused “{title}” at {position} ({watched} watched)": [
+    "“{title}” {position}에서 일시정지 ({watched} 시청)",
+    "“{title}”を{position}で一時停止（{watched}視聴）"
+  ],
+  "reached {percent}% of “{title}”": [
+    "“{title}” {percent}% 시청",
+    "“{title}”の{percent}%まで視聴"
+  ],
+  "finished “{title}” ({watched} watched)": [
+    "“{title}” 끝까지 시청 ({watched} 시청)",
+    "“{title}”を最後まで視聴（{watched}視聴）"
+  ],
+  "signed in with {method}": [
+    "{method}로 로그인",
+    "{method}でログイン"
+  ],
+  "signed up with {method}": [
+    "{method}로 가입",
+    "{method}で登録"
+  ],
+  "signed out": [
+    "로그아웃",
+    "ログアウト"
+  ],
+  "in “{box}”": [
+    "“{box}”에서",
+    "“{box}”で"
+  ],
+  "from {site}": [
+    "{site}에서 들어옴",
+    "{site}から"
+  ],
+  "showing {name}": [
+    "{name}만 보는 중",
+    "{name}のみ表示中"
+  ],
+  "showing visitor {id}": [
+    "방문자 {id}만 보는 중",
+    "訪問者{id}のみ表示中"
+  ],
+  "find a person: uid, @handle, email or visitor id": [
+    "사람 찾기: uid, @핸들, 이메일 또는 방문자 ID",
+    "人を探す：uid、@ハンドル、メールまたは訪問者ID"
+  ],
+  "visitor {id}": [
+    "방문자 {id}",
+    "訪問者{id}"
+  ],
+  "pages": [
+    "페이지",
+    "ページ"
+  ],
+  "clicks": [
+    "클릭",
+    "クリック"
+  ],
+  "watching": [
+    "시청",
+    "視聴"
+  ],
+  "searches": [
+    "검색",
+    "検索"
+  ],
+  "sign-ins": [
+    "로그인",
+    "ログイン"
+  ],
+  "signed in": [
+    "로그인한 사람",
+    "ログイン中"
+  ],
+  "not signed in": [
+    "로그인 안 한 사람",
+    "未ログイン"
+  ],
+  "activity log": [
+    "활동 기록",
+    "アクティビティ記録"
+  ],
+  "find": [
+    "찾기",
+    "探す"
+  ],
+  "refresh": [
+    "새로고침",
+    "更新"
+  ],
+  "nothing recorded yet.": [
+    "아직 기록이 없어요.",
+    "まだ記録がありません。"
+  ],
+  "before sign-in": [
+    "로그인 전",
+    "ログイン前"
+  ],
+  "everything this person did on oona, newest first, including on this browser before they signed in.": [
+    "이 사람이 OONA에서 한 모든 행동을 최신순으로 보여줘요. 이 브라우저에서 로그인하기 전에 한 것도 포함돼요.",
+    "この人がOONAで行ったすべての操作を新しい順に表示します。このブラウザでログインする前の操作も含みます。"
+  ],
+  "everything people do on oona, newest first: the pages they open, what they click, the videos they watch, what they search for, and signing in and out. visitors who aren't signed in are followed by browser, and once they sign in, what they did before is added to their account.": [
+    "사람들이 OONA에서 하는 모든 행동을 최신순으로 보여줘요. 연 페이지, 누른 것, 본 영상, 검색한 내용, 로그인과 로그아웃까지요. 로그인하지 않은 방문자는 브라우저별로 기록하고, 나중에 로그인하면 그 전에 한 것도 그 계정에 붙어요.",
+    "OONAでの全員の操作を新しい順に表示します。開いたページ、クリックしたもの、視聴した動画、検索した内容、ログインとログアウトまで。未ログインの訪問者はブラウザごとに記録し、ログインすると、それまでの操作もそのアカウントに追加されます。"
+  ],
+  "opened {page}: “{heading}”": [
+    "{page} 열람: “{heading}”",
+    "{page}を開いた：“{heading}”"
+  ],
+  "opened {page}": [
+    "{page} 열람",
+    "{page}を開いた"
+  ],
+  "watch page": [
+    "시청 페이지",
+    "視聴ページ"
+  ],
+  "school page": [
+    "학교 페이지",
+    "学校ページ"
+  ],
 };

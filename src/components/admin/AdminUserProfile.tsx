@@ -8,6 +8,7 @@ import { useTranslations } from "@/context/LocaleContext";
 import type { AdminUserDetail } from "@/types/admin";
 import { genderLabelKey } from "@/lib/userGender";
 import AdminProfileChangeRequestPanel from "@/components/admin/AdminProfileChangeRequestPanel";
+import AdminActivityLog from "@/components/admin/AdminActivityLog";
 import AdminUserActivityTimeline from "@/components/admin/AdminUserActivityTimeline";
 import { AdminWorkLink } from "@/components/admin/AdminEntityLinks";
 import { formatApiError, formatClientError, readResponseJson } from "@/lib/clientErrors";
@@ -330,6 +331,7 @@ export default function AdminUserProfile({ uid }: Props) {
         )}
       </section>
 
+      <AdminActivityLog uid={data.uid} />
       <AdminUserActivityTimeline uid={data.uid} />
     </div>
   );
