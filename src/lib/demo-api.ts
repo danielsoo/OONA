@@ -143,10 +143,10 @@ function notifications(): NotificationListItem[] {
     targetPath: `/people/${uidOf(id)}`,
   });
   return [
-    follower("haneul", 2, false),
+    follower("hannah", 2, false),
     { id: "n-approve-low-tide", recipientUid: DEMO_ME.uid, type: "work_approve", workId: "low-tide", workTitle: "Low Tide", read: false, createdAt: hoursAgo(20), targetPath: `/watch/${DEMO_ME.uid}/low-tide` },
     follower("ines", 30, true),
-    follower("park", 52, true),
+    follower("ryan", 52, true),
   ];
 }
 
