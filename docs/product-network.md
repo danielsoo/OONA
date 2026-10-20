@@ -53,12 +53,15 @@ XIIO는 **공개 스트리밍 피드**를 유지하면서, 영화·영상 업계
 
 ## 포트폴리오 제출 링크 규칙
 
+링크는 보낼 곳마다 따로 만든다(편집 지원에는 편집작만, 촬영 지원에는 촬영작만). 각 링크는 고른 작품 목록(`includedWorkIds`)을 갖고 그 작품만 보여 준다. 프로필이나 다른 링크는 바뀌지 않고, 나중에 생긴 작품도 이미 보낸 링크에 끼어들지 않는다. 링크의 작품 구성은 같은 주소 그대로 바꿀 수 있다(`PATCH /api/me/portfolio-shares/{id}`).
+
 작품이 링크에 포함되려면:
 
 1. `platformStatus === "published"`
 2. 링크 소유자가 **작품 owner** 이거나 **creditIndex**에 있음
 3. `portfolioShares.excludedWorkIds`에 없음
-4. `portfolioSubmissionHidden !== true` (또는 `includedWorkIds`에 명시)
+4. `includedWorkIds`가 있으면 거기에 있음 (없으면 — 예전 링크 — `portfolioSubmissionHidden !== true`)
+5. 다른 사람 작품이면 owner가 `portfolioSubmissionHidden`으로 숨기지 않았음 (본인 작품은 목록에 넣으면 보인다)
 
 ## DM·안전
 

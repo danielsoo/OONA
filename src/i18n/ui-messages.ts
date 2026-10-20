@@ -2320,10 +2320,6 @@ export const uiMessages: Record<string, readonly [string, string]> = {
     "내 포트폴리오",
     "私のポートフォリオ"
   ],
-  "portfolio link": [
-    "포트폴리오 링크",
-    "ポートフォリオリンク"
-  ],
   "share your portfolio": [
     "포트폴리오 공유하기",
     "ポートフォリオを共有する"
@@ -2368,10 +2364,6 @@ export const uiMessages: Record<string, readonly [string, string]> = {
     "작품 주인이 숨겼어요",
     "作品の持ち主が非表示にしています"
   ],
-  "works you add later join the link on their own.": [
-    "나중에 추가되는 작품도 이 링크에 저절로 들어가요.",
-    "あとから増えた作品も、このリンクに自動で加わります。"
-  ],
   "title, shown at the top of the page": [
     "제목 (페이지 맨 위에 보여요)",
     "タイトル（ページの上部に表示されます）"
@@ -2407,5 +2399,41 @@ export const uiMessages: Record<string, readonly [string, string]> = {
   "see their portfolio": [
     "포트폴리오 보기",
     "ポートフォリオを見る"
+  ],
+  "{name} — {role}": [
+    "{name} — {role}",
+    "{name} — {role}"
+  ],
+  "couldn't save the link.": [
+    "링크를 저장하지 못했어요.",
+    "リンクを保存できませんでした。"
+  ],
+  "portfolio links": [
+    "포트폴리오 링크",
+    "ポートフォリオリンク"
+  ],
+  "make a link for each place you send it, with only the works that fit: your editing for an editing job, your camera work for a dp role. anyone can open it, no account needed, and your profile stays as it is.": [
+    "보낼 곳마다 링크를 따로 만들고, 거기에 맞는 작품만 담으세요. 편집 일에는 편집한 작품을, 촬영감독 자리에는 촬영한 작품을요. 계정이 없어도 누구나 열 수 있고, 내 프로필은 그대로예요.",
+    "送り先ごとにリンクをつくり、合う作品だけを入れましょう。編集の仕事には編集した作品を、撮影監督の募集には撮影した作品を。アカウントがなくても誰でも開けて、プロフィールはそのままです。"
+  ],
+  "saved. the same link now shows {count} works.": [
+    "저장했어요. 같은 링크에 이제 작품 {count}개가 보여요.",
+    "保存しました。同じリンクに、いまは{count}作品が表示されます。"
+  ],
+  "changing “{title}”": [
+    "“{title}” 수정 중",
+    "「{title}」を変更中"
+  ],
+  "pick by role": [
+    "역할로 고르기",
+    "役割で選ぶ"
+  ],
+  "only the works you tick are on this link. your profile and your other links stay as they are.": [
+    "체크한 작품만 이 링크에 들어가요. 내 프로필과 다른 링크는 그대로예요.",
+    "チェックした作品だけがこのリンクに入ります。プロフィールやほかのリンクはそのままです。"
+  ],
+  "change works": [
+    "작품 바꾸기",
+    "作品を変える"
   ],
 };

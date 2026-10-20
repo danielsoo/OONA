@@ -6,6 +6,7 @@ import { getUidByHandle } from "@/lib/server/handles";
 import { parseUserProfileDoc } from "@/lib/userAccess";
 import { parseWorkDoc, resolveWorkListThumbnailUrl, worksCol } from "@/lib/server/works";
 import { listWorkCollaborators } from "@/lib/server/work-collaborators";
+import { workIncludedInShare } from "@/lib/portfolio-share";
 import { listWorkProfileNotes, workProfileNoteDocId } from "@/lib/server/work-profile-notes";
 import {
   PORTFOLIO_SHARE_VISIBILITY,
@@ -115,19 +116,6 @@ export async function listEligibleWorksForUser(
   return eligible;
 }
 
-function workIncludedInShare(
-  workId: string,
-  work: { portfolioSubmissionHidden?: boolean },
-  share: PortfolioShareDoc
-): boolean {
-  if (share.excludedWorkIds.includes(workId)) return false;
-  if (share.includedWorkIds.length > 0) {
-    return share.includedWorkIds.includes(workId);
-  }
-  if (work.portfolioSubmissionHidden) return false;
-  return true;
-}
-
 export async function buildPublicPortfolio(
   db: Firestore,
   uid: string,
@@ -148,7 +136,7 @@ export async function buildPublicPortfolio(
     const workSnap = await worksCol(db, item.ownerUid).doc(item.workId).get();
     if (!workSnap.exists) continue;
     const work = parseWorkDoc(item.workId, workSnap.data() as Record<string, unknown>);
-    if (!workIncludedInShare(item.workId, work, share)) continue;
+    if (!workIncludedInShare(item.workId, work, share, item.ownerUid === uid)) continue;
 
     const thumbnailUrl = await resolveWorkListThumbnailUrl(db, item.ownerUid, item.workId, work);
     let playbackUrl: string | undefined;

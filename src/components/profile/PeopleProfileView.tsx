@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
-import UiText, { useUiCopy } from "@/components/i18n/UiText";
+import UiText from "@/components/i18n/UiText";
 import { useAuth } from "@/context/AuthContext";
 import { useTranslations } from "@/context/LocaleContext";
 import SocietyProfileBody, { type ProfileTab } from "@/components/society/SocietyProfileBody";
@@ -87,7 +87,6 @@ function useProfileTab(): [ProfileTab, (tab: ProfileTab) => void] {
 
 export default function PeopleProfileView({ handle }: Props) {
   const { t } = useTranslations();
-  const copy = useUiCopy();
   const { user } = useAuth();
   const [data, setData] = useState<PeopleProfilePayload | null>(null);
   const [err, setErr] = useState<string | null>(null);
@@ -230,7 +229,7 @@ export default function PeopleProfileView({ handle }: Props) {
         <PortfolioShareDialog
           open={sharing}
           onClose={closeSharing}
-          defaultTitle={copy("{name} — selected work", { name: data.profile.displayName || data.profile.handle })}
+          ownerName={data.profile.displayName || data.profile.handle}
           thumbs={Object.fromEntries([...data.directed, ...data.credited].map((w) => [`${w.ownerUid}:${w.workId}`, w.thumbnailUrl]))}
         />
       ) : null}
