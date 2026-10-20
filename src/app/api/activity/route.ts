@@ -7,10 +7,10 @@ import {
   sanitizeActivityId,
   sanitizeActivityPath,
 } from "@/lib/activity/events";
+import { recordActivity, type ActivityToStore } from "@/lib/server/activity/record";
 import { jsonError } from "@/lib/server/api-auth";
-import { recordActivity, type ActivityToStore } from "@/lib/server/activity-log";
 import { verifyBearerIdToken } from "@/lib/server/firebase-admin";
-import { getDbOrNull } from "@/lib/server/works";
+import { getMongoDb } from "@/lib/server/mongo";
 
 const MAX_BODY_BYTES = 100_000;
 const MAX_EVENTS = 50;
@@ -31,12 +31,13 @@ function geo(headers: Headers) {
 
 /**
  * The activity log's intake (lib/activity/client.ts sends here): a batch of
- * what one browser did, signed in or not. A valid sign-in token ties the
- * batch, and that browser's earlier visits, to the account.
+ * what one browser did, signed in or not, stored in MongoDB
+ * (lib/server/activity). A valid sign-in token ties the batch, and that
+ * browser's earlier visits, to the account.
  */
 export async function POST(request: Request) {
-  const db = await getDbOrNull();
-  if (!db) return jsonError("admin_not_configured", "The activity log is unavailable.", 503);
+  const db = await getMongoDb().catch(() => null);
+  if (!db) return jsonError("activity_not_configured", "The activity log is unavailable.", 503);
 
   const userAgent = request.headers.get("user-agent") ?? "";
   if (isBotUserAgent(userAgent)) return NextResponse.json({ ok: true, recorded: 0 });

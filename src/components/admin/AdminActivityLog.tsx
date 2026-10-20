@@ -116,7 +116,7 @@ export default function AdminActivityLog({ uid, initialWho }: { uid?: string; in
           events?: ActivityEventView[];
           nextCursor?: string | null;
           notFound?: boolean;
-          indexPending?: boolean;
+          notConfigured?: boolean;
           resolved?: { uid?: string; visitorId?: string; name?: string } | null;
           message?: string;
         };
@@ -126,7 +126,7 @@ export default function AdminActivityLog({ uid, initialWho }: { uid?: string; in
           return;
         }
         if (body.notFound) setNotice(copy("Nobody found for “{who}”.", { who }));
-        else if (body.indexPending) setNotice(copy("The log is still getting ready (its database index is being built). Try again in a few minutes."));
+        else if (body.notConfigured) setNotice(copy("The activity log isn't connected to its database yet: set MONGODB_URI on the server."));
         setEvents((list) => (cursor ? [...list, ...(body.events ?? [])] : body.events ?? []));
         setNextCursor(body.nextCursor ?? null);
       } catch {

@@ -159,11 +159,11 @@ let pendingPage: (() => void) | null = null;
 
 /** The page's main heading: a work's title, a person's or school's name. */
 function pageHeading(): string | null {
-  const h1 = document.querySelector("main h1") ?? document.querySelector("h1");
+  const h1 = document.querySelector<HTMLElement>("main h1") ?? document.querySelector<HTMLElement>("h1");
   if (!h1) return null;
-  // Names set one word per line (<span>s) read as one line.
-  const parts = [...h1.children].map((child) => child.textContent?.trim()).filter(Boolean);
-  const text = (parts.length > 1 ? parts.join(" ") : h1.textContent ?? "").replace(/\s+/g, " ").trim();
+  // As it reads on screen: words on separate lines (<br>, block <span>s) stay apart.
+  const parts = [...h1.children].map((child) => (child as HTMLElement).innerText?.trim()).filter(Boolean);
+  const text = (parts.length > 1 ? parts.join(" ") : h1.innerText || h1.textContent || "").replace(/\s+/g, " ").trim();
   return text ? text.slice(0, 100) : null;
 }
 

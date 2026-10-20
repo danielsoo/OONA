@@ -1,7 +1,8 @@
 /**
  * The activity log's events: what the browser records (lib/activity/client.ts)
- * and the server stores in `activityEvents` (lib/server/activity-log.ts), for
- * the admin console to look up who did what. Pure, shared by both sides.
+ * and the server stores in MongoDB, one collection per kind
+ * (lib/server/activity), for the admin console to look up who did what.
+ * Pure, shared by both sides.
  *
  * Only what people do is kept, never what they type, except into search
  * boxes: a click's button or link label, a page's path, a video's title and

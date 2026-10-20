@@ -2436,10 +2436,6 @@ export const uiMessages: Record<string, readonly [string, string]> = {
     "“{who}”에 해당하는 사람이 없어요.",
     "“{who}”に該当する人が見つかりません。"
   ],
-  "the log is still getting ready (its database index is being built). try again in a few minutes.": [
-    "기록을 준비하는 중이에요(데이터베이스 색인을 만드는 중). 몇 분 뒤에 다시 시도해 주세요.",
-    "記録の準備中です（データベースのインデックスを作成中）。数分後にもう一度お試しください。"
-  ],
   "opened {path}": [
     "{path} 열람",
     "{path}を開いた"
@@ -2587,5 +2583,9 @@ export const uiMessages: Record<string, readonly [string, string]> = {
   "school page": [
     "학교 페이지",
     "学校ページ"
+  ],
+  "the activity log isn't connected to its database yet: set mongodb_uri on the server.": [
+    "활동 기록이 아직 데이터베이스에 연결되지 않았어요. 서버에 MONGODB_URI를 설정해 주세요.",
+    "アクティビティ記録はまだデータベースに接続されていません。サーバーにMONGODB_URIを設定してください。"
   ],
 };

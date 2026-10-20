@@ -19,6 +19,7 @@ let getToken: (() => Promise<string | null>) | null = null;
 let token: string | null = null;
 let memoryVisitorId: string | null = null;
 let refresher: ReturnType<typeof setInterval> | null = null;
+let off = false;
 /** Sign-in tokens last an hour. */
 const TOKEN_REFRESH_MS = 20 * 60 * 1000;
 
@@ -68,7 +69,7 @@ export function currentActivityPath(): string {
 
 /** Note that something happened; it's sent with the next batch. */
 export function trackActivity(type: ActivityType, data?: ActivityData, path = currentActivityPath(), at = Date.now()): void {
-  if (typeof window === "undefined") return;
+  if (typeof window === "undefined" || off) return;
   queue.push({ type, at, path: sanitizeActivityPath(path) ?? window.location.pathname, ...(data ? { data } : {}) });
   if (queue.length >= BATCH) void flushActivity(false);
   else timer ??= setTimeout(() => void flushActivity(false), FLUSH_MS);
@@ -95,12 +96,17 @@ export async function flushActivity(leaving: boolean): Promise<void> {
   }
   const body = JSON.stringify({ visitorId: activityVisitorId(), sessionId: getEngagementSessionId(), sentAt: Date.now(), events });
   try {
-    await fetch("/api/activity", {
+    const res = await fetch("/api/activity", {
       method: "POST",
       keepalive: true,
       headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
       body,
     });
+    // The log isn't set up on this server (no database): stop for this page load.
+    if (res.status === 503) {
+      off = true;
+      queue = [];
+    }
   } catch {
     // Dropped: the log is best effort and never gets in the way of the page.
   }
