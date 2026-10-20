@@ -1,0 +1,57 @@
+/* The demo site's label: a quiet pill at the foot of every page, between the
+   corners Society already uses (its scroll toggle left, its demo badge right),
+   that never takes a click from what's under it. */
+.label {
+  position: fixed;
+  z-index: 70;
+  bottom: 22px;
+  left: 50%;
+  display: flex;
+  max-width: calc(100vw - 32px);
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 8px 16px;
+  border: 1px solid rgba(255, 196, 120, 0.42);
+  border-radius: 999px;
+  background: rgba(20, 12, 4, 0.72);
+  color: rgba(255, 236, 214, 0.86);
+  font-size: 12px;
+  line-height: 1.3;
+  white-space: nowrap;
+  transform: translateX(-50%);
+  backdrop-filter: blur(8px);
+  pointer-events: none;
+}
+.label b {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #ffd29a;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+}
+.label b::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #ffb35c;
+  box-shadow: 0 0 10px rgba(255, 179, 92, 0.8);
+}
+.label span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Below lg the tab bar sits at the foot: the label rides above it, and says only that it's the demo. */
+@media (max-width: 1023px) {
+  .label {
+    bottom: calc(80px + env(safe-area-inset-bottom));
+    padding: 6px 12px;
+  }
+  .label span {
+    display: none;
+  }
+}
