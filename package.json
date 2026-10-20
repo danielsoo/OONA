@@ -17,6 +17,8 @@
     "schools:import": "node scripts/import-school-email-domains.cjs",
     "test": "node --experimental-strip-types --test src/lib/collab-invite-pure.test.ts src/lib/works/promo-crop-interaction-pure.test.ts src/lib/credit-display-name-pure.test.ts src/lib/works/promo-file-validation.test.ts src/lib/homeHeroColors.test.ts src/lib/credits-roll.test.ts src/lib/visit-clock.test.ts src/lib/society-directory.test.ts src/lib/society-sky.test.ts src/lib/portfolio-share.test.ts",
     "firebase:deploy": "firebase deploy --only firestore",
+    "demo:seed": "node --experimental-strip-types scripts/demo-seed.mjs",
+    "demo:reset": "node --experimental-strip-types scripts/demo-seed.mjs --reset",
     "process:campus-logos": "node scripts/process-campus-logos.mjs"
   },
   "dependencies": {
