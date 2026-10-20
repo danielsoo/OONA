@@ -1,11 +1,13 @@
 # 데모 사이트 (어드바이저·투자자 체험용)
 
-실서비스와 **똑같은 사이트**(같은 코드, 같은 화면, 같은 동작)를 별도 Firebase 프로젝트와 별도 Cloudflare 계정에 붙여서, 가짜 데이터로 가득 찬 사이트를 하나 더 띄운다. 다른 건 데이터베이스가 가짜라는 것과, 데모 계정이 관리자 페이지까지 모든 곳에 들어갈 수 있다는 것뿐이다. 실서비스 DB와 영상은 건드리지 않는다.
+실서비스와 **똑같은 사이트**(같은 코드, 같은 화면, 같은 동작)를 별도 Firebase 프로젝트에 붙여서, 가짜 데이터로 가득 찬 사이트를 하나 더 띄운다. 다른 건 데이터베이스가 가짜라는 것과, 데모 계정이 관리자 페이지까지 모든 곳에 들어갈 수 있다는 것뿐이다. 영상은 실서비스와 **같은 Cloudflare 계정**을 쓰되 데모 영상에는 표시(`xiio_env: demo`)가 붙어 실서비스와 섞이지 않는다. 실서비스 DB는 건드리지 않는다.
+
+**왜 Firebase만 따로인가:** 한 Firebase 프로젝트 안에서는 로그인 계정이 공유된다. 같은 프로젝트에 데모 DB만 따로 두면 데모 계정으로 실서비스에도 로그인할 수 있고, 설정 하나만 틀려도 실서비스 DB에 쓰게 된다. 프로젝트를 나누면 그럴 일이 아예 없다. Cloudflare는 영상 저장소일 뿐이라 표시로 구분하면 충분하다.
 
 - **가짜 세계:** `src/lib/demo-world.ts` (사람 101명, 작품 40개, 학교 12곳, 스틸). Society의 앱 내 데모(`/society?demo=1`)와 같은 데이터다.
 - **채우기/초기화:** `scripts/demo-seed.mjs` (`npm run demo:seed`, `npm run demo:reset`). 실제로 쓰는 문서는 `scripts/lib/demo-seed-data.mjs`가 만든다 (테스트: `scripts/lib/demo-seed-data.test.mjs`).
 - **화면 차이 없음:** 데모 표시 띠도 제목 변경도 없다. `NEXT_PUBLIC_APP_ENV=demo`가 하는 일은 검색엔진에 색인하지 말라고 알리는 것 하나뿐이다 (눈에 안 보임).
-- **영상:** 작품마다 실제 Cloudflare Stream 영상이 붙어서, 실서비스처럼 목록에 뜨고 재생되고 미리보기도 돈다. 영상은 `scripts/demo-media/`의 짧은 클립(작품 스틸 위를 천천히 움직이는 10초 영상, 23개)이며 채울 때 데모 Cloudflare 계정에 올라간다.
+- **영상:** 작품마다 실제 Cloudflare Stream 영상이 붙어서, 실서비스처럼 목록에 뜨고 재생되고 미리보기도 돈다. 영상은 `scripts/demo-media/`의 짧은 클립(작품 스틸 위를 천천히 움직이는 10초 영상, 23개)이며 채울 때 Cloudflare에 `oona-demo …` 이름으로 올라간다.
 - **결제:** 쓰지 않는다. 업로더 보증금은 코드에서 꺼져 있다.
 
 ## 채워지는 것
@@ -54,21 +56,27 @@ Console → Firestore → `xiio` → 색인에서 전부 **사용 설정됨**이
 | `NEXT_PUBLIC_FIREBASE_FIRESTORE_DATABASE_ID`, `FIREBASE_FIRESTORE_DATABASE_ID` | `xiio` |
 | `FIREBASE_SERVICE_ACCOUNT_JSON` | 1-5 JSON 파일 내용 전체 (한 줄) |
 | `NEXT_PUBLIC_APP_URL` | 데모 사이트 주소 (예: 연결한 `demo.` 도메인) |
-| `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_STREAM_API_TOKEN` | **데모용** Cloudflare 계정 값 (아래 참고) |
+| `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_STREAM_API_TOKEN`, `CLOUDFLARE_STREAM_CUSTOMER_SUBDOMAIN`, `CLOUDFLARE_STREAM_WEBHOOK_SECRET` | 실서비스와 **같은** 값 (같은 Cloudflare 계정) |
 
 3. (선택) **Settings → Domains**에서 `demo` 브랜치에 도메인을 붙인다 (예: `demo.<도메인>`).
 4. `demo` 브랜치를 푸시하면 데모 사이트가 배포된다.
 
-**Cloudflare는 데모용 계정을 따로 만든다.** 영상 재생·썸네일·업로드가 모두 Cloudflare Stream을 거치므로 필수다. 실서비스 계정을 같이 쓰면 데모 영상이 실서비스 영상 목록에 섞이고 비용도 같이 나간다. [Cloudflare](https://dash.cloudflare.com) 가입 → Stream 구독 → **My Profile → API Tokens**에서 "Stream: Edit" 권한 토큰을 만들고, 계정 ID와 함께 넣는다. 데모 영상 23개(각 10초)는 4분 남짓이라 비용은 거의 없다.
+**Cloudflare는 실서비스 계정을 같이 쓴다.** 데모 사이트가 올리는 영상에는 `xiio_env: demo` 표시가 붙고, 실서비스는 그런 영상의 처리 알림(웹훅)을 무시한다. Cloudflare 계정에는 웹훅 주소가 하나뿐(실서비스)이라, 데모 영상의 알림은 실서비스가 데모 사이트로 그대로 넘겨 준다. 그러려면 **실서비스(Production) 환경변수**에 하나를 추가하고 실서비스를 다시 배포한다:
 
-**넣지 말 것:** `NEXT_PUBLIC_DEMO_MODE` (켜면 영화 페이지가 시드 대신 예전 목업을 보여 준다), 실서비스 `FIREBASE_SERVICE_ACCOUNT_JSON`과 Cloudflare 값, Stripe 키. 카카오·네이버 로그인을 데모에서도 쓰려면 각 개발자 콘솔에 데모 도메인을 등록하고 키를 넣는다 (안 넣으면 그 버튼만 동작하지 않는다).
+| 변수 (Production) | 값 |
+|------|----|
+| `CLOUDFLARE_STREAM_WEBHOOK_DEMO_URL` | `https://<데모 사이트 주소>/api/webhooks/cloudflare-stream` |
+
+이게 없어도 데모 업로드는 주인이 내 작품 화면을 열 때 상태가 갱신되지만, 있으면 실서비스와 똑같이 바로 처리된다. 데모 영상 23개(각 10초, 4분 남짓)라 비용은 거의 없고, 대시보드에서는 `oona-demo`로 시작하는 이름으로 구분된다.
+
+**넣지 말 것:** `NEXT_PUBLIC_DEMO_MODE` (켜면 영화 페이지가 시드 대신 예전 목업을 보여 준다), 실서비스 `FIREBASE_SERVICE_ACCOUNT_JSON`과 `NEXT_PUBLIC_FIREBASE_*` 값, Stripe 키. 카카오·네이버 로그인을 데모에서도 쓰려면 각 개발자 콘솔에 데모 도메인을 등록하고 키를 넣는다 (안 넣으면 그 버튼만 동작하지 않는다).
 
 ### 4. 가짜 데이터 채우기
 
 ```bash
 # 데모 프로젝트 키로 (실서비스 키면 스크립트가 거부한다)
 export FIREBASE_SERVICE_ACCOUNT_JSON="$(cat ~/Downloads/oona-demo-xxxx.json)"
-# 데모 Cloudflare 계정 (영상을 올린다)
+# Cloudflare (실서비스와 같은 계정 — 데모 영상은 oona-demo 이름과 demo 표시로 구분)
 export CLOUDFLARE_ACCOUNT_ID=… CLOUDFLARE_STREAM_API_TOKEN=…
 
 # 먼저 무엇을 쓸지 확인 (아무것도 안 씀)

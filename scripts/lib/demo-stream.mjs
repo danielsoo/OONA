@@ -47,7 +47,8 @@ export async function uploadClip(creds, filePath, name) {
   await call(creds, `/${uid}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ meta: { name }, requireSignedURLs: false }),
+    // xiio_env: the real site's webhook (the account's only one) leaves demo videos alone.
+    body: JSON.stringify({ meta: { name, xiio_env: "demo" }, requireSignedURLs: false }),
   });
   return uid;
 }
