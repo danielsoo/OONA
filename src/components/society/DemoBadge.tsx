@@ -15,7 +15,7 @@ export default function DemoBadge({ active }: { active: boolean }) {
     <p className={styles.badge} role="note">
       <b><UiText text="Demo" /></b>
       <span><UiText text="Made-up people and works, to look around." /></span>
-      <a href="/society" aria-label={copy("Leave the demo")}>
+      <a href="/society?demo=0" aria-label={copy("Leave the demo")}>
         <span className={styles.long}><UiText text="Leave the demo" /></span>
         <span className={styles.short} aria-hidden="true">✕</span>
       </a>
