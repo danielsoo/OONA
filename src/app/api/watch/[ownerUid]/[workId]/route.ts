@@ -3,6 +3,7 @@ import { getStreamEmbedUrl, getStreamVideo, resolvePlaybackUrl } from "@/lib/clo
 import { resolveWorkCreditDisplayName } from "@/lib/credit-display-name";
 import { peopleProfileHref } from "@/lib/dm/peopleProfileHref";
 import { listWorkCredits } from "@/lib/server/credits";
+import { demoMedia } from "@/lib/server/demo-media";
 import {
   getDbOrNull,
   parsePrologueDoc,
@@ -42,13 +43,16 @@ export async function GET(_request: Request, { params }: Params) {
     return NextResponse.json({ error: "not_found", message: "작품을 찾을 수 없습니다." }, { status: 404 });
   }
 
-  const work = parseWorkDoc(workId, snap.data() as Record<string, unknown>);
+  const data = snap.data() as Record<string, unknown>;
+  const work = parseWorkDoc(workId, data);
+  // A seeded work on the demo site: its poster, and its sample clip if it has one.
+  const demo = demoMedia(data);
 
   if (work.platformStatus !== "published") {
     return NextResponse.json({ error: "not_found", message: "공개된 작품이 아닙니다." }, { status: 404 });
   }
 
-  if (work.streamStatus !== "ready" || !work.streamUid) {
+  if (!demo && (work.streamStatus !== "ready" || !work.streamUid)) {
     return NextResponse.json(
       { error: "not_ready", message: "영상을 재생할 수 없습니다. 인코딩 중이거나 오류가 있습니다." },
       { status: 404 }
@@ -56,8 +60,8 @@ export async function GET(_request: Request, { params }: Params) {
   }
 
   const [playbackUrl, info, rawCredits, prologueSnap] = await Promise.all([
-    resolvePlaybackUrl(work.streamUid),
-    getStreamVideo(work.streamUid),
+    demo ? demo.playbackUrl : resolvePlaybackUrl(work.streamUid!),
+    demo ? null : getStreamVideo(work.streamUid!),
     listWorkCredits(db, ownerUid, workId),
     prologueRef(db, ownerUid, workId).get(),
   ]);
@@ -121,8 +125,8 @@ export async function GET(_request: Request, { params }: Params) {
     approvedTags: work.approvedTags ?? [],
     approvedAspectRatio: work.approvedAspectRatio,
     playbackUrl,
-    embedUrl: getStreamEmbedUrl(work.streamUid),
-    thumbnailUrl: info?.thumbnail,
+    embedUrl: demo ? "" : getStreamEmbedUrl(work.streamUid!),
+    thumbnailUrl: demo ? demo.posterUrl : info?.thumbnail,
     durationSec: info?.duration,
     credits,
     approvedSchoolId: work.approvedSchoolId,

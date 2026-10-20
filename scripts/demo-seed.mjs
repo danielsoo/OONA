@@ -6,7 +6,8 @@
  * portfolios, messages, notifications, uploading. See docs/demo-site.md.
  *
  *   node --experimental-strip-types scripts/demo-seed.mjs \
- *     --project oona-demo --database xiio [--apply] [--reset] [--password …]
+ *     --project oona-demo --database xiio [--apply] [--reset] [--password …] \
+ *     [--sample-video https://… (repeat for more; dealt to the works in turn)]
  *
  * Without --apply it only says what it would do. With --apply it seeds an
  * empty database. --reset wipes a database this script seeded before (and
@@ -29,15 +30,19 @@ import { buildDemoSeed, DEMO_ACCOUNT_DOMAIN } from "./lib/demo-seed-data.mjs";
 /** OONA's real project: never a target. */
 const PRODUCTION_PROJECTS = new Set(["xiio-9d86b"]);
 const MARKER = ["site", "demoSeed"];
-/** Top-level collections the seed writes, wiped by --reset. */
-const SEEDED_COLLECTIONS = ["users", "handles", "dmThreads", "rooms", "schools", "site", "collabInvites", "businessInvites"];
 
 function parseArgs(argv) {
-  const options = { apply: false, reset: false, project: "", database: "", password: "" };
+  const options = { apply: false, reset: false, project: "", database: "", password: "", sampleVideos: [] };
   for (let i = 0; i < argv.length; i += 1) {
     const key = argv[i];
     if (key === "--apply") options.apply = true;
     else if (key === "--reset") options.reset = true;
+    else if (key === "--sample-video") {
+      const value = argv[i + 1];
+      if (!value?.startsWith("https://")) throw Error("--sample-video needs an https:// URL (an .mp4, or an HLS .m3u8)");
+      options.sampleVideos.push(value);
+      i += 1;
+    }
     else if (key === "--project" || key === "--database" || key === "--password") {
       const value = argv[i + 1];
       if (!value || value.startsWith("--")) throw Error(`${key} needs a value`);
@@ -63,8 +68,9 @@ function credentialFor(project) {
 }
 
 async function wipe(db, auth, accountUids) {
-  for (const name of SEEDED_COLLECTIONS) {
-    await db.recursiveDelete(db.collection(name));
+  // Everything: a demo database holds the seed and whatever visitors added to it.
+  for (const collection of await db.listCollections()) {
+    await db.recursiveDelete(collection);
   }
   // The sign-in accounts the seed made (and any left from an older seed).
   const stale = new Set(accountUids);
@@ -91,7 +97,7 @@ async function main() {
   const emulated = !!process.env.FIRESTORE_EMULATOR_HOST;
   console.log(`Target: project=${options.project}, database=${options.database}, emulator=${emulated ? process.env.FIRESTORE_EMULATOR_HOST : "none"}, mode=${options.apply ? (options.reset ? "RESET + SEED" : "SEED") : "DRY RUN (no writes)"}`);
 
-  const seed = buildDemoSeed({ password: options.password || undefined, now: new Date() });
+  const seed = buildDemoSeed({ password: options.password || undefined, sampleVideos: options.sampleVideos, now: new Date() });
   const counts = {};
   for (const { path } of seed.docs) {
     const top = path.split("/").filter((_, i) => i % 2 === 0).join("/");

@@ -1,5 +1,6 @@
 import type { Firestore } from "firebase-admin/firestore";
 import { getStreamThumbnailUrl } from "@/lib/cloudflare/stream";
+import { demoMedia } from "@/lib/server/demo-media";
 import {
   getDbOrNull,
   parsePromoDoc,
@@ -27,8 +28,10 @@ export async function fetchSchoolWorksFeed(
   const candidates = snap.docs.flatMap((doc) => {
     const ownerUid = doc.ref.parent.parent?.id;
     if (!ownerUid) return [];
-    const work = parseWorkDoc(doc.id, doc.data() as Record<string, unknown>);
-    if (work.platformStatus !== "published" || work.streamStatus !== "ready" || !work.streamUid) return [];
+    const data = doc.data() as Record<string, unknown>;
+    const work = parseWorkDoc(doc.id, data);
+    if (work.platformStatus !== "published") return [];
+    if (!demoMedia(data) && (work.streamStatus !== "ready" || !work.streamUid)) return [];
     return [{ doc, ownerUid, work }];
   }).slice(0, cappedLimit);
 
@@ -45,7 +48,7 @@ export async function fetchSchoolWorksFeed(
     const thumbnailUrl =
       promo?.thumbnailUrl ??
       item.work.promoDraft?.thumbnailUrl ??
-      getStreamThumbnailUrl(item.work.streamUid!) ??
+      (item.work.streamUid ? getStreamThumbnailUrl(item.work.streamUid) : null) ??
       undefined;
     const thumbnailCrop = promo?.thumbnailCrop ?? item.work.promoDraft?.thumbnailCrop;
 
