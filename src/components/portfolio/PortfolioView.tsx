@@ -61,7 +61,7 @@ export default function PortfolioView({ data, profileHref }: { data: PublicPortf
     <main className={profile.page}>
       <section className={profile.hero} data-society-hero="">
         <div className={profile.heroSky} aria-hidden="true">
-          <Image src={PROFILE_SKY} alt="" fill priority sizes="100vw" style={{ objectFit: "cover", objectPosition: PROFILE_SKY_POSITION }} />
+          <Image src={PROFILE_SKY} alt="" fill priority unoptimized sizes="100vw" style={{ objectFit: "cover", objectPosition: PROFILE_SKY_POSITION }} />
         </div>
         <div className={profile.heroInner}>
           <div className={profile.backRow}>
@@ -235,7 +235,7 @@ export function PortfolioSkeleton() {
       <span className="sr-only" role="status">{t("common.loading")}</span>
       <section className={profile.hero} data-society-hero="">
         <div className={profile.heroSky} aria-hidden="true">
-          <Image src={PROFILE_SKY} alt="" fill priority sizes="100vw" style={{ objectFit: "cover", objectPosition: PROFILE_SKY_POSITION }} />
+          <Image src={PROFILE_SKY} alt="" fill priority unoptimized sizes="100vw" style={{ objectFit: "cover", objectPosition: PROFILE_SKY_POSITION }} />
         </div>
         <div className={profile.heroInner}>
           <div className={profile.backRow}>

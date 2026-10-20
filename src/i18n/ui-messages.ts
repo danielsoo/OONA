@@ -2120,14 +2120,6 @@ export const uiMessages: Record<string, readonly [string, string]> = {
     "서로 다른 학교에서,",
     "学校は違っても、"
   ],
-  "look up.": [
-    "고개를 들어 보세요.",
-    "見上げてみて。"
-  ],
-  "everyone who makes something on oona is a star, and every work they made together is a constellation.": [
-    "OONA에서 무언가를 만드는 사람은 모두 별이에요. 함께 만든 작품 하나하나가 별자리가 돼요.",
-    "OONAで何かをつくる人はみんな星。一緒につくった作品が、ひとつひとつ星座になります。"
-  ],
   "scrolling": [
     "스크롤",
     "スクロール"
@@ -2139,10 +2131,6 @@ export const uiMessages: Record<string, readonly [string, string]> = {
   "free scroll": [
     "일반 스크롤",
     "通常スクロール"
-  ],
-  "scroll to find them": [
-    "스크롤해서 찾아보기",
-    "スクロールして探す"
   ],
   "constellations": [
     "별자리",

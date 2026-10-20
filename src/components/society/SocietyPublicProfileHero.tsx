@@ -41,7 +41,9 @@ export default function SocietyPublicProfileHero(props: Props) {
   return <>
     <section className={styles.hero} data-society-hero="">
       <div className={styles.heroSky} aria-hidden="true">
-        <Image src={PROFILE_SKY} alt="" fill priority sizes="100vw" style={{ objectFit: "cover", objectPosition: PROFILE_SKY_POSITION }} />
+        {/* unoptimized for the same reason as Society's sky: the picture is
+            almost all near-black, and a second lossy pass blotches it. */}
+        <Image src={PROFILE_SKY} alt="" fill priority unoptimized sizes="100vw" style={{ objectFit: "cover", objectPosition: PROFILE_SKY_POSITION }} />
       </div>
       <div className={styles.heroInner}>
         <div className={styles.backRow}><Link href={props.demo ? DEMO_SOCIETY_HREF : "/society?tab=discover"}><UiText text={"← Back to Society"} /></Link><span>{props.isSelf ? _copy("MY PROFILE") : _copy("CREATOR PROFILE")}</span></div>
