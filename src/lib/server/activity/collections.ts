@@ -16,8 +16,8 @@ import type { ActivityArea, ActivityType } from "@/lib/activity/events";
  *   visitors      uid, first and last seen
  *
  * Every event says who (uid, or null before sign-in; visitorId; sessionId),
- * when (`at`) and where (`path`, `area`). Events, sessions and visitors are
- * kept for a year (TTL indexes).
+ * when (`at`, and its UTC `hour` for the charts) and where (`path`, `area`).
+ * Events, sessions and visitors are kept for a year (TTL indexes).
  */
 
 export const RETENTION_SECONDS = 365 * 24 * 60 * 60;
@@ -33,11 +33,14 @@ export type EventBase = {
   sessionId: string;
   path: string;
   area: ActivityArea;
+  /** The UTC hour it happened in ("2026-10-21T13"), for counting by hour and day. */
+  hour: string;
 };
 
 export type PageViewDoc = EventBase & { heading?: string; referrer?: string };
 export type ClickDoc = EventBase & { label?: string; href?: string; element?: string; checked?: boolean };
-export type SearchDoc = EventBase & { query: string; box?: string };
+/** `queryKey`: the words lowercased, so the same search counts together. */
+export type SearchDoc = EventBase & { query: string; queryKey: string; box?: string };
 export type VideoAction = "play" | "pause" | "progress" | "complete";
 export type VideoEventDoc = EventBase & {
   action: VideoAction;
@@ -56,6 +59,8 @@ export type SessionDoc = {
   visitorId: string;
   uid: string | null;
   startedAt: Date;
+  /** The UTC hour the visit began in, like events' `hour`. */
+  startHour: string;
   lastSeenAt: Date;
   landingPath: string;
   events: number;
@@ -118,11 +123,13 @@ export function ensureActivityIndexes(db: Db): Promise<void> {
     const wanted: [string, IndexDescription][] = [
       ...EVENT_KINDS.flatMap((kind) => EVENT_INDEXES.map((index): [string, IndexDescription] => [kind, index])),
       ["sessions", { key: { visitorId: 1 }, name: "visitor" }],
+      ["sessions", { key: { startedAt: -1 }, name: "startedAt" }],
       ["sessions", { key: { lastSeenAt: 1 }, name: "lastSeen_ttl", expireAfterSeconds: RETENTION_SECONDS }],
       ["visitors", { key: { uid: 1 }, name: "uid" }],
       ["visitors", { key: { lastSeenAt: 1 }, name: "lastSeen_ttl", expireAfterSeconds: RETENTION_SECONDS }],
     ];
     const results = await Promise.allSettled(wanted.map(([name, index]) => db.collection(name).createIndexes([index])));
+    await fillHourBuckets(db);
     results.forEach((result, i) => {
       if (result.status === "rejected") {
         const [name, index] = wanted[i]!;
@@ -131,4 +138,20 @@ export function ensureActivityIndexes(db: Db): Promise<void> {
     });
   })();
   return indexed;
+}
+
+/**
+ * Records stored before `hour`/`startHour`/`queryKey` existed get them, once
+ * (an update by pipeline; a store without pipeline updates just skips it).
+ */
+async function fillHourBuckets(db: Db): Promise<void> {
+  const hourOf = (field: string) => ({ $dateToString: { date: `$${field}`, format: "%Y-%m-%dT%H", timezone: "UTC" } });
+  const fills: Promise<unknown>[] = [
+    ...EVENT_KINDS.map((kind) => db.collection(kind).updateMany({ hour: { $exists: false } }, [{ $set: { hour: hourOf("at") } }])),
+    db.collection("sessions").updateMany({ startHour: { $exists: false } }, [{ $set: { startHour: hourOf("startedAt") } }]),
+    db.collection("searches").updateMany({ queryKey: { $exists: false } }, [{ $set: { queryKey: { $toLower: "$query" } } }]),
+  ];
+  for (const result of await Promise.allSettled(fills)) {
+    if (result.status === "rejected") console.error("[activity] filling hour buckets skipped:", (result.reason as Error)?.message ?? result.reason);
+  }
 }

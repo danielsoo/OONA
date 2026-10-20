@@ -58,7 +58,7 @@ function typeOf(kind: EventKind, doc: AnyEventDoc): ActivityType {
 
 /** An event's own fields (what's not who, when or where), for the console. */
 function dataOf(doc: AnyEventDoc): ActivityData {
-  const skip = new Set(["_id", "at", "uid", "signedIn", "visitorId", "sessionId", "path", "area", "action"]);
+  const skip = new Set(["_id", "at", "hour", "uid", "signedIn", "visitorId", "sessionId", "path", "area", "action", "queryKey"]);
   return Object.fromEntries(
     Object.entries(doc).filter(([key, value]) => !skip.has(key) && ["string", "number", "boolean"].includes(typeof value))
   ) as ActivityData;

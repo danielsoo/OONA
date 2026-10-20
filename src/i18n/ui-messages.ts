@@ -2588,4 +2588,228 @@ export const uiMessages: Record<string, readonly [string, string]> = {
     "활동 기록이 아직 데이터베이스에 연결되지 않았어요. 서버에 MONGODB_URI를 설정해 주세요.",
     "アクティビティ記録はまだデータベースに接続されていません。サーバーにMONGODB_URIを設定してください。"
   ],
+  "activity views": [
+    "활동 보기 방식",
+    "アクティビティの表示"
+  ],
+  "charts": [
+    "차트",
+    "チャート"
+  ],
+  "event log": [
+    "이벤트 기록",
+    "イベント記録"
+  ],
+  "couldn't load the charts.": [
+    "차트를 불러오지 못했어요.",
+    "チャートを読み込めませんでした。"
+  ],
+  "last 24 hours": [
+    "최근 24시간",
+    "過去24時間"
+  ],
+  "vs the 24 hours before": [
+    "직전 24시간 대비",
+    "直前の24時間と比較"
+  ],
+  "last 7 days": [
+    "최근 7일",
+    "過去7日間"
+  ],
+  "vs the 7 days before": [
+    "직전 7일 대비",
+    "直前の7日間と比較"
+  ],
+  "last 30 days": [
+    "최근 30일",
+    "過去30日間"
+  ],
+  "vs the 30 days before": [
+    "직전 30일 대비",
+    "直前の30日間と比較"
+  ],
+  "last 90 days": [
+    "최근 90일",
+    "過去90日間"
+  ],
+  "vs the 90 days before": [
+    "직전 90일 대비",
+    "直前の90日間と比較"
+  ],
+  "unknown": [
+    "알 수 없음",
+    "不明"
+  ],
+  "period": [
+    "기간",
+    "期間"
+  ],
+  "nothing recorded in this period yet.": [
+    "이 기간에는 아직 기록이 없어요.",
+    "この期間の記録はまだありません。"
+  ],
+  "visitors": [
+    "방문자",
+    "訪問者"
+  ],
+  "signed-in people": [
+    "로그인한 사람",
+    "ログインした人"
+  ],
+  "visits": [
+    "방문",
+    "訪問"
+  ],
+  "page views": [
+    "페이지 조회",
+    "ページビュー"
+  ],
+  "video plays": [
+    "영상 재생",
+    "動画再生"
+  ],
+  "by hour, your time": [
+    "시간별 (내 시간대 기준)",
+    "時間別（あなたのタイムゾーン）"
+  ],
+  "by day, your time": [
+    "일별 (내 시간대 기준)",
+    "日別（あなたのタイムゾーン）"
+  ],
+  "where people spend time": [
+    "사람들이 머무는 곳",
+    "よく使われている場所"
+  ],
+  "page views by part of the site": [
+    "사이트 영역별 페이지 조회",
+    "サイトのエリア別ページビュー"
+  ],
+  "most viewed pages": [
+    "많이 본 페이지",
+    "よく見られたページ"
+  ],
+  "top searches": [
+    "인기 검색어",
+    "よく検索された言葉"
+  ],
+  "what people typed into search boxes": [
+    "사람들이 검색창에 입력한 말",
+    "検索ボックスに入力された言葉"
+  ],
+  "no searches in this period.": [
+    "이 기간에는 검색이 없어요.",
+    "この期間の検索はありません。"
+  ],
+  "devices": [
+    "기기",
+    "デバイス"
+  ],
+  "visits by device": [
+    "기기별 방문",
+    "デバイス別の訪問"
+  ],
+  "countries": [
+    "국가",
+    "国"
+  ],
+  "visits by country": [
+    "국가별 방문",
+    "国別の訪問"
+  ],
+  "show chart": [
+    "차트 보기",
+    "チャートを表示"
+  ],
+  "show table": [
+    "표로 보기",
+    "表で表示"
+  ],
+  "activity over time": [
+    "시간에 따른 활동",
+    "時間ごとのアクティビティ"
+  ],
+  "measure": [
+    "지표",
+    "指標"
+  ],
+  "started": [
+    "재생 시작",
+    "再生開始"
+  ],
+  "reached 25%": [
+    "25% 도달",
+    "25%まで視聴"
+  ],
+  "reached 50%": [
+    "50% 도달",
+    "50%まで視聴"
+  ],
+  "reached 75%": [
+    "75% 도달",
+    "75%まで視聴"
+  ],
+  "finished": [
+    "끝까지 시청",
+    "最後まで視聴"
+  ],
+  "how far people watch": [
+    "어디까지 보는지",
+    "どこまで見られているか"
+  ],
+  "of the plays started, how many reached each point": [
+    "재생을 시작한 것 중 각 지점까지 본 비율",
+    "再生のうち各地点まで視聴された割合"
+  ],
+  "plays": [
+    "재생",
+    "再生"
+  ],
+  "most watched videos": [
+    "많이 본 영상",
+    "よく見られた動画"
+  ],
+  "by plays started": [
+    "재생 시작 수 기준",
+    "再生開始数順"
+  ],
+  "no videos played in this period.": [
+    "이 기간에는 재생된 영상이 없어요.",
+    "この期間に再生された動画はありません。"
+  ],
+  "when people visit": [
+    "사람들이 오는 시간",
+    "訪問の多い時間帯"
+  ],
+  "page views by day and hour, your time": [
+    "요일·시간대별 페이지 조회 (내 시간대 기준)",
+    "曜日・時間帯別のページビュー（あなたのタイムゾーン）"
+  ],
+  "less": [
+    "적음",
+    "少ない"
+  ],
+  "desktop": [
+    "데스크톱",
+    "デスクトップ"
+  ],
+  "mobile": [
+    "모바일",
+    "モバイル"
+  ],
+  "tablet": [
+    "태블릿",
+    "タブレット"
+  ],
+  "so far": [
+    "지금까지",
+    "現時点"
+  ],
+  "dashed: this hour, still counting.": [
+    "점선: 지금 이 시간, 아직 집계 중이에요.",
+    "点線：この時間、まだ集計中です。"
+  ],
+  "dashed: today, still counting.": [
+    "점선: 오늘, 아직 집계 중이에요.",
+    "点線：今日、まだ集計中です。"
+  ],
 };

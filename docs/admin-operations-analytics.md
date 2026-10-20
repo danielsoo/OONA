@@ -83,6 +83,20 @@ Indexes are created by the server on first use. Each event collection is indexed
   - `people.ts`: names from Firestore and Firebase Auth
 - **Reading:** `GET /api/admin/activity` (admins only) filters by person (uid, @handle, email or visitor id), signed in or not, and kind.
 
+### Charts
+
+The Activity tab opens on charts and has the event list one click away under "Event log". A person search goes straight to the list. The period picker (24 hours, 7, 30 or 90 days) sets the period for everything:
+
+- **Headline numbers:** visitors, signed-in people, visits, page views, searches, video plays, watch time and sign-ups, each compared with the period just before.
+- **Activity over time:** one measure at a time. The hour or day still in progress is dashed.
+- **When people visit:** page views by weekday and hour.
+- **Parts of the site:** page views by area.
+- **Rankings:** most viewed pages and top searches.
+- **Videos:** how far people watch (started, 25/50/75%, finished) and the most watched videos.
+- **Devices and countries.**
+
+Every chart reads in the admin's own time zone. The server counts by UTC hour, using the `hour` stored on each event and `startHour` on each session, and the browser regroups the counts (`src/lib/activity/insights-buckets.ts`). The numbers come from `GET /api/admin/activity/insights?range=` (`src/lib/server/activity/insights.ts`), which only asks the database for counts and sums. Most charts can switch to a table of the same numbers.
+
 ### Setup
 
 ```dotenv

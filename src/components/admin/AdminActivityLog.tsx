@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import UiText, { useUiCopy } from "@/components/i18n/UiText";
 import { useAuth } from "@/context/AuthContext";
 import { useTranslations } from "@/context/LocaleContext";
+import { pageName } from "@/components/admin/insights/names";
 import type { ActivityCategory, ActivityEventView } from "@/lib/activity/events";
 
 type People = "everyone" | "members" | "visitors";
@@ -44,33 +45,6 @@ function clock(seconds: unknown): string {
 
 const shortId = (id: string) => id.replace(/-/g, "").slice(0, 6);
 
-/** A page's name from its path (the site's pages mostly share one title). */
-const PAGE_NAMES: Record<string, string> = {
-  "": "Home",
-  movies: "Films",
-  series: "Series",
-  entertainment: "Shows",
-  shorts: "Shorts",
-  watch: "Watch page",
-  discover: "Discover",
-  credits: "Credits",
-  schools: "Schools",
-  school: "School page",
-  society: "Society",
-  people: "Profile",
-  p: "Portfolio",
-  search: "Search",
-  "my-list": "My List",
-  notifications: "Notifications",
-  messages: "Messages",
-  account: "Account",
-  settings: "Settings",
-  login: "Sign in",
-  signup: "Sign up",
-  about: "About OONA",
-  uploader: "Upload",
-  projects: "Projects",
-};
 
 /**
  * The admin console's activity log (lib/activity): every page people open,
@@ -148,7 +122,7 @@ export default function AdminActivityLog({ uid, initialWho }: { uid?: string; in
     const title = String(d.title ?? "");
     switch (event.type) {
       case "page_view": {
-        const name = PAGE_NAMES[event.path.split(/[?#]/)[0]!.split("/")[1] ?? ""];
+        const name = pageName(event.path);
         const heading = String(d.heading ?? "");
         if (!name) return copy("Opened {path}", { path: event.path });
         return heading && heading !== copy(name) ? copy("Opened {page}: “{heading}”", { page: copy(name), heading }) : copy("Opened {page}", { page: copy(name) });

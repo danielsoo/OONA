@@ -57,7 +57,7 @@ function toDoc(event: ActivityToStore, base: EventBase): AnyEventDoc | null {
       return compact<ClickDoc>({ ...base, label: text(d.label), href: text(d.href), element: text(d.element), checked: flag(d.checked) });
     case "searches": {
       const query = text(d.query);
-      return query ? compact<SearchDoc>({ ...base, query, box: text(d.box) }) : null;
+      return query ? compact<SearchDoc>({ ...base, query, queryKey: query.toLowerCase(), box: text(d.box) }) : null;
     }
     case "video_events":
       return compact<VideoEventDoc>({
@@ -100,6 +100,7 @@ export async function recordActivity(db: Db, source: ActivitySource, events: Act
       sessionId: source.sessionId,
       path: event.path,
       area: activityArea(event.path),
+      hour: at.toISOString().slice(0, 13),
     });
     if (doc) byKind.set(kindOf(event.type), [...(byKind.get(kindOf(event.type)) ?? []), doc]);
   }
@@ -115,7 +116,13 @@ export async function recordActivity(db: Db, source: ActivitySource, events: Act
       sessionsCollection(db).updateOne(
         { _id: source.sessionId },
         {
-          $setOnInsert: { visitorId: source.visitorId, startedAt: seenAt, landingPath: events[0]!.path, ...(source.uid ? {} : { uid: null }) },
+          $setOnInsert: {
+            visitorId: source.visitorId,
+            startedAt: seenAt,
+            startHour: seenAt.toISOString().slice(0, 13),
+            landingPath: events[0]!.path,
+            ...(source.uid ? {} : { uid: null }),
+          },
           $set: {
             lastSeenAt: seenAt,
             device: source.device,
