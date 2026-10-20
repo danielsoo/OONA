@@ -4,6 +4,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState, type Mutable
 import { CreditsIntro, CreditsRoll, useCreditsRollFeed } from "@/components/credits/CreditsHome";
 import creditsStyles from "@/components/credits/CreditsHome.module.css";
 import UiText, { useUiCopy } from "@/components/i18n/UiText";
+import { enteredDemoThisLoad } from "@/lib/demo-flags";
 import { HOME_TO_TOP_EVENT } from "@/lib/home-events";
 import { isNewVisit, markActive, readLastActiveAt } from "@/lib/visit-clock";
 import CinematicHomePage from "./CinematicHomePage";
@@ -412,9 +413,10 @@ function loadStartedAtHome(): boolean {
 
 /**
  * Whether to play the light intro. Like an app's intro on a fresh launch: it
- * plays when someone arrives at "/" after being away a while (lib/visit-clock),
- * not on a reload or a new tab mid-visit, nor on coming back to "/" from
- * another page. "/?intro" always plays it.
+ * plays when someone arrives at "/" after being away a while (lib/visit-clock)
+ * or comes into the demo there (/?demo=1), not on a reload or a new tab
+ * mid-visit, nor on coming back to "/" from another page. "/?intro" always
+ * plays it.
  *
  * On a fresh load at "/" the same conditions were already read before the
  * first paint (./intro-boot), and the dark has been over the page since; this
@@ -432,7 +434,7 @@ function useIntroOnce(): [boolean, () => void] {
         prefersReducedMotion() ||
         window.location.hash ||
         !loadStartedAtHome() ||
-        !isNewVisit(readLastActiveAt(), Date.now())
+        !(isNewVisit(readLastActiveAt(), Date.now()) || enteredDemoThisLoad())
       ) {
         delete document.documentElement.dataset.homeIntroPending;
         return;
