@@ -1,6 +1,6 @@
 import { initializeApp, getApps, FirebaseApp } from "firebase/app";
-import { connectAuthEmulator, getAuth, GoogleAuthProvider, OAuthProvider, Auth } from "firebase/auth";
-import { connectFirestoreEmulator, getFirestore, Firestore } from "firebase/firestore";
+import { getAuth, GoogleAuthProvider, OAuthProvider, Auth } from "firebase/auth";
+import { getFirestore, Firestore } from "firebase/firestore";
 import { getStorage, FirebaseStorage } from "firebase/storage";
 
 const firebaseConfig = {
@@ -21,23 +21,11 @@ let storage: FirebaseStorage | null = null;
 const firestoreDatabaseId =
   process.env.NEXT_PUBLIC_FIREBASE_FIRESTORE_DATABASE_ID?.trim() || undefined;
 
-/**
- * Local emulators (firebase emulators:start --only auth,firestore), e.g. to
- * try the demo site's seeded world on this machine: set to the emulators'
- * host (127.0.0.1). Unset everywhere else.
- */
-const emulatorHost = process.env.NEXT_PUBLIC_FIREBASE_EMULATOR_HOST?.trim() || undefined;
-
 if (firebaseConfig.apiKey) {
-  const fresh = getApps().length === 0;
-  app = fresh ? initializeApp(firebaseConfig) : getApps()[0];
+  app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
   auth = getAuth(app);
   db = firestoreDatabaseId ? getFirestore(app, firestoreDatabaseId) : getFirestore(app);
   storage = getStorage(app);
-  if (emulatorHost && fresh) {
-    connectAuthEmulator(auth, `http://${emulatorHost}:9099`, { disableWarnings: true });
-    connectFirestoreEmulator(db, emulatorHost, 8080);
-  }
 }
 
 export { auth, db, storage };

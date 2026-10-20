@@ -12,7 +12,6 @@ import {
   scheduleContentModerationFromMeta,
 } from "@/lib/server/moderation/trigger-content-moderation";
 import { FieldValue, prologueRef, promoRef, worksCol } from "@/lib/server/works";
-import { APP_ENV } from "@/lib/app-env";
 
 export const runtime = "nodejs";
 
@@ -286,25 +285,6 @@ export async function POST(request: Request) {
   }
 
   const meta = payload.meta ?? {};
-  // Uploaded by another copy of the site sharing this Cloudflare account (the
-  // demo): not this site's to record. Untagged videos predate the tag. The
-  // account has one webhook (this one), so the demo's events are passed on to
-  // it as they came, signature and all, when CLOUDFLARE_STREAM_WEBHOOK_DEMO_URL
-  // says where (docs/demo-site.md).
-  if (meta.xiio_env && meta.xiio_env !== APP_ENV) {
-    const forwardTo = meta.xiio_env === "demo" ? process.env.CLOUDFLARE_STREAM_WEBHOOK_DEMO_URL?.trim() : "";
-    let forwarded: number | null = null;
-    if (forwardTo) {
-      const signature = request.headers.get("webhook-signature") ?? request.headers.get("Webhook-Signature");
-      forwarded = await fetch(forwardTo, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", ...(signature ? { "Webhook-Signature": signature } : {}) },
-        body: rawBody,
-        signal: AbortSignal.timeout(8000),
-      }).then((res) => res.status, () => 0);
-    }
-    return NextResponse.json({ received: true, handled: false, reason: "other_env", forwarded });
-  }
   const xiioUid = meta.xiio_uid;
   const workId = meta.xiio_work_id ?? meta.xiio_video_id;
   const kind = meta.xiio_kind ?? "full";

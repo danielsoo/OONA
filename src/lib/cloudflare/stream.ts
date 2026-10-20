@@ -1,14 +1,4 @@
 import { withStreamDisplayName } from "@/lib/cloudflare/stream-display-name";
-import { APP_ENV } from "@/lib/app-env";
-
-/**
- * Which copy of the site uploaded a video (production, or the demo on the
- * same Cloudflare account): the account's one webhook goes to the real site,
- * which leaves videos tagged for another copy alone.
- */
-function withAppEnv(meta: Record<string, string>): Record<string, string> {
-  return { ...meta, xiio_env: APP_ENV };
-}
 
 /** @deprecated Use StreamTusUpload — basic POST blocked by browser CORS for direct uploads */
 export type StreamDirectUpload = {
@@ -99,7 +89,7 @@ export async function createTusDirectUpload(params: {
     throw new Error("Cloudflare Stream not configured");
   }
 
-  const meta = withStreamDisplayName(withAppEnv(params.meta));
+  const meta = withStreamDisplayName(params.meta);
   const uploadMetadata = encodeTusMetadata({
     maxDurationSeconds: String(MAX_DURATION_SECONDS),
     ...meta,
@@ -145,7 +135,7 @@ export async function createDirectUpload(meta: Record<string, string>): Promise<
     body: JSON.stringify({
       maxDurationSeconds: MAX_DURATION_SECONDS,
       requireSignedURLs: false,
-      meta: withAppEnv(meta),
+      meta,
     }),
   });
 
@@ -178,7 +168,7 @@ export async function createClip(params: {
       clippedFromVideoUID: params.clippedFromVideoUID,
       startTimeSeconds: params.startTimeSeconds,
       endTimeSeconds: params.endTimeSeconds,
-      meta: withStreamDisplayName(withAppEnv(params.meta)),
+      meta: withStreamDisplayName(params.meta),
     }),
   });
 

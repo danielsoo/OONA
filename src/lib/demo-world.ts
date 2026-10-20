@@ -4,13 +4,10 @@ import type { ProfileRoleTag } from "@/types/portfolio";
 
 /**
  * OONA's made-up world: a hundred people over forty works, with schools,
- * stills, a few synopses and a few notes on what someone did on a work.
- * Society's in-app demo (society-demo.ts) shows it straight from here, and
- * the demo site's database is seeded from it (scripts/demo-seed.ts), so the
- * two tell the same story.
+ * stills, a few synopses and a few notes on what someone did on a work, for
+ * the in-app demo (society-demo.ts) to show.
  *
- * Names and schools are invented. Data only, and type-only imports, so a
- * plain Node script can load it as well as the app.
+ * Names and schools are invented. Data only, with type-only imports.
  */
 
 /** Invented, like the people: three regions, so the directory reads as one world. */

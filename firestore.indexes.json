@@ -294,44 +294,6 @@
         { "fieldPath": "status", "order": "ASCENDING" },
         { "fieldPath": "createdAt", "order": "DESCENDING" }
       ]
-    },
-    {
-      "collectionGroup": "notifications",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "recipientUid", "order": "ASCENDING" },
-        { "fieldPath": "createdAt", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "businessInvites",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "recipientUid", "order": "ASCENDING" },
-        { "fieldPath": "createdAt", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "businessInvites",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "senderUid", "order": "ASCENDING" },
-        { "fieldPath": "createdAt", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "works",
-      "queryScope": "COLLECTION_GROUP",
-      "fields": [
-        { "fieldPath": "approvedSchoolId", "order": "ASCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "works",
-      "queryScope": "COLLECTION_GROUP",
-      "fields": [
-        { "fieldPath": "platformStatus", "order": "ASCENDING" }
-      ]
     }
   ],
   "fieldOverrides": [
