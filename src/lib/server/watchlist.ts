@@ -1,6 +1,5 @@
 import { FieldValue, type Firestore, type Timestamp } from "firebase-admin/firestore";
 import { getStreamThumbnailUrl } from "@/lib/cloudflare/stream";
-import { demoMedia } from "@/lib/server/demo-media";
 import {
   parsePromoDoc,
   parseWorkDoc,
@@ -31,10 +30,9 @@ function timestampMs(value: unknown): number {
 export async function assertPublishedWork(db: Firestore, ownerUid: string, workId: string) {
   const workSnap = await worksCol(db, ownerUid).doc(workId).get();
   if (!workSnap.exists) return { ok: false as const, error: "not_found" };
-  const data = workSnap.data() as Record<string, unknown>;
-  const work = parseWorkDoc(workId, data);
+  const work = parseWorkDoc(workId, workSnap.data() as Record<string, unknown>);
   if (work.platformStatus !== "published") return { ok: false as const, error: "not_published" };
-  if (!demoMedia(data) && (work.streamStatus !== "ready" || !work.streamUid)) {
+  if (work.streamStatus !== "ready" || !work.streamUid) {
     return { ok: false as const, error: "not_published" };
   }
   return { ok: true as const, work };
@@ -99,10 +97,8 @@ export async function toCatalogFeedItems(
   const published = rows.flatMap((row, index) => {
     const snap = workSnaps[index];
     if (!snap?.exists) return [];
-    const data = snap.data() as Record<string, unknown>;
-    const work = parseWorkDoc(row.workId, data);
-    if (work.platformStatus !== "published") return [];
-    if (!demoMedia(data) && (work.streamStatus !== "ready" || !work.streamUid)) {
+    const work = parseWorkDoc(row.workId, snap.data() as Record<string, unknown>);
+    if (work.platformStatus !== "published" || work.streamStatus !== "ready" || !work.streamUid) {
       return [];
     }
     return [{ ...row, work }];
@@ -121,7 +117,7 @@ export async function toCatalogFeedItems(
     const thumbnailUrl =
       promo?.thumbnailUrl ??
       row.work.promoDraft?.thumbnailUrl ??
-      (row.work.streamUid ? getStreamThumbnailUrl(row.work.streamUid) : null) ??
+      getStreamThumbnailUrl(row.work.streamUid!) ??
       undefined;
     const thumbnailCrop = promo?.thumbnailCrop ?? row.work.promoDraft?.thumbnailCrop;
 

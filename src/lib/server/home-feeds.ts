@@ -5,7 +5,6 @@ import {
   getStreamThumbnailUrl,
   STREAM_TEASER_BANDWIDTH_HINT_MBPS,
 } from "@/lib/cloudflare/stream";
-import { demoMedia } from "@/lib/server/demo-media";
 import { promoLikeRef } from "@/lib/server/engagement";
 import {
   getDbOrNull,
@@ -165,11 +164,9 @@ async function loadCatalogWorksFeed(
   const candidates = snap.docs.flatMap((doc) => {
     const ownerUid = doc.ref.parent.parent?.id;
     if (!ownerUid) return [];
-    const data = doc.data() as Record<string, unknown>;
-    const work = parseWorkDoc(doc.id, data);
-    const demo = demoMedia(data);
-    if (!demo && (work.streamStatus !== "ready" || !work.streamUid)) return [];
-    return [{ doc, ownerUid, work, demo }];
+    const work = parseWorkDoc(doc.id, doc.data() as Record<string, unknown>);
+    if (work.streamStatus !== "ready" || !work.streamUid) return [];
+    return [{ doc, ownerUid, work }];
   });
 
   candidates.sort(
@@ -189,17 +186,15 @@ async function loadCatalogWorksFeed(
     const promo = promoSnap?.exists
       ? parsePromoDoc(promoSnap.data() as Record<string, unknown>)
       : null;
-    const thumbnailUrl = item.demo
-      ? item.demo.posterUrl
-      : getStreamThumbnailUrl(
-          promo?.streamUid ?? item.work.streamUid!,
-          {
-            // Catalog cards render at most ~300px wide; 640x360 covers 2x screens.
-            width: 640,
-            height: 360,
-            fit: "crop",
-          }
-        );
+    const thumbnailUrl = getStreamThumbnailUrl(
+      promo?.streamUid ?? item.work.streamUid!,
+      {
+        // Catalog cards render at most ~300px wide; 640x360 covers 2x screens.
+        width: 640,
+        height: 360,
+        fit: "crop",
+      }
+    );
     const thumbnailCrop = promo?.thumbnailCrop ?? item.work.promoDraft?.thumbnailCrop;
 
     return {

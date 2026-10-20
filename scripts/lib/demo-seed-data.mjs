@@ -6,7 +6,10 @@
  * portfolioShares, workProfileNotes).
  *
  * Pure: plain objects and Dates (Firestore stores Dates as timestamps), no
- * Firebase, so it can be checked on its own (demo-seed-data.test.mjs).
+ * Firebase, so it can be checked on its own (demo-seed-data.test.mjs). The
+ * works' videos are uploaded by the script first (to the demo's own
+ * Cloudflare Stream, one clip per still, scripts/demo-media) and handed in
+ * as `streams`, so every work plays and lists exactly as a real upload does.
  *
  * Who's who:
  * - The world's 101 people are seed-<id>, with their id as their handle.
@@ -16,6 +19,8 @@
  * - The sign-in accounts are advisors: each is a filmmaker in the world too,
  *   with two works of their own, credits on three of the world's, people who
  *   follow them, messages waiting, a crew room, an offer, and a portfolio link.
+ *   They're super admins, so every page of the site opens for them, the
+ *   admin pages included (it's all made-up data).
  */
 import { randomBytes } from "node:crypto";
 import { DEMO_NOTES, DEMO_PEOPLE, DEMO_STILLS, DEMO_SYNOPSES, DEMO_WORKS } from "../../src/lib/demo-world.ts";
@@ -24,7 +29,9 @@ import { DEMO_NOTES, DEMO_PEOPLE, DEMO_STILLS, DEMO_SYNOPSES, DEMO_WORKS } from 
 export const DEMO_ACCOUNT_DOMAIN = "oona-demo.test";
 /** The advisors' (made-up) school email domain: Riverside's, as its school doc lists it. */
 const SCHOOL_EMAIL_DOMAIN = `riverside-film-academy.${DEMO_ACCOUNT_DOMAIN}`;
-export const SEED_VERSION = 1;
+export const SEED_VERSION = 2;
+/** The newest works with a short preview too (the home's stories row, the credits roll's side screen). */
+const PROMO_COUNT = 12;
 export const ADVISOR_COUNT = 5;
 
 const HANDLE = /^[a-z0-9_.]{3,30}$/;
@@ -82,10 +89,12 @@ const ROOM_LINES = [
 
 /**
  * Everything to write. Options: password for the advisor accounts (else one
- * is made up and printed), sampleVideos (https URLs dealt to the works as
- * their sample clip), now (the moment the seed treats as today).
+ * is made up and printed); streams, each still's Stream video uid by its
+ * path (a work without one is seeded as still processing, and stays out of
+ * lists like any upload that isn't ready); now, the moment the seed treats
+ * as today.
  */
-export function buildDemoSeed({ password, sampleVideos = [], now = new Date() } = {}) {
+export function buildDemoSeed({ password, streams = {}, now = new Date() } = {}) {
   const docs = [];
   const put = (path, data) => docs.push({ path, data });
   const ago = (days, key = "") => new Date(now.getTime() - days * DAY - (hash(key) % 3_600_000));
@@ -106,8 +115,8 @@ export function buildDemoSeed({ password, sampleVideos = [], now = new Date() } 
       email: `advisor${n}@${DEMO_ACCOUNT_DOMAIN}`,
       tags: ["director", "crew"],
       open: true,
-      headline: "Director & editor · demo account",
-      bio: "This is your demo account. Upload, follow, message, share a portfolio: nothing you do here touches the real OONA.",
+      headline: "Director & editor",
+      bio: "Short films about the hour before something changes. Riverside, class of next year.",
       advisor: true,
     };
   });
@@ -134,7 +143,7 @@ export function buildDemoSeed({ password, sampleVideos = [], now = new Date() } 
   const schools = new Map();
   const ownedCount = new Map();
   const firstSchool = new Map();
-  works.forEach((w, wi) => {
+  works.forEach((w) => {
     const owner = byId.get((w.crew.find(([, role]) => role === "director") ?? w.crew[0])[0]);
     w.ownerUid = owner.uid;
     w.ownerName = owner.name;
@@ -153,9 +162,7 @@ export function buildDemoSeed({ password, sampleVideos = [], now = new Date() } 
       director: owner.name,
       section: w.section,
       platformStatus: "published",
-      // Ready, with no Stream video: lists and the watch page take the poster
-      // (demo-media.ts), and "Manage works" has nothing to ask Cloudflare.
-      streamStatus: "ready",
+      ...(streams[w.still] ? { streamUid: streams[w.still], streamStatus: "ready" } : { streamStatus: "processing" }),
       approvedSchoolId: w.schoolId,
       approvedSchoolName: w.school,
       proposedSchoolId: w.schoolId,
@@ -164,9 +171,6 @@ export function buildDemoSeed({ password, sampleVideos = [], now = new Date() } 
       proposedTags: [],
       approvedAspectRatio: "16:9",
       proposedAspectRatio: "16:9",
-      // The poster everything shows (src/lib/server/demo-media.ts on the demo site).
-      promoDraft: { title: w.title, description: w.synopsis ?? null, thumbnailUrl: w.still },
-      ...(sampleVideos.length ? { demoPlaybackUrl: sampleVideos[wi % sampleVideos.length] } : {}),
       sortOrder: ownedCount.get(owner.uid),
       viewCount: w.views,
       likeCount: w.likes,
@@ -200,6 +204,32 @@ export function buildDemoSeed({ password, sampleVideos = [], now = new Date() } 
       });
     });
   });
+
+  // The newest works with a video get a published short preview of it.
+  [...works]
+    .filter((w) => streams[w.still])
+    .sort((a, b) => b.date.localeCompare(a.date))
+    .slice(0, PROMO_COUNT)
+    .forEach((w) => {
+      const published = new Date(`${w.date}T10:00:00.000Z`);
+      put(`users/${w.ownerUid}/works/${w.id}/promoShort/promo`, {
+        platformStatus: "published",
+        streamStatus: "ready",
+        streamUid: streams[w.still],
+        clipStartSec: 0,
+        clipEndSec: 10,
+        durationSec: 10,
+        title: w.title,
+        ...(w.synopsis ? { description: w.synopsis } : {}),
+        likeCount: Math.round(w.likes / 3),
+        viewCount: Math.round(w.views / 2),
+        submittedAt: published,
+        publishedAt: published,
+        reviewedAt: published,
+        createdAt: published,
+        updatedAt: published,
+      });
+    });
 
   for (const [id, { name, count }] of schools) {
     put(`schools/${id}`, { name, slug: id, status: "active", aliases: [], workCount: count, emailDomains: [`${id}.${DEMO_ACCOUNT_DOMAIN}`], colorPrimary: pick(`color:${id}`, ["#0ea5e9", "#6366f1", "#14b8a6", "#f59e0b", "#ec4899"]), colorSecondary: "#ffffff", createdAt: ago(400, id), updatedAt: ago(30, id) });
@@ -240,7 +270,7 @@ export function buildDemoSeed({ password, sampleVideos = [], now = new Date() } 
       platformPurpose: p.advisor ? "both" : director ? "upload" : "collaborate",
       email: p.email ?? null,
       emailVerified: true,
-      role: "member",
+      role: p.advisor ? "super_admin" : "member",
       handle: p.handle,
       headline: p.headline,
       bio: p.bio,

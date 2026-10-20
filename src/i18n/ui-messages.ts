@@ -2424,16 +2424,4 @@ export const uiMessages: Record<string, readonly [string, string]> = {
     "작품 바꾸기",
     "作品を変える"
   ],
-  "demo site": [
-    "데모 사이트",
-    "デモサイト"
-  ],
-  "made-up people and works. nothing you do here touches the real oona.": [
-    "가짜 사람과 작품이에요. 여기서 무엇을 해도 실제 OONA에는 영향이 없어요.",
-    "架空の人と作品です。ここで何をしても、本物のOONAには影響しません。"
-  ],
-  "no video to play": [
-    "재생할 영상이 없어요",
-    "再生できる動画がありません"
-  ],
 };

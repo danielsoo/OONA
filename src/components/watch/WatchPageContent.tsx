@@ -14,7 +14,6 @@ import { useAuth } from "@/context/AuthContext";
 import { useAdminAccess } from "@/hooks/useAdminAccess";
 import { useRecordEngagementView } from "@/hooks/useRecordEngagementView";
 import { useTranslations } from "@/context/LocaleContext";
-import { useUiCopy } from "@/components/i18n/UiText";
 import { formatApiError, formatClientError } from "@/lib/clientErrors";
 import { requestPublicWatch } from "@/lib/watchDataCache";
 import { aspectRatioMessageKey, aspectRatioNumeric } from "@/lib/works/aspect-ratio";
@@ -43,7 +42,6 @@ export default function WatchPageContent({ ownerUid, workId }: Props) {
   const { user, loading: authLoading } = useAuth();
   const { isAdmin, checked: adminChecked } = useAdminAccess();
   const { t } = useTranslations();
-  const copy = useUiCopy();
   const [data, setData] = useState<PublicWorkWatch | null>(null);
   const [phase, setPhase] = useState<WatchPhase>("main");
   const [loading, setLoading] = useState(true);
@@ -150,10 +148,7 @@ export default function WatchPageContent({ ownerUid, workId }: Props) {
   const showingPrologue = phase === "prologue" && Boolean(data.prologue?.playbackUrl);
   const activePlayback = showingPrologue ? data.prologue! : data;
   const useGuestPlayer = isGuest && Boolean(activePlayback.playbackUrl);
-  // Nothing to play (a demo-site work seeded without a sample clip, or a link
-  // that didn't resolve): the button says so instead of opening an empty player.
-  const playable = Boolean(data.playbackUrl || data.prologue?.playbackUrl);
-  const playLabel = playable ? t("watch.playFilm") : copy("No video to play");
+  const playLabel = t("watch.playFilm");
   const isOwner = Boolean(user && user.uid === ownerUid);
   const showSeriesPanel = DEMO_MODE && data.section === "series";
 
@@ -243,7 +238,6 @@ export default function WatchPageContent({ ownerUid, workId }: Props) {
                 variant="primary"
                 size="lg"
                 onClick={openPlayer}
-                disabled={!playable}
                 className="min-w-[148px]"
                 icon={
                   <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor" aria-hidden>

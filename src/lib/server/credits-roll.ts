@@ -8,7 +8,6 @@ import {
 import { resolveWorkCreditDisplayName } from "@/lib/credit-display-name";
 import { peopleProfileHref } from "@/lib/dm/peopleProfileHref";
 import { listWorkCredits } from "@/lib/server/credits";
-import { demoMedia } from "@/lib/server/demo-media";
 import { fetchCatalogWorksFeed, getOrLoadFeed } from "@/lib/server/home-feeds";
 import { parsePromoDoc, parseWorkDoc, promoRef, worksCol } from "@/lib/server/works";
 import { parseUserProfileDoc } from "@/lib/userAccess";
@@ -49,11 +48,8 @@ async function loadCreditsRoll(db: Firestore): Promise<CreditsRollWork[]> {
   return picked.flatMap((item, index): CreditsRollWork[] => {
     const workSnap = workSnaps[index];
     if (!workSnap?.exists) return [];
-    const data = workSnap.data() as Record<string, unknown>;
-    const work = parseWorkDoc(item.workId, data);
-    const demo = demoMedia(data);
-    if (work.platformStatus !== "published") return [];
-    if (!demo && (work.streamStatus !== "ready" || !work.streamUid)) return [];
+    const work = parseWorkDoc(item.workId, workSnap.data() as Record<string, unknown>);
+    if (work.platformStatus !== "published" || work.streamStatus !== "ready" || !work.streamUid) return [];
 
     const credits = accepted[index].flatMap((c): CreditsRollPerson[] => {
       const profile = profiles.get(c.userId);
@@ -89,9 +85,9 @@ async function loadCreditsRoll(db: Firestore): Promise<CreditsRollWork[]> {
       ...(work.approvedSchoolName ? { schoolName: work.approvedSchoolName } : {}),
       ...(typeof item.publishedAt === "string" ? { publishedAt: item.publishedAt } : {}),
       // Side screens render up to ~700px wide on 2x screens.
-      stillUrl: demo ? demo.posterUrl : getStreamThumbnailUrl(work.streamUid!, { width: 1280, height: 720, fit: "crop" }),
+      stillUrl: getStreamThumbnailUrl(work.streamUid, { width: 1280, height: 720, fit: "crop" }),
       previewUrl,
-      playbackUrl: demo ? demo.playbackUrl ?? "" : getPlaybackUrl(work.streamUid!),
+      playbackUrl: getPlaybackUrl(work.streamUid),
       credits,
     }];
   });

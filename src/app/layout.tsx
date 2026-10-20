@@ -3,7 +3,6 @@ import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import Providers from "@/components/Providers";
 import AppShell from "@/components/layout/AppShell";
-import DemoSiteLabel from "@/components/layout/DemoSiteLabel";
 import { IS_DEMO_SITE } from "@/lib/app-env";
 import { DEFAULT_HOME_HERO_THEME } from "@/lib/homeHeroColors";
 import { LOCALE_BOOT_SCRIPT } from "@/i18n/locale-boot";
@@ -22,9 +21,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: IS_DEMO_SITE ? "OONA (demo) — The next generation content platform" : "OONA — The next generation content platform",
+  title: "OONA — The next generation content platform",
   description: "Films, series, shows, and emerging creators — all in one cinematic platform.",
-  // The demo site is made-up data: kept out of search results.
+  // The demo site (same site, made-up data) stays out of search results.
   ...(IS_DEMO_SITE ? { robots: { index: false, follow: false } } : {}),
 };
 
@@ -53,7 +52,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className={`font-sans ${playfair.variable} ${inter.variable} min-w-[360px]`}>
         <Providers initialHomeTheme={DEFAULT_HOME_HERO_THEME}>
           <AppShell>{children}</AppShell>
-          <DemoSiteLabel />
         </Providers>
       </body>
     </html>

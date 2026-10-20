@@ -6,7 +6,6 @@ import { getUidByHandle } from "@/lib/server/handles";
 import { parseUserProfileDoc } from "@/lib/userAccess";
 import { parseWorkDoc, resolveWorkListThumbnailUrl, worksCol } from "@/lib/server/works";
 import { listWorkCollaborators } from "@/lib/server/work-collaborators";
-import { demoMedia } from "@/lib/server/demo-media";
 import { workIncludedInShare } from "@/lib/portfolio-share";
 import { listWorkProfileNotes, workProfileNoteDocId } from "@/lib/server/work-profile-notes";
 import {
@@ -136,16 +135,13 @@ export async function buildPublicPortfolio(
   for (const item of eligible) {
     const workSnap = await worksCol(db, item.ownerUid).doc(item.workId).get();
     if (!workSnap.exists) continue;
-    const data = workSnap.data() as Record<string, unknown>;
-    const work = parseWorkDoc(item.workId, data);
+    const work = parseWorkDoc(item.workId, workSnap.data() as Record<string, unknown>);
     if (!workIncludedInShare(item.workId, work, share, item.ownerUid === uid)) continue;
 
     const thumbnailUrl = await resolveWorkListThumbnailUrl(db, item.ownerUid, item.workId, work);
     let playbackUrl: string | undefined;
     if (work.streamUid && work.streamStatus === "ready") {
       playbackUrl = (await resolvePlaybackUrl(work.streamUid)) ?? undefined;
-    } else {
-      playbackUrl = demoMedia(data)?.playbackUrl ?? undefined;
     }
 
     works.push({
