@@ -43,9 +43,6 @@ export function isDemoHandle(handle: string | null | undefined): boolean {
 /** Also read by the home intro's pre-hydration script (components/home/intro-boot.ts). */
 export const DEMO_SESSION_KEY = "oona-demo";
 
-/** Set when this page load is the one that came into the demo. */
-let enteredThisLoad = false;
-
 /**
  * Whether this tab is in the demo: ?demo=1 enters it (and is remembered for
  * the tab), ?demo=0 leaves it. Client only; the server always renders the
@@ -55,24 +52,12 @@ export function isDemoVisit(): boolean {
   if (typeof window === "undefined") return false;
   const param = new URLSearchParams(window.location.search).get("demo");
   try {
-    if (param === "1") {
-      if (window.sessionStorage.getItem(DEMO_SESSION_KEY) !== "1") enteredThisLoad = true;
-      window.sessionStorage.setItem(DEMO_SESSION_KEY, "1");
-    } else if (param === "0") window.sessionStorage.removeItem(DEMO_SESSION_KEY);
+    if (param === "1") window.sessionStorage.setItem(DEMO_SESSION_KEY, "1");
+    else if (param === "0") window.sessionStorage.removeItem(DEMO_SESSION_KEY);
     return window.sessionStorage.getItem(DEMO_SESSION_KEY) === "1";
   } catch {
-    enteredThisLoad = param === "1";
     return param === "1";
   }
-}
-
-/**
- * Whether this page load came into the demo (its first in the tab, with
- * ?demo=1): coming in counts as arriving fresh, so the home plays its intro.
- */
-export function enteredDemoThisLoad(): boolean {
-  isDemoVisit();
-  return enteredThisLoad;
 }
 
 /** Out of the demo, back to the real site (a full load, so nothing made-up lingers). */
