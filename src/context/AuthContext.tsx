@@ -27,6 +27,7 @@ import {
 } from "@/lib/authConflict";
 import { hasUserProfile, saveUserProfile } from "@/lib/userProfile";
 import { routeAfterAuth } from "@/lib/postAuthRoute";
+import { DEMO_ME, isDemoVisit, leaveDemo } from "@/lib/demo-flags";
 import type { SocialProviderKey } from "@/lib/authProviders";
 import type { SignupProfile } from "@/types/user";
 
@@ -53,6 +54,34 @@ export const EMAIL_NOT_VERIFIED = "EMAIL_NOT_VERIFIED";
 export const SIGNUP_VERIFY_EMAIL_FAILED = "SIGNUP_VERIFY_EMAIL_FAILED";
 
 const AuthContext = createContext<AuthContextType | null>(null);
+
+/**
+ * The demo's signed-in member, as much of a Firebase user as the site reads.
+ * Her token opens nothing: in the demo the site's API calls are answered in
+ * the browser (lib/demo-fetch.ts) and never reach the server.
+ */
+function demoUser(): User {
+  const user = {
+    uid: DEMO_ME.uid,
+    email: DEMO_ME.email,
+    displayName: DEMO_ME.displayName,
+    emailVerified: true,
+    isAnonymous: false,
+    photoURL: null,
+    phoneNumber: null,
+    providerId: "firebase",
+    providerData: [{ providerId: "password", uid: DEMO_ME.email, email: DEMO_ME.email, displayName: DEMO_ME.displayName, photoURL: null, phoneNumber: null }],
+    metadata: {},
+    tenantId: null,
+    refreshToken: "",
+    getIdToken: async () => "demo",
+    getIdTokenResult: async () => ({ token: "demo", claims: {}, authTime: "", issuedAtTime: "", expirationTime: "", signInProvider: "password", signInSecondFactor: null }),
+    reload: async () => {},
+    delete: async () => {},
+    toJSON: () => ({ uid: DEMO_ME.uid }),
+  };
+  return user as unknown as User;
+}
 
 function rememberSocialProvider(provider: SocialProviderKey) {
   if (typeof window !== "undefined") {
@@ -158,6 +187,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [conflictBusy, setConflictBusy] = useState(false);
 
   useEffect(() => {
+    // The demo is signed in from the start, as its made-up member (lib/demo-flags).
+    if (isDemoVisit()) {
+      setUser(demoUser());
+      setLoading(false);
+      return;
+    }
     if (!auth) {
       setLoading(false);
       return;
@@ -368,6 +403,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = async () => {
+    // Signing out of the demo leaves it.
+    if (isDemoVisit()) return leaveDemo();
     if (!auth) return;
     await signOut(auth);
   };

@@ -7,7 +7,7 @@ import UiText, { useUiCopy } from "@/components/i18n/UiText";
 import type { SocietyTabId } from "@/components/society/SocietyNetworkPanel";
 import { useTranslations } from "@/context/LocaleContext";
 import { primaryRole, type DirPerson, type DirWork } from "@/lib/society-directory";
-import { isDemoWork, watchHref } from "@/lib/demo-flags";
+import { watchHref } from "@/lib/demo-flags";
 import { buildSky, layOutNeuron, neuronGroup, neuronTwigs, type NeuronGroup, type Seat, type SkyStar } from "@/lib/society-sky";
 import styles from "./SocietySky.module.css";
 import { SKY_IMAGE, SKY_SEATS } from "./skySeats";
@@ -518,22 +518,13 @@ export default function SocietySky({
                   ))}
                 </svg>
                 <span className={styles.neuronCore} style={{ left: neuron.center.x, top: neuron.center.y }} aria-hidden="true" />
-                {isDemoWork(neuron.crew.work) ? (
-                  <span
-                    className={`${styles.neuronTitle} ${styles[`title_${neuron.layout.title.side}`]}`}
-                    style={{ left: neuron.layout.title.x, top: neuron.layout.title.y }}
-                  >
-                    {neuron.crew.work.title}
-                  </span>
-                ) : (
-                  <Link
-                    href={watchHref(neuron.crew.work)}
-                    className={`${styles.neuronTitle} ${styles[`title_${neuron.layout.title.side}`]}`}
-                    style={{ left: neuron.layout.title.x, top: neuron.layout.title.y }}
-                  >
-                    {neuron.crew.work.title}
-                  </Link>
-                )}
+                <Link
+                  href={watchHref(neuron.crew.work)}
+                  className={`${styles.neuronTitle} ${styles[`title_${neuron.layout.title.side}`]}`}
+                  style={{ left: neuron.layout.title.x, top: neuron.layout.title.y }}
+                >
+                  {neuron.crew.work.title}
+                </Link>
                 {neuron.layout.branches.map((b) => (
                   <span key={b.group} className={`${styles.groupLabel} ${styles[`group_${b.label.anchor}`]}`} style={{ left: b.label.x, top: b.label.y }}>
                     {copy(GROUP_LABEL[b.group])}
@@ -627,14 +618,10 @@ export default function SocietySky({
                 ))}
               </ul>
               <div className={styles.pickActions}>
-                {isDemoWork(panelWork) ? (
-                  <span className={`${styles.watch} ${styles.watchDemo}`}><UiText text="A made-up work" /></span>
-                ) : (
-                  <Link href={watchHref(panelWork)} className={styles.watch} tabIndex={0}>
-                    {copy("Watch {title}", { title: panelWork.title })}
-                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>
-                  </Link>
-                )}
+                <Link href={watchHref(panelWork)} className={styles.watch} tabIndex={0}>
+                  {copy("Watch {title}", { title: panelWork.title })}
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>
+                </Link>
                 {neuron ? (
                   <button type="button" className={styles.back} onClick={() => setFocusKey(null)} tabIndex={0}>
                     <UiText text="Back to the sky" />

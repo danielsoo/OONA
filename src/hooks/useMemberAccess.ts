@@ -7,11 +7,14 @@ import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
 import { isUploaderAppRoute } from "@/lib/uploader-routes";
 import {
+  parseUserProfileDoc,
   resolveMemberAccess,
   type MemberAccessResult,
 } from "@/lib/userAccess";
 import { isProfileComplete } from "@/lib/userProfile";
 import type { UserProfileDoc } from "@/types/user";
+import { DEMO_ME, DEMO_ME_PROFILE, isDemoVisit } from "@/lib/demo-flags";
+import { getStoredLocale } from "@/i18n";
 
 const READ_RETRIES = 3;
 const READ_RETRY_MS = 500;
@@ -66,6 +69,15 @@ export function useMemberAccess() {
     if (!user || !db) {
       setAccess({ kind: "none" });
       setProfile(null);
+      setChecked(true);
+      return;
+    }
+
+    // The demo's member is a complete member; there's nothing in Firestore to read.
+    if (user.uid === DEMO_ME.uid && isDemoVisit()) {
+      const demoProfile = parseUserProfileDoc({ ...DEMO_ME_PROFILE, locale: getStoredLocale() });
+      setAccess({ kind: "active", profile: demoProfile });
+      setProfile(demoProfile);
       setChecked(true);
       return;
     }

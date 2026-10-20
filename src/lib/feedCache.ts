@@ -1,3 +1,5 @@
+import { isDemoVisit } from "@/lib/demo-flags";
+
 type CacheEntry<T> = { data: T; expiresAt: number; staleUntil: number };
 type StoredCacheEntry = CacheEntry<unknown> & { version: 1; key: string };
 
@@ -6,6 +8,8 @@ const inFlight = new Map<string, Promise<unknown>>();
 const DEFAULT_TTL_MS = 2 * 60 * 1000;
 const PERSISTENT_STALE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 const STORAGE_PREFIX = "xiio:feed-cache:v1:";
+/** The demo keeps its made-up feeds apart, so neither side ever shows the other's. */
+const DEMO_STORAGE_PREFIX = "xiio:feed-cache:v1:demo:";
 
 function isPersistentKey(key: string): boolean {
   return (
@@ -17,7 +21,7 @@ function isPersistentKey(key: string): boolean {
 }
 
 function persistentStorageKey(key: string): string {
-  return `${STORAGE_PREFIX}${encodeURIComponent(key)}`;
+  return `${isDemoVisit() ? DEMO_STORAGE_PREFIX : STORAGE_PREFIX}${encodeURIComponent(key)}`;
 }
 
 function removeStored(key: string) {

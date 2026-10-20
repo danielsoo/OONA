@@ -11,6 +11,9 @@ import VisitRecorder from "@/components/VisitRecorder";
 import ProfileLocaleSync from "@/components/ProfileLocaleSync";
 import type { HomeHeroTheme } from "@/lib/homeHeroColors";
 import { AdminAccessProvider } from "@/hooks/useAdminAccess";
+import DemoBadgeGate from "@/components/society/DemoBadgeGate";
+// In the demo, answers the site's API calls in the browser; loaded before any page asks.
+import "@/lib/demo-fetch";
 
 export default function Providers({
   children,
@@ -30,6 +33,7 @@ export default function Providers({
               <MemberGuard />
               <ProfileGuard />
               {children}
+              <DemoBadgeGate />
             </HomeHeroThemeProvider>
           </ProfileProvider>
         </AdminAccessProvider>

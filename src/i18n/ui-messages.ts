@@ -2152,10 +2152,6 @@ export const uiMessages: Record<string, readonly [string, string]> = {
     "가짜 사람들로 가득 찬 Society를 둘러볼 수 있어요.",
     "架空の人たちでいっぱいのSocietyを見て回れます。"
   ],
-  "a made-up work": [
-    "지어낸 작품이에요",
-    "架空の作品です"
-  ],
   "try the demo": [
     "데모 보기",
     "デモを見る"
@@ -2423,5 +2419,13 @@ export const uiMessages: Record<string, readonly [string, string]> = {
   "change works": [
     "작품 바꾸기",
     "作品を変える"
+  ],
+  "uploading isn't part of the demo.": [
+    "업로드는 데모에 포함되어 있지 않아요.",
+    "アップロードはデモに含まれていません。"
+  ],
+  "everything here is made up, so nothing gets uploaded. look around the films, schools and society instead.": [
+    "여기 있는 건 모두 가짜라서 실제로 올라가지 않아요. 대신 작품, 학교, 소사이어티를 둘러보세요.",
+    "ここにあるものはすべて架空なので、実際にはアップロードされません。代わりに作品、学校、ソサエティを見てみてください。"
   ],
 };

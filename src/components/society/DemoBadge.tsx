@@ -5,8 +5,9 @@ import { DEMO_SOCIETY_HREF } from "@/lib/demo-flags";
 import styles from "./DemoBadge.module.css";
 
 /**
- * In Society's demo, says plainly that what's on screen is made up, with the
- * way out; outside it, offers the way in. Plain links, not client routing:
+ * In the demo (on every page, DemoBadgeGate), says plainly that what's on
+ * screen is made up, with the way out; outside it, on Society, offers the
+ * way in. Plain links, not client routing:
  * the demo is picked up when the page loads, so switching loads it afresh.
  */
 export default function DemoBadge({ active }: { active: boolean }) {
@@ -15,7 +16,7 @@ export default function DemoBadge({ active }: { active: boolean }) {
     <p className={styles.badge} role="note">
       <b><UiText text="Demo" /></b>
       <span><UiText text="Made-up people and works, to look around." /></span>
-      <a href="/society?demo=0" aria-label={copy("Leave the demo")}>
+      <a href="/?demo=0" aria-label={copy("Leave the demo")}>
         <span className={styles.long}><UiText text="Leave the demo" /></span>
         <span className={styles.short} aria-hidden="true">✕</span>
       </a>

@@ -3,12 +3,33 @@
  * (lib/society-demo and lib/demo-api, loaded only then) to look around in,
  * signed in as a made-up member, without touching real data. It lasts for
  * the browser tab (sessionStorage) until ?demo=0 or the badge's "Leave the
- * demo". Demo handles and works are marked so the rest of the site can tell
- * them apart. Kept tiny, since every visit loads it.
+ * demo". Demo people's handles start with demo- so the rest of the site can
+ * tell them apart. Kept tiny, since every visit loads it.
  */
 export const DEMO_HANDLE_PREFIX = "demo-";
-export const DEMO_OWNER = "demo-studio";
 export const DEMO_SOCIETY_HREF = "/society?demo=1";
+
+/** Who the demo is signed in as: one of the made-up world's people, with works and a sky of her own. */
+export const DEMO_ME = { uid: `${DEMO_HANDLE_PREFIX}lena`, handle: `${DEMO_HANDLE_PREFIX}lena`, displayName: "Lena Brandt", email: "lena@demo.oona" } as const;
+
+/** Her member profile (users/{uid}), complete, so every signed-in page opens for her. */
+export const DEMO_ME_PROFILE: Readonly<Record<string, unknown>> = {
+  displayName: DEMO_ME.displayName,
+  handle: DEMO_ME.handle,
+  email: DEMO_ME.email,
+  emailVerified: true,
+  role: "member",
+  birthDate: "1998-04-12",
+  gender: "undisclosed",
+  platformPurpose: "both",
+  defaultDirectorName: DEMO_ME.displayName,
+  headline: "Director",
+  bio: "Quiet films about loud families. Low Tide was shot in one night with a crew of six.",
+  roleTags: ["director"],
+  isDiscoverable: true,
+  openToCollaborate: true,
+  schoolName: "Riverside Film Academy",
+};
 
 export function isDemoHandle(handle: string | null | undefined): boolean {
   if (!handle) return false;
@@ -48,17 +69,7 @@ export function leaveDemo(to = "/"): void {
   window.location.assign(`${to}${to.includes("?") ? "&" : "?"}demo=0`);
 }
 
-export function isDemoWork(work: { ownerUid: string }): boolean {
-  return work.ownerUid === DEMO_OWNER;
-}
-
-/**
- * Where a work plays. A demo work has nowhere to play, so it opens in the
- * demo's sky instead, spread into the people who made it (?work=, read by
- * SocietyPage).
- */
+/** Where a work plays (a demo work too: in the demo its watch page is answered from the made-up world). */
 export function watchHref(work: { ownerUid: string; workId: string }): string {
-  return isDemoWork(work)
-    ? `${DEMO_SOCIETY_HREF}&work=${encodeURIComponent(`${work.ownerUid}:${work.workId}`)}`
-    : `/watch/${work.ownerUid}/${work.workId}`;
+  return `/watch/${work.ownerUid}/${work.workId}`;
 }

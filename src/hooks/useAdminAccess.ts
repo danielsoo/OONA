@@ -11,6 +11,7 @@ import {
   parseUserProfileDoc,
 } from "@/lib/userAccess";
 import type { UserProfileDoc } from "@/types/user";
+import { DEMO_ME, isDemoVisit } from "@/lib/demo-flags";
 
 export type AdminCheckReason = "unauthorized" | "admin_sdk_missing" | undefined;
 
@@ -35,7 +36,8 @@ function useAdminAccessState(): AdminAccessValue {
 
   useEffect(() => {
     if (authLoading) return;
-    if (!user || !db) {
+    // The demo's member isn't an admin, and has nothing in Firestore to read.
+    if (!user || !db || (user.uid === DEMO_ME.uid && isDemoVisit())) {
       setIsAdmin(false);
       setIsSuperAdmin(false);
       setReason(undefined);

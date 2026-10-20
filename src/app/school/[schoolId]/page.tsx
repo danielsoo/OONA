@@ -1,5 +1,7 @@
 import { notFound, redirect } from "next/navigation";
+import DemoSchoolPage from "@/components/school/DemoSchoolPage";
 import SchoolProfilePage from "@/components/school/SchoolProfilePage";
+import { DEMO_HANDLE_PREFIX } from "@/lib/demo-flags";
 import {
   computeSchoolStats,
   fetchSchool,
@@ -17,6 +19,8 @@ type Params = { params: Promise<{ schoolId: string }> };
 
 export default async function SchoolPage({ params }: Params) {
   const { schoolId } = await params;
+  // The demo's made-up schools are filled in the browser (lib/demo-api.ts).
+  if (schoolId.startsWith(DEMO_HANDLE_PREFIX)) return <DemoSchoolPage schoolId={schoolId} />;
   const db = await getDbOrNull();
   if (!db) notFound();
 

@@ -271,7 +271,7 @@ export default function SocietyDiscover({ onTabChange, openWork = null }: { onTa
   return (
     <div className={`${styles.page} ${revealing ? styles.revealing : ""}`} data-society-hero="">
       {/* Once it's known which this is: the demo's badge, or the way into it. */}
-      {demoKnown ? <DemoBadge active={demo} /> : null}
+      {demoKnown && !demo ? <DemoBadge active={false} /> : null}
       {scrollModeReady ? <ScrollModeToggle mode={scrollMode} onChange={setScrollMode} /> : null}
       <SocietySky directory={sky} onOpenSection={openSection} openWork={openWork} />
 

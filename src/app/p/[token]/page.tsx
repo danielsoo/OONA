@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import PortfolioView, { PortfolioMissing, PortfolioSkeleton } from "@/components/portfolio/PortfolioView";
-import DemoBadge from "@/components/society/DemoBadge";
 import { useTranslations } from "@/context/LocaleContext";
 import { isDemoHandle } from "@/lib/demo-flags";
 import type { PublicPortfolioPayload } from "@/types/portfolio";
@@ -53,10 +52,5 @@ export default function PublicPortfolioPage() {
 
   if (loading) return <PortfolioSkeleton />;
   if (err || !data) return <PortfolioMissing message={err ?? t("portfolio.public.notFound")} />;
-  return (
-    <>
-      {isDemoHandle(token) ? <DemoBadge active /> : null}
-      <PortfolioView data={data} profileHref={`/people/${encodeURIComponent(data.profile.handle)}`} />
-    </>
-  );
+  return <PortfolioView data={data} profileHref={`/people/${encodeURIComponent(data.profile.handle)}`} />;
 }

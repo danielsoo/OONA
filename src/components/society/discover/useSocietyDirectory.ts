@@ -6,7 +6,6 @@ import { useAuth } from "@/context/AuthContext";
 import { buildDirectory, type DirPerson, type Directory } from "@/lib/society-directory";
 import { loadSocietyPeople } from "@/lib/societyPeopleCache";
 import type { SocietyPerson } from "@/lib/societyTypes";
-import type { CreditsRollWork } from "@/types/creditsRoll";
 import { isDemoVisit } from "@/lib/demo-flags";
 import { rememberProfilePreviews } from "@/lib/profilePreview";
 import { getUserProfile } from "@/lib/userProfile";
@@ -20,25 +19,22 @@ export type SkyDirectory = { people: DirPerson[]; me: string | null; newest: str
 
 /**
  * Discover's people joined with the credits feed; `directory` is null while
- * loading. With ?demo=1 it's made-up people and works instead (`demo`).
+ * loading. With ?demo=1 it's the made-up people and works (`demo`).
  */
 export function useSocietyDirectory(): { directory: Directory | null; sky: SkyDirectory | null; failed: boolean; demo: boolean; demoKnown: boolean } {
   const { user, loading: authLoading } = useAuth();
   const feed = useCreditsRollFeed();
-  const [realPeople, setPeople] = useState<SocietyPerson[] | null>(null);
+  const [people, setPeople] = useState<SocietyPerson[] | null>(null);
   // The demo is known after the first paint (the server can't see the URL's
-  // query here), before any real data can arrive.
+  // query here). Its people and works arrive the usual way, answered in the
+  // browser from the made-up world (lib/demo-fetch.ts).
   const [demo, setDemo] = useState(false);
   const [demoKnown, setDemoKnown] = useState(false);
-  const [demoData, setDemoData] = useState<{ people: SocietyPerson[]; works: CreditsRollWork[] } | null>(null);
   useEffect(() => {
     setDemoKnown(true);
-    if (!isDemoVisit()) return;
-    setDemo(true);
-    void import("@/lib/society-demo").then((m) => setDemoData(m.demoSociety()));
+    setDemo(isDemoVisit());
   }, []);
-  const people = demo ? demoData?.people ?? null : realPeople;
-  const works = demo ? demoData?.works ?? null : feed.works;
+  const works = feed.works;
   const [failed, setFailed] = useState(false);
   const [seed] = useState(newVisitSeed);
 
@@ -91,19 +87,20 @@ export function useSocietyDirectory(): { directory: Directory | null; sky: SkyDi
 
   const rankOf = useMemo(() => (id: string) => visitRank(seed, id), [seed]);
   const directory = useMemo(
-    () => (people === null || works === null ? null : buildDirectory(people, works, { excludeUid: demo ? null : user?.uid ?? null, rankOf })),
-    [people, works, user, rankOf, demo]
+    () => (people === null || works === null ? null : buildDirectory(people, works, { excludeUid: user?.uid ?? null, rankOf })),
+    [people, works, user, rankOf]
   );
   const sky = useMemo((): SkyDirectory | null => {
     if (people === null || works === null) return null;
     const all = buildDirectory(people, works, { rankOf });
-    if (!demo && me && me.name && !all.people.some((p) => p.uid === me.uid)) all.people.push(me);
+    // (In the demo, "me" is its signed-in member, one of the made-up people.)
+    if (me && me.name && !all.people.some((p) => p.uid === me.uid)) all.people.push(me);
     // The feed arrives shuffled for this visit; newest first again by when each went up.
     const newest = [...works]
       .sort((a, b) => (Date.parse(b.publishedAt ?? "") || 0) - (Date.parse(a.publishedAt ?? "") || 0))
       .map((w) => `${w.ownerUid}:${w.workId}`);
-    return { people: all.people, me: demo ? null : user?.uid ?? null, newest, rankOf };
-  }, [people, works, user, me, rankOf, demo]);
+    return { people: all.people, me: user?.uid ?? null, newest, rankOf };
+  }, [people, works, user, me, rankOf]);
 
   // Whoever is clicked on here, their profile can show their name and picture at once.
   useEffect(() => {

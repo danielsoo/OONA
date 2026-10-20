@@ -788,21 +788,6 @@ a.tip:hover { border-color: rgba(119, 203, 255, 0.6); }
 
 .tipNeuron { pointer-events: auto; }
 
-/* A demo work: nothing to watch, said plainly. */
-.watchDemo {
-  border-color: rgba(179, 206, 230, 0.22);
-  background: none;
-  color: rgba(226, 238, 250, 0.6);
-  box-shadow: none;
-  cursor: default;
-}
-
-.watchDemo:hover {
-  transform: none;
-  background: none;
-  box-shadow: none;
-}
-
 .pickActions {
   display: flex;
   flex-wrap: wrap;

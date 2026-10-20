@@ -11,6 +11,7 @@ import {
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { isUploaderAppRoute } from "@/lib/uploader-routes";
+import { DEMO_ME, isDemoVisit } from "@/lib/demo-flags";
 import {
   loadStoredActiveWatchProfile,
   saveStoredActiveWatchProfile,
@@ -45,7 +46,8 @@ const ProfileContext = createContext<ProfileContextType | null>(null);
 export function ProfileProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const pathname = usePathname();
-  const skipClientFirestore = isUploaderAppRoute(pathname);
+  // The demo's member has no watch profiles to read (and must not migrate stored ones).
+  const skipClientFirestore = isUploaderAppRoute(pathname) || (user?.uid === DEMO_ME.uid && isDemoVisit());
   const [profiles, setProfiles] = useState<WatchProfile[]>([]);
   const [activeProfile, setActiveProfile] = useState<WatchProfile | null>(null);
   const [loading, setLoading] = useState(true);

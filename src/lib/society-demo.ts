@@ -1,10 +1,10 @@
 import type { PeopleProfilePayload } from "@/components/profile/PeopleProfileView";
-import { DEMO_HANDLE_PREFIX, DEMO_OWNER, watchHref } from "@/lib/demo-flags";
+import { DEMO_HANDLE_PREFIX, watchHref } from "@/lib/demo-flags";
 import { hashString } from "@/lib/society-sky";
 import type { SocietyPerson } from "@/lib/societyTypes";
 import type { CreditsRollWork } from "@/types/creditsRoll";
 import type { PublicPortfolioPayload } from "@/types/portfolio";
-import { DEMO_NOTES as NOTES, DEMO_PEOPLE as PEOPLE, DEMO_SYNOPSES as SYNOPSES, DEMO_WORKS as WORKS } from "@/lib/demo-world";
+import { DEMO_NOTES as NOTES, DEMO_PEOPLE as PEOPLE, DEMO_SYNOPSES as SYNOPSES, DEMO_WORKS as WORKS, type DemoWork } from "@/lib/demo-world";
 
 /**
  * Made-up people and works for Society's demo (/society?demo=1), from the
@@ -15,12 +15,15 @@ import { DEMO_NOTES as NOTES, DEMO_PEOPLE as PEOPLE, DEMO_SYNOPSES as SYNOPSES, 
  * and no work at all, which is what the grid's star is for.
  *
  * Names and schools are invented; nothing here is saved anywhere. This file
- * is only fetched on a demo visit (useSocietyDirectory imports it then), so
- * its size costs an ordinary visitor nothing.
+ * is only fetched on a demo visit (lib/demo-api.ts and the demo pages import
+ * it then), so its size costs an ordinary visitor nothing.
  */
 
 const uidOf = (id: string) => `${DEMO_HANDLE_PREFIX}${id}`;
 const byId = new Map(PEOPLE.map((p) => [p.id, p]));
+
+/** Whose a work is on the site: its director's (or its first credit's), so the demo has many creators. */
+export const demoOwnerOf = (w: DemoWork) => uidOf((w.crew.find(([, role]) => role === "director") ?? w.crew[0])?.[0] ?? "");
 
 export function demoSociety(): { people: SocietyPerson[]; works: CreditsRollWork[] } {
   const people: SocietyPerson[] = PEOPLE.map((p) => ({
@@ -36,7 +39,7 @@ export function demoSociety(): { people: SocietyPerson[]; works: CreditsRollWork
   }));
   const works: CreditsRollWork[] = WORKS.map((w) => ({
     workId: w.id,
-    ownerUid: DEMO_OWNER,
+    ownerUid: demoOwnerOf(w),
     title: w.title,
     section: w.section,
     schoolName: w.school,
@@ -63,12 +66,12 @@ export function demoProfile(handle: string): PeopleProfilePayload | null {
   const mine = WORKS.flatMap((w) => w.crew.filter(([cid]) => cid === id).map(([, role, character]) => ({ w, role, character })));
   const card = ({ w, role, character }: (typeof mine)[number]) => ({
     workId: w.id,
-    ownerUid: DEMO_OWNER,
+    ownerUid: demoOwnerOf(w),
     title: w.title,
     role,
     ...(character ? { characterName: character } : {}),
     thumbnailUrl: w.still,
-    watchPath: watchHref({ ownerUid: DEMO_OWNER, workId: w.id }),
+    watchPath: watchHref({ ownerUid: demoOwnerOf(w), workId: w.id }),
     collaborators: w.crew
       .filter(([cid]) => cid !== id)
       .map(([cid, crole, ccharacter]) => ({
@@ -104,10 +107,17 @@ export function demoProfile(handle: string): PeopleProfilePayload | null {
   };
 }
 
-/** A made-up person's shared portfolio (/p/demo-<id>), built from their works in the demo. */
+/**
+ * A made-up person's shared portfolio (/p/demo-<id>), built from their works
+ * in the demo. A link made in the demo carries its picks in the token itself
+ * (demo-<id>~<workId>.<workId>…, lib/demo-api.ts), so it opens anywhere
+ * without anything being saved.
+ */
 export function demoPortfolio(token: string): PublicPortfolioPayload | null {
-  const profile = demoProfile(token);
+  const [handle = "", picks] = decodeURIComponent(token).split("~");
+  const profile = demoProfile(handle);
   if (!profile) return null;
+  const picked = picks ? new Set(picks.split(".")) : null;
   const id = profile.profile.uid.slice(DEMO_HANDLE_PREFIX.length);
   return {
     profile: {
@@ -122,7 +132,7 @@ export function demoPortfolio(token: string): PublicPortfolioPayload | null {
       followingCount: profile.profile.followingCount,
     },
     shareTitle: `${profile.profile.displayName} — selected work`,
-    works: [...profile.directed, ...profile.credited].map((w) => ({
+    works: [...profile.directed, ...profile.credited].filter((w) => !picked || picked.has(w.workId)).map((w) => ({
       workId: w.workId,
       ownerUid: w.ownerUid,
       title: w.title,

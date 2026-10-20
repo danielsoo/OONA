@@ -2,6 +2,8 @@ import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from "firebase/firest
 import { db } from "@/lib/firebase";
 import type { SignupProfile, UserProfileDoc, UserRole } from "@/types/user";
 import { isAccountDeleted, parseUserProfileDoc } from "@/lib/userAccess";
+import { DEMO_ME, DEMO_ME_PROFILE, isDemoVisit } from "@/lib/demo-flags";
+import { getStoredLocale } from "@/i18n";
 
 export const FIRESTORE_PERMISSION_DENIED = "FIRESTORE_PERMISSION_DENIED";
 
@@ -26,6 +28,10 @@ function mapFirestoreError(err: unknown): Error {
 }
 
 export async function fetchUserProfile(uid: string): Promise<UserProfileFetchResult> {
+  // The demo's signed-in member (lib/demo-flags): her profile, in the visitor's own language.
+  if (uid === DEMO_ME.uid && isDemoVisit()) {
+    return { status: "found", profile: parseUserProfileDoc({ ...DEMO_ME_PROFILE, locale: getStoredLocale() }) };
+  }
   if (!db) return { status: "error" };
   try {
     const snap = await getDoc(doc(db, "users", uid));

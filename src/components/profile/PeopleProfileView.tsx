@@ -8,9 +8,8 @@ import { useTranslations } from "@/context/LocaleContext";
 import SocietyProfileBody, { type ProfileTab } from "@/components/society/SocietyProfileBody";
 import SocietyPublicProfileHero from "@/components/society/SocietyPublicProfileHero";
 import PeopleProfileSkeleton from "@/components/profile/PeopleProfileSkeleton";
-import DemoBadge from "@/components/society/DemoBadge";
 import { PortfolioShareDialog } from "@/components/portfolio/PortfolioSharePanel";
-import { DEMO_SOCIETY_HREF, isDemoHandle } from "@/lib/demo-flags";
+import { DEMO_SOCIETY_HREF, isDemoHandle, isDemoVisit } from "@/lib/demo-flags";
 import { profilePreview } from "@/lib/profilePreview";
 import type { HeroBackgroundId } from "@/lib/heroBackgroundPresets";
 import type { DirectorNameChangeRequest } from "@/types/user";
@@ -105,8 +104,9 @@ export default function PeopleProfileView({ handle }: Props) {
     const request = ++latest.current;
     if (loadedHandle.current !== handle) setLoading(true);
     try {
-      // Society's demo people answer from the made-up set, not the API.
-      if (isDemoHandle(handle)) {
+      // A demo person opened outside the demo answers from the made-up set
+      // (in the demo, the API itself is answered from it, signed in).
+      if (isDemoHandle(handle) && !isDemoVisit()) {
         const payload = (await import("@/lib/society-demo")).demoProfile(handle);
         if (request !== latest.current) return;
         if (payload) {
@@ -200,7 +200,6 @@ export default function PeopleProfileView({ handle }: Props) {
 
   return (
     <main className={styles.page}>
-      {demo ? <DemoBadge active /> : null}
       <SocietyPublicProfileHero
         demo={demo}
         displayName={data.profile.displayName}
