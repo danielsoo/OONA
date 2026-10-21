@@ -110,8 +110,12 @@
 .notification > div > button { width: 36px; height: 36px; display: grid; place-items: center; padding: 0; }
 .notification > div > button svg { width: 19px; height: 19px; }
 
+.notificationLink { display: none; }
 .accountRoot { position: relative; }
-.accountButton { display: grid; place-items: center; padding: 0; border: 0; border-radius: 50%; background: transparent; cursor: pointer; }
+.accountButton { position: relative; display: grid; place-items: center; padding: 0; border: 0; border-radius: 50%; background: transparent; cursor: pointer; }
+/* Something unread: a small dot on the bell or the account button. */
+.dot { position: absolute; top: 4px; right: 4px; width: 8px; height: 8px; border-radius: 50%; background: #3aa0ff; box-shadow: 0 0 0 2px #080808; }
+.accountButton .dot { top: 0; right: 0; }
 .avatarImage { border-color: rgba(255, 255, 255, 0.12) !important; }
 .avatarSkeleton { width: 34px; height: 34px; border-radius: 50%; background: rgba(126, 166, 207, 0.28); animation: pulse 1.2s ease-in-out infinite alternate; }
 .signIn {
@@ -228,13 +232,41 @@
   .mobileExtras .icon { width: 15px; height: 15px; }
 }
 
+/* Phones: the places are in the bottom tab bar, so no menu button; the bell
+   opens the notifications page, and the account menu is a full-width sheet
+   with room for a thumb. */
 @media (max-width: 600px) {
   .header { --header-pad: 20px; }
   .menuButton, .notification { display: none; }
-  .actions { gap: 5px; }
-  .notification > div > button { width: 32px; height: 32px; }
+  .actions { gap: 4px; }
+  .notificationLink {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    color: #e6edf8;
+  }
+  .notificationLink svg { width: 21px; height: 21px; }
   .signIn { width: 32px; height: 32px; overflow: hidden; padding: 0; border-radius: 50%; font-size: 0; }
   .signIn::after { content: "→"; font-size: 15px; }
+  .accountMenu {
+    position: fixed;
+    top: 66px;
+    left: 12px;
+    right: 12px;
+    width: auto;
+    max-height: calc(100svh - 66px - 84px - env(safe-area-inset-bottom));
+    overflow-y: auto;
+    padding: 8px;
+    border-radius: 16px;
+  }
+  .identity { padding: 10px 12px 12px; }
+  .identity strong { font-size: 15px; }
+  .identity span { font-size: 12px; }
+  .accountMenu > a, .accountMenu > button { min-height: 46px; padding: 10px 12px; font-size: 15px; border-radius: 10px; }
+  .accountMenu > a > span { font-size: 11px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -120,22 +120,23 @@ export const SECONDARY_NAV: AppNavItem[] = [];
 
 export const UPLOAD_HREF = "/uploader/upload";
 
-/** Mobile bottom tab bar. */
-export const MOBILE_TABS: AppNavItem[] = [
-  { id: "films", labelKey: "nav.films", href: "/movies", icon: "films", match: ["/movies", "/watch"] },
-  { id: "discover", labelKey: "nav.discover", href: "/discover", icon: "discover" },
-  { id: "upload", labelKey: "nav.upload", href: UPLOAD_HREF, icon: "upload", requiresAuth: true },
-  {
-    id: "notifications",
-    labelKey: "topBar.notifications",
-    href: "/notifications",
-    icon: "notifications",
-    requiresAuth: true,
-  },
-  { id: "me", labelKey: "nav.me", href: "/account", icon: "me", requiresAuth: true },
+/** A bottom tab: `label` is the header's own wording (a UI phrase), so both say the same. */
+export type MobileTab = Omit<AppNavItem, "labelKey"> & { label: string };
+
+/**
+ * Mobile bottom tab bar: the header's places, with Upload in the middle.
+ * Series and Shows sit beside Films (CatalogTabs); notifications and the
+ * account menu stay in the header.
+ */
+export const MOBILE_TABS: MobileTab[] = [
+  { id: "home", label: "Home", href: "/", icon: "home" },
+  { id: "films", label: "Films", href: "/movies", icon: "films", match: ["/series", "/entertainment", "/watch"] },
+  { id: "upload", label: "Upload", href: UPLOAD_HREF, icon: "upload", requiresAuth: true },
+  { id: "society", label: "Society", href: "/society", icon: "society", match: ["/people", "/creators", "/projects"] },
+  { id: "schools", label: "Schools", href: "/schools", icon: "campus", match: ["/school"] },
 ];
 
-export function isNavItemActive(item: AppNavItem, pathname: string): boolean {
+export function isNavItemActive(item: Pick<AppNavItem, "href" | "match">, pathname: string): boolean {
   const prefixes = [item.href, ...(item.match ?? [])];
   return prefixes.some((href) => {
     if (href === "/") return pathname === "/";

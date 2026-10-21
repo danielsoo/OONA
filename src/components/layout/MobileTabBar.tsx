@@ -3,17 +3,25 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AppNavIconSvg } from "@/components/layout/AppNavIcon";
+import { useUiCopy } from "@/components/i18n/UiText";
 import { useAuth } from "@/context/AuthContext";
-import { useDmUnreadCount } from "@/context/DmUnreadContext";
 import { useTranslations } from "@/context/LocaleContext";
 import { MOBILE_TABS, isNavItemActive } from "@/lib/appNav";
+import { HOME_TO_TOP_EVENT } from "@/lib/home-events";
 
-/** Bottom navigation below 1024px. The sidebar takes over on desktop. */
+/** Bottom navigation below 1024px. The header's nav takes over on desktop. */
 export default function MobileTabBar() {
   const pathname = usePathname();
   const { t } = useTranslations();
+  const copy = useUiCopy();
   const { user } = useAuth();
-  const unreadCount = useDmUnreadCount();
+
+  // Home pressed while already home: back up to the top, as the header's Home does.
+  const onHome = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (pathname !== "/" || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    e.preventDefault();
+    window.dispatchEvent(new Event(HOME_TO_TOP_EVENT));
+  };
 
   return (
     <nav
@@ -26,14 +34,14 @@ export default function MobileTabBar() {
           const active = isNavItemActive(item, pathname);
           const href = item.requiresAuth && !user ? "/login" : item.href;
           const isUpload = item.id === "upload";
-          const showBadge = item.id === "messages" && unreadCount > 0;
           return (
             <li key={item.id}>
               <Link
                 href={href}
                 aria-current={active ? "page" : undefined}
+                onClick={item.href === "/" ? onHome : undefined}
                 className={`relative flex h-full flex-col items-center justify-center gap-1 text-[10px] font-medium transition-colors ${
-                  active ? "text-[#6dd8ff]" : "text-white/48 hover:text-white/75"
+                  active ? "text-[#6dd8ff]" : "text-white/55 hover:text-white/80"
                 }`}
               >
                 {isUpload ? (
@@ -45,13 +53,8 @@ export default function MobileTabBar() {
                 ) : (
                   <AppNavIconSvg icon={item.icon} active={active} className="h-[22px] w-[22px]" />
                 )}
-                <span>{t(item.labelKey)}</span>
+                <span className="max-w-full truncate px-0.5">{copy(item.label)}</span>
                 {active ? <span className="absolute bottom-0 h-[3px] w-[3px] rounded-full bg-[#8ce3ff] shadow-[0_0_8px_#50c8ff]" aria-hidden /> : null}
-                {showBadge ? (
-                  <span className="absolute left-1/2 top-2 ml-2 min-w-[16px] rounded-full bg-xiio-accent px-1 text-center text-[10px] font-bold leading-4 text-white tabular-nums">
-                    {unreadCount > 99 ? "99+" : unreadCount}
-                  </span>
-                ) : null}
               </Link>
             </li>
           );

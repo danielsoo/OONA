@@ -6,6 +6,7 @@ import AppSidebar from "@/components/layout/AppSidebar";
 import AppTopBar from "@/components/layout/AppTopBar";
 import MobileTabBar from "@/components/layout/MobileTabBar";
 import CinematicAppHeader from "@/components/layout/CinematicAppHeader";
+import CatalogTabs from "@/components/layout/CatalogTabs";
 import WatchRoutePrefetcher from "@/components/watch/WatchRoutePrefetcher";
 import { HeroWaveLayoutProvider } from "@/context/HeroWaveLayoutContext";
 import { NotificationProvider } from "@/context/NotificationContext";
@@ -63,6 +64,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
           <WatchRoutePrefetcher />
           <div className="min-h-screen min-w-[360px] bg-xiio-bg text-white">
             <CinematicAppHeader />
+            <CatalogTabs />
             {children}
             <MobileTabBar />
           </div>

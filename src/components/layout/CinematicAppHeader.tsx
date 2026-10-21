@@ -5,10 +5,12 @@ import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import ProfileAvatar from "@/components/ProfileAvatar";
 import NotificationBell from "@/components/notifications/NotificationBell";
+import { IconBell } from "@/components/icons/MockupIcons";
 import XiioWordmark from "@/components/layout/XiioWordmark";
 import { useAuth } from "@/context/AuthContext";
 import { useDmUnreadCount } from "@/context/DmUnreadContext";
 import { useTranslations } from "@/context/LocaleContext";
+import { useNotifications } from "@/context/NotificationContext";
 import { useAdminAccess } from "@/hooks/useAdminAccess";
 import { UPLOAD_HREF } from "@/lib/appNav";
 import { HOME_TO_TOP_EVENT } from "@/lib/home-events";
@@ -28,8 +30,6 @@ const navItems = [
 ] as const;
 
 const mobileExtras = [
-  { label: "Discover", href: "/discover" },
-  { label: "Shorts", href: "/shorts" },
   { label: "My List", href: "/my-list", auth: true },
   { label: "Messages", href: "/messages", auth: true },
 ] as const;
@@ -56,6 +56,7 @@ export default function CinematicAppHeader() {
   const { user, loading: authLoading, logout } = useAuth();
   const { isAdmin, checked: adminChecked } = useAdminAccess();
   const unreadMessages = useDmUnreadCount();
+  const { unreadCount: unreadNotifications } = useNotifications();
   const [profile, setProfile] = useState<UserProfileDoc | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
@@ -150,6 +151,13 @@ export default function CinematicAppHeader() {
 
       <div className={styles.actions}>
         <div className={styles.notification}><NotificationBell /></div>
+        {/* Phones: the bell opens the notifications page instead of a dropdown. */}
+        {user ? (
+          <Link href="/notifications" className={styles.notificationLink} aria-label={t("topBar.notifications")}>
+            <IconBell />
+            {unreadNotifications > 0 ? <span className={styles.dot} aria-hidden="true" /> : null}
+          </Link>
+        ) : null}
         {authLoading ? (
           <span className={styles.avatarSkeleton} aria-hidden="true" />
         ) : user ? (
@@ -166,6 +174,8 @@ export default function CinematicAppHeader() {
                 size="sm"
                 className={styles.avatarImage}
               />
+              {/* Messages live in this menu, so unread ones show on the button too. */}
+              {unreadMessages > 0 ? <span className={styles.dot} aria-hidden="true" /> : null}
             </button>
             {accountOpen ? (
               <div className={styles.accountMenu}>

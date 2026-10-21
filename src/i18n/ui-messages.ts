@@ -2812,4 +2812,8 @@ export const uiMessages: Record<string, readonly [string, string]> = {
     "점선: 오늘, 아직 집계 중이에요.",
     "点線：今日、まだ集計中です。"
   ],
+  "films, series and shows": [
+    "영화, 시리즈, 예능",
+    "映画、シリーズ、バラエティ"
+  ],
 };
