@@ -25,14 +25,12 @@ import type { PromoShort } from "@/types/promoShort";
 import type { SchoolListItem } from "@/types/school";
 import type { CatalogFeedItem, WatchProgressItem } from "@/types/work";
 import styles from "./CinematicHomePage.module.css";
-import HeroBackgroundFade from "./HeroBackgroundFade";
 import UiText, { useUiCopy } from "@/components/i18n/UiText";
 
 type HeroSlide = {
   eyebrow: string;
   title: string;
   body: string;
-  image: string;
   href: string;
   cta: string;
 };
@@ -53,7 +51,6 @@ const heroSlides: HeroSlide[] = [
     eyebrow: "Emerging creators",
     title: "Ideas\nin Motion.",
     body: "Watch. Share. Be part of what’s next.",
-    image: "/images/home/home_portal_night_photo.jpg",
     href: "/movies",
     cta: "Explore Films",
   },
@@ -61,7 +58,6 @@ const heroSlides: HeroSlide[] = [
     eyebrow: "Stories on the surface",
     title: "Find a new\npoint of view.",
     body: "Original work from the next generation of filmmakers.",
-    image: "/images/hero/home-wave.png",
     href: "/discover",
     cta: "Start Discovering",
   },
@@ -69,7 +65,6 @@ const heroSlides: HeroSlide[] = [
     eyebrow: "A world in progress",
     title: "Meet the\nnext voices.",
     body: "Follow creators and connect with a global community.",
-    image: "/images/hero/home-under-water.png",
     href: "/society",
     cta: "Meet Creators",
   },
@@ -77,7 +72,6 @@ const heroSlides: HeroSlide[] = [
     eyebrow: "Made everywhere",
     title: "Create.\nConnect. Grow.",
     body: "Explore work from schools around the world.",
-    image: "/images/hero/campus-wave3.png",
     href: "/schools",
     cta: "Explore Schools",
   },
@@ -311,20 +305,6 @@ export default function CinematicHomePage() {
   return (
     <main className={styles.page}>
       <section className={styles.hero}>
-        <Image
-          key={activeHero.image}
-          src={activeHero.image}
-          alt=""
-          fill
-          priority={heroIndex === 0}
-          fetchPriority={heroIndex === 0 ? "high" : "auto"}
-          quality={90}
-          sizes="100vw"
-          className={styles.heroImage}
-        />
-        <div className={styles.heroShade} aria-hidden="true" />
-        <HeroBackgroundFade />
-
         <div className={styles.heroCopy}>
           <p className={styles.eyebrow}>{copy(activeHero.eyebrow)}</p>
           <h1>{copy(activeHero.title).split("\n").map((line) => <span key={line}>{line}</span>)}</h1>
