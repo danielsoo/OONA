@@ -2,9 +2,10 @@
    1900ms timeline; the percentages line up across them:
      0–8%    dark
      8–20%   a small light snaps on above the center
-     12–34%  a thin beam falls from it to the O
-     30–58%  the beam brightens; the O's top edge catches the light, then
-             the whole O; a pool of light under it, faint rings around it
+     12–34%  a thin beam falls from it, through the O to the floor
+     30–58%  the beam brightens and widens into a cone that takes in the
+             whole O; its top edge catches the light, then all of it; a
+             pool of light under it, faint rings around it
      46–100% light in the slit; "Stay for the credits"; hold
    The O's flight to the header's wordmark and the fade are run from the
    component. */
@@ -56,29 +57,34 @@
   animation: source 1900ms linear both;
 }
 
-/* The beam, from the light down to the top of the O. The blur is on the
-   wrapper so the clipped shaft's edges come out soft. */
+/* The beam: a cone from the light down to the pool on the floor, a little
+   wider than the O where it lands, so the whole O stands in the light. The
+   blur is on the wrapper so the clipped shaft's edges come out soft. */
 .beam {
   position: absolute;
   top: var(--source-y);
   left: 50%;
-  width: calc(var(--mark) * 0.36);
-  height: calc(var(--o-y) - var(--source-y) - var(--mark) * 0.3);
+  width: calc(var(--mark) * 1.24);
+  height: calc(var(--o-y) + var(--mark) * 0.36 - var(--source-y));
   transform-origin: 50% 0;
-  filter: blur(5px);
+  filter: blur(7px);
   animation: beam 1900ms linear both;
 }
 
 .shaft {
   position: absolute;
   inset: 0;
-  clip-path: polygon(41% 0, 59% 0, 84% 100%, 16% 100%);
+  clip-path: polygon(46% 0, 54% 0, 100% 100%, 0 100%);
   background: linear-gradient(
     to bottom,
-    rgba(240, 244, 255, 0.92) 0%,
-    rgba(200, 212, 255, 0.5) 45%,
-    rgba(180, 196, 255, 0.34) 100%
+    rgba(240, 244, 255, 0.9) 0%,
+    rgba(206, 216, 255, 0.4) 30%,
+    rgba(186, 200, 255, 0.2) 70%,
+    rgba(180, 196, 255, 0.14) 100%
   );
+  /* Brighter down the middle, falling off toward the cone's edges. */
+  -webkit-mask-image: linear-gradient(90deg, rgba(0, 0, 0, 0.35), #000 30%, #000 70%, rgba(0, 0, 0, 0.35));
+  mask-image: linear-gradient(90deg, rgba(0, 0, 0, 0.35), #000 30%, #000 70%, rgba(0, 0, 0, 0.35));
 }
 
 /* Where the light lands, under the O. */
@@ -212,7 +218,7 @@
   0%,
   12% {
     opacity: 0;
-    transform: translateX(-50%) scale(0.5, 0);
+    transform: translateX(-50%) scale(0.22, 0);
     animation-timing-function: cubic-bezier(0.3, 0.6, 0.3, 1);
   }
   14% {
@@ -220,7 +226,7 @@
   }
   34% {
     opacity: 0.6;
-    transform: translateX(-50%) scale(0.5, 1);
+    transform: translateX(-50%) scale(0.22, 1);
     animation-timing-function: ease-out;
   }
   52%,

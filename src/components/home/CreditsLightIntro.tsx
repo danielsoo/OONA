@@ -20,9 +20,9 @@ const WORDMARK_O = { x: 88, y: 29 };
 
 /**
  * The first visit to "/": in the dark, a small light snaps on above the
- * center and a narrow beam falls from it onto the slit "O" of the wordmark,
- * catching its top edge first, then the whole O, with a pool of light under
- * it and faint rings around it. Then the O rises to the header, lands on the
+ * center and a narrow beam falls from it past the slit "O" of the wordmark,
+ * then opens into a cone as wide as the O, catching its top edge first, then
+ * the whole O, with a pool of light under it and faint rings around it. Then the O rises to the header, lands on the
  * wordmark's own O and the wordmark appears around it, while the dark falls
  * away to the page.
  *
