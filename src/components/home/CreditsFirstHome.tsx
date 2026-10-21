@@ -24,6 +24,12 @@ const POP_AT = 0.35;
  * again (a new swipe, even one that cuts the momentum short).
  */
 const HOLD_MAX_MS = 1200;
+/**
+ * Landing on the home going down, the hold is brief: the home scrolls
+ * freely, so the rest of that swipe may carry on into it rather than the
+ * page sitting still under the reader's fingers.
+ */
+const HOLD_INTO_HOME_MS = 300;
 const NEW_GESTURE_GAP_MS = 90;
 /** Set once the intro has played, so coming back to "/" in the app doesn't replay it. */
 let introPlayedThisLoad = false;
@@ -131,9 +137,9 @@ function useCreditsToHome(
     let raf = 0;
     let holdUntil = 0;
     let holdCap = 0;
-    const hold = (now: number) => {
+    const hold = (now: number, max = HOLD_MAX_MS) => {
       holdUntil = now + 160;
-      holdCap = now + HOLD_MAX_MS;
+      holdCap = now + max;
     };
     let lastWheelAt = 0;
     let lastWheelSize = 0;
@@ -165,7 +171,7 @@ function useCreditsToHome(
           return;
         }
         gliding = false;
-        hold(now);
+        hold(now, to > from ? HOLD_INTO_HOME_MS : HOLD_MAX_MS);
       };
       raf = requestAnimationFrame(step);
     };
