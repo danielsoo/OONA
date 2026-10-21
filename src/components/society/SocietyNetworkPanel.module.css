@@ -196,8 +196,7 @@ button.primaryButton, .primaryButton { border-color: #dadde0; background: #e9eae
 .worksView :global(.mb-10) { margin-top: 28px; }
 
 @media (max-width: 1180px) {
-  .toolbar { grid-template-columns: minmax(250px, 1fr) repeat(2, 145px) auto; }
-  .toolbar > label:nth-of-type(4) { display: none; }
+  .toolbar { grid-template-columns: minmax(220px, 1fr) repeat(3, 132px) auto; }
   .discoverLayout { grid-template-columns: minmax(0, 1fr) 285px; gap: 28px; }
   .creatorGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .connectionRow { grid-template-columns: minmax(220px, 1fr) minmax(150px, .75fr) auto; }
@@ -220,8 +219,12 @@ button.primaryButton, .primaryButton { border-color: #dadde0; background: #e9eae
   .drawerPortrait { min-height: 100%; aspect-ratio: auto; }
   .creatorGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .connectionsView, .invitesView, .worksView { margin-top: 38px; }
-  .connectionRow { grid-template-columns: minmax(0, 1fr) auto; gap: 14px; padding: 18px 0; }
-  .connectionInterests { display: none; }
+  .connectionRow { grid-template-columns: minmax(0, 1fr) auto; gap: 10px 14px; padding: 18px 0; }
+  .connectionIdentity { grid-column: 1; grid-row: 1; }
+  .rowActions { grid-column: 2; grid-row: 1; }
+  /* The interests go on a line of their own, under the name. */
+  .connectionInterests { grid-column: 1 / -1; grid-row: 2; padding-left: 72px; }
+  .connectionInterests span { padding: 4px 9px; font-size: 11px; }
   .inviteRow { grid-template-columns: 52px minmax(0, 1fr); gap: 15px; }
   .inviteAvatar { width: 52px; height: 52px; }
   .inviteActions { grid-column: 2; min-width: 0; flex-direction: row; flex-wrap: wrap; }
@@ -233,19 +236,21 @@ button.primaryButton, .primaryButton { border-color: #dadde0; background: #e9eae
   .intro h1 { font-size: 48px; }
   .introCopy br { display: none; }
   .tabs { gap: 27px; }
-  .toolbar { display: flex; overflow-x: auto; align-items: stretch; scrollbar-width: none; }
+  /* Positioned, so the screen-reader labels and the checkbox inside stay in its scroll area
+     instead of widening the page. */
+  .toolbar { position: relative; display: flex; overflow-x: auto; align-items: stretch; scrollbar-width: none; }
   .toolbar::-webkit-scrollbar { display: none; }
   .toolbar > label { min-width: 132px; border-bottom: 0; }
   .toolbar .searchField { min-width: 260px; }
   .sectionHeading h2 { font-size: 36px; }
-  .sectionHeading > span { display: none; }
+  .sectionHeading > span { flex-shrink: 0; font-size: 12px; }
   .profileDrawer { display: block; }
   .drawerPortrait { aspect-ratio: 1.65 / 1; }
   .drawerBody { padding: 19px; }
   .creatorGrid { grid-template-columns: 1fr; gap: 14px; }
   .cardPortrait { aspect-ratio: 1.5 / 1; }
   .connectionRow { grid-template-columns: 1fr; }
-  .rowActions { padding-left: 72px; }
+  .rowActions { grid-column: 1; grid-row: 3; padding-left: 72px; }
   .inviteTop { display: block; }
   .status { display: inline-block; margin-top: 10px; }
   .inviteActions { grid-column: 1 / -1; }

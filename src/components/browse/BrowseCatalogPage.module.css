@@ -317,8 +317,32 @@
     border: 0;
   }
 
+  /* The featured series and show sit side by side under the hero. */
   .sideStack {
-    display: none;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: none;
+    gap: 12px;
+    margin-top: 14px;
+    padding: 0 20px;
+  }
+
+  .sideStack > :only-child {
+    grid-row: auto;
+    grid-column: 1 / -1;
+  }
+
+  .sideFeature,
+  .sideMedia {
+    height: auto;
+    aspect-ratio: 4 / 3;
+  }
+
+  .sideCopy {
+    inset: auto 12px 11px;
+  }
+
+  .sideCopy h3 {
+    font-size: 19px;
   }
 
   .heroCopy {
@@ -357,6 +381,10 @@
 
   .heroCopy {
     bottom: 38px;
+  }
+
+  .sideStack {
+    padding: 0 16px;
   }
 
   .heroDescription {

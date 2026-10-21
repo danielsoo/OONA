@@ -846,7 +846,14 @@ a.tip:hover { border-color: rgba(119, 203, 255, 0.6); }
 }
 
 @media (max-width: 600px) {
-  .sections { top: 84px; gap: 20px; }
+  /* The last tabs run off the edge: a fade says the row scrolls sideways. */
+  .sections {
+    top: 84px;
+    gap: 20px;
+    padding-right: 28px;
+    -webkit-mask-image: linear-gradient(90deg, #000 82%, transparent);
+    mask-image: linear-gradient(90deg, #000 82%, transparent);
+  }
   .name { font-size: 11.5px; }
   .titleLit { font-size: 18px; }
   /* Too little room for every name: the arrows in the panel move between works. */

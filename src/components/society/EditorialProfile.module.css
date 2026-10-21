@@ -918,7 +918,10 @@
   .workKnot strong {
     font-size: 12.5px;
   }
-  .workKnot small,
+  .workKnot small {
+    font-size: 9px;
+  }
+  /* Too crowded for every collaborator's role; the Credits tab lists them. */
   .personLabel small {
     display: none;
   }

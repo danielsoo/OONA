@@ -215,11 +215,10 @@
 
 @media (max-width: 620px) {
   .page { min-height:100svh; padding: 104px 22px 98px; background:#020a12; }
-  .pageHeader { align-items: flex-start; flex-direction: column; gap: 18px; }
+  .pageHeader { align-items: flex-start; flex-direction: column; gap: 14px; }
   .pageHeader h1 { font-size: 43px; }
-  .pageHeader p { display:none; }
-  .pageHeader > button { position:absolute; top:104px; right:22px; font-size:0; }
-  .pageHeader > button span { font-size:16px; }
+  .pageHeader p { margin-top: 8px; font-size: 14px; }
+  .pageHeader > button { gap: 7px; margin: 0; padding: 7px 13px; border: 1px solid rgba(120,174,212,.28); border-radius: 999px; font-size: 12px; }
   .filters { gap: 28px; margin-top: 28px; }
   .filters button { padding:8px 15px; border:1px solid rgba(120,174,212,.28); border-radius:999px; font-size:11px; }
   .filters .activeFilter { border-color:#5fd3ff; background:rgba(45,151,211,.12); box-shadow:0 0 18px rgba(65,190,247,.12); }
@@ -230,6 +229,13 @@
   .timeline::before { left: 5px; }
   .timeline > button { padding-left: 5px; padding-right: 4px; }
   .timeline > button::before { left: -25px; }
+  /* Phones: the activity panel follows the list, more compact. */
+  .activity { margin-top: 26px; padding-top: 24px; }
+  .activity h2 { font-size: 22px; }
+  .stats div { padding: 16px 6px; }
   .stats strong { font-size: 26px; }
-  .activity { display:none; }
+  .stats span { font-size: 10px; }
+  .activityNote { margin-top: 20px; padding: 18px 0; }
+  .activityNote p { font-size: 13px; }
+  .activityNote span { margin-top: 16px; }
 }

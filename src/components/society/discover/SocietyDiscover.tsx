@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useCallback, useEffect, useLayoutEffect, useMemo, useState, type CSSProperties, type ReactNode } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import BusinessInviteComposerModal, { type PresetRecipient } from "@/components/messages/BusinessInviteComposerModal";
 import UiText, { useUiCopy } from "@/components/i18n/UiText";
 import SocietyLoginDialog from "@/components/society/SocietyLoginDialog";
@@ -229,6 +229,21 @@ export default function SocietyDiscover({ onTabChange, openWork = null }: { onTa
 
   const step = (by: number) => setIndex((current) => (current + by + featured.length) % featured.length);
 
+  // On a touch screen, a sideways swipe across the hero steps to the next or previous creator.
+  const swipeFrom = useRef<{ x: number; y: number } | null>(null);
+  const onHeroTouchStart = (e: React.TouchEvent) => {
+    const t = e.touches[0];
+    swipeFrom.current = e.touches.length === 1 && t ? { x: t.clientX, y: t.clientY } : null;
+  };
+  const onHeroTouchEnd = (e: React.TouchEvent) => {
+    const from = swipeFrom.current;
+    const t = e.changedTouches[0];
+    swipeFrom.current = null;
+    if (!from || !t || featured.length < 2) return;
+    const dx = t.clientX - from.x;
+    if (Math.abs(dx) > 48 && Math.abs(dx) > Math.abs(t.clientY - from.y) * 1.5) step(dx < 0 ? 1 : -1);
+  };
+
   const openSection = (tab: SocietyTabId) => {
     if (tab === "discover" || authLoading) return;
     if (!user) setLoginReturnTo(`/society?tab=${tab}`);
@@ -283,6 +298,8 @@ export default function SocietyDiscover({ onTabChange, openWork = null }: { onTa
         onMouseLeave={() => setPaused(false)}
         onFocusCapture={() => setPaused(true)}
         onBlurCapture={() => setPaused(false)}
+        onTouchStart={onHeroTouchStart}
+        onTouchEnd={onHeroTouchEnd}
       >
         {hero ? (
           <div className={styles.heroCopy} key={hero.uid}>
@@ -303,16 +320,24 @@ export default function SocietyDiscover({ onTabChange, openWork = null }: { onTa
               </button>
             </div>
             {featured.length > 1 ? (
-              <div className={styles.dots}>
-                {featured.map((person, i) => (
-                  <button
-                    key={person.uid}
-                    type="button"
-                    aria-label={copy("Show creator {number}", { number: i + 1 })}
-                    aria-current={i === index % featured.length ? "true" : undefined}
-                    onClick={() => setIndex(i)}
-                  />
-                ))}
+              <div className={styles.dotsRow}>
+                <div className={styles.dots}>
+                  {featured.map((person, i) => (
+                    <button
+                      key={person.uid}
+                      type="button"
+                      aria-label={copy("Show creator {number}", { number: i + 1 })}
+                      aria-current={i === index % featured.length ? "true" : undefined}
+                      onClick={() => setIndex(i)}
+                    />
+                  ))}
+                </div>
+                {/* Below 1040px the corner pager moves here, beside the dots. */}
+                <div className={styles.inlinePager}>
+                  <span>{pad((index % featured.length) + 1)} / {pad(featured.length)}</span>
+                  <button type="button" aria-label={copy("Previous creator")} onClick={() => step(-1)}><Chevron left /></button>
+                  <button type="button" aria-label={copy("Next creator")} onClick={() => step(1)}><Chevron /></button>
+                </div>
               </div>
             ) : null}
           </div>

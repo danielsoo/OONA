@@ -231,11 +231,20 @@
   stroke-width: 1.6;
 }
 
+.dotsRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 34px;
+}
+
 .dots {
   display: flex;
   gap: 10px;
-  margin-top: 34px;
 }
+
+.inlinePager { display: none; }
 
 .dots button {
   position: relative;
@@ -786,9 +795,31 @@ a.personCard:hover .personStar { box-shadow: 0 0 24px 8px rgba(150, 214, 255, 0.
 }
 
 @media (max-width: 1040px) {
-  .hero { grid-template-columns: 1fr; align-content: center; gap: 48px; }
+  /* The bottom clears the tab bar and the scroll-mode toggle above it. */
+  .hero { grid-template-columns: 1fr; align-content: center; gap: 48px; padding-bottom: calc(124px + env(safe-area-inset-bottom)); }
   .screen { order: -1; }
   .pager { display: none; }
+  .inlinePager {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 2px;
+    color: #b4c5da;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+  }
+  .inlinePager span { margin-right: 6px; }
+  .inlinePager button {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #e5f2ff;
+    cursor: pointer;
+  }
   .focus { grid-template-columns: 1fr; justify-items: center; }
   .focusStar { width: min(60vw, 240px); }
   .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -796,12 +827,13 @@ a.personCard:hover .personStar { box-shadow: 0 0 24px 8px rgba(150, 214, 255, 0.
 
 @media (max-width: 600px) {
   .page { --pad: 20px; padding-bottom: 88px; }
-  .hero { padding-top: 72px; padding-bottom: 64px; gap: 40px; }
+  .hero { padding-top: 72px; gap: 40px; }
   .eyebrow { margin-bottom: 13px; font-size: 9px; }
   .name { font-size: clamp(42px, 12.5vw, 56px); }
   .body { font-size: 15px; }
   .primary { min-width: 0; }
-  .dots button { width: 32px; }
+  .dots { gap: 8px; }
+  .dots button { width: 24px; }
   .focus { padding: 22px 20px 28px; }
   .quote { font-size: 24px; }
   .works { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
