@@ -16,9 +16,12 @@
   background: #080808;
 }
 
+/* No border, rather than a transparent one: the rule's own background is
+   painted across the border box, so a 1px transparent border over a picture
+   still lands as a hairline along the header's edge. */
 .overlayHeader {
   position: absolute;
-  border-bottom-color: transparent;
+  border-bottom-width: 0;
   background: linear-gradient(180deg, rgba(1, 8, 15, 0.7) 0%, rgba(1, 8, 15, 0.22) 68%, transparent 100%);
   box-shadow: none;
   backdrop-filter: none;
@@ -30,7 +33,7 @@
 :global(html[data-society-hero]) .header,
 :global(body:has([data-society-hero])) .header {
   position: absolute;
-  border-bottom-color: transparent;
+  border-bottom-width: 0;
   background: linear-gradient(180deg, rgba(1, 8, 15, 0.7) 0%, rgba(1, 8, 15, 0.22) 68%, transparent 100%);
   box-shadow: none;
   backdrop-filter: none;
@@ -44,12 +47,15 @@
 }
 
 :global(html[data-home-header="solid"]) .homeHeader {
+  /* The home's header carries .overlayHeader too, so the border has to come
+     back by width as well as colour once the rows pass under it. */
+  border-bottom-width: 1px;
   border-bottom-color: rgba(125, 171, 205, 0.12);
   background: rgba(8, 8, 8, 0.94);
 }
 
 .schoolHeader {
-  border-bottom-color: transparent;
+  border-bottom-width: 0;
   background: #010913;
 }
 
