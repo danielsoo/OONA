@@ -5,16 +5,13 @@ import Link from "next/link";
 import {
   useMemo,
   useRef,
-  useState,
   type CSSProperties,
   type ReactNode,
 } from "react";
-import { useAuth } from "@/context/AuthContext";
 import { useCatalogFeed } from "@/hooks/useCatalogFeed";
 import { useContinueWatching } from "@/hooks/useContinueWatching";
 import { usePromoFeed } from "@/hooks/usePromoFeed";
 import { useSchoolsFeed } from "@/hooks/useSchoolsFeed";
-import { UPLOAD_HREF } from "@/lib/appNav";
 import { peopleProfileHref } from "@/lib/dm/peopleProfileHref";
 import { formatCompactStat } from "@/lib/formatStat";
 import { schoolPosterGradient } from "@/lib/school-brand";
@@ -27,14 +24,6 @@ import type { CatalogFeedItem, WatchProgressItem } from "@/types/work";
 import styles from "./CinematicHomePage.module.css";
 import UiText, { useUiCopy } from "@/components/i18n/UiText";
 
-type HeroSlide = {
-  eyebrow: string;
-  title: string;
-  body: string;
-  href: string;
-  cta: string;
-};
-
 type DisplayCard = {
   id: string;
   title: string;
@@ -45,37 +34,6 @@ type DisplayCard = {
   progressPercent?: number;
   spaced?: boolean;
 };
-
-const heroSlides: HeroSlide[] = [
-  {
-    eyebrow: "Emerging creators",
-    title: "Ideas\nin Motion.",
-    body: "Watch. Share. Be part of what’s next.",
-    href: "/movies",
-    cta: "Explore Films",
-  },
-  {
-    eyebrow: "Stories on the surface",
-    title: "Find a new\npoint of view.",
-    body: "Original work from the next generation of filmmakers.",
-    href: "/discover",
-    cta: "Start Discovering",
-  },
-  {
-    eyebrow: "A world in progress",
-    title: "Meet the\nnext voices.",
-    body: "Follow creators and connect with a global community.",
-    href: "/society",
-    cta: "Meet Creators",
-  },
-  {
-    eyebrow: "Made everywhere",
-    title: "Create.\nConnect. Grow.",
-    body: "Explore work from schools around the world.",
-    href: "/schools",
-    cta: "Explore Schools",
-  },
-];
 
 const fallbackImages = [
   "/images/hero/home-under-water.png",
@@ -90,15 +48,6 @@ function ArrowIcon({ direction = "right" }: { direction?: "left" | "right" }) {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true" className={styles.icon}>
       <path d={direction === "right" ? "M8 4l8 8-8 8" : "M16 4l-8 8 8 8"} />
-    </svg>
-  );
-}
-
-function UploadIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" className={styles.icon}>
-      <path d="M12 18V5M7 10l5-5 5 5" />
-      <path d="M5 20h14" />
     </svg>
   );
 }
@@ -243,15 +192,12 @@ function SchoolCard({ school }: { school: SchoolListItem }) {
 export default function CinematicHomePage() {
   const _copy = useUiCopy();
   const copy = useUiCopy();
-  const { user } = useAuth();
   const { items: movies, loading: moviesLoading } = useCatalogFeed("movies", 12);
   const { items: series, loading: seriesLoading } = useCatalogFeed("series", 12);
   const { items: entertainment, loading: entertainmentLoading } = useCatalogFeed("entertainment", 12);
   const { items: promoItems } = usePromoFeed({ fallbackToDemo: false });
   const { items: continueWatchingItems } = useContinueWatching();
   const { items: schoolItems } = useSchoolsFeed(6);
-  const [heroIndex, setHeroIndex] = useState(0);
-  const activeHero = heroSlides[heroIndex]!;
 
   const catalog = useMemo(() => {
     return uniqueCatalogItems([...movies, ...series, ...entertainment]);
@@ -296,46 +242,8 @@ export default function CinematicHomePage() {
     return Array.from(result.values()).sort((a, b) => b.works - a.works).slice(0, 6);
   }, [catalog]);
 
-  const changeHero = (delta: number) => {
-    setHeroIndex((current) => (current + delta + heroSlides.length) % heroSlides.length);
-  };
-
-  const authHref = (href: string) => user ? href : "/login";
-
   return (
     <main className={styles.page}>
-      <section className={styles.hero}>
-        <div className={styles.heroCopy}>
-          <p className={styles.eyebrow}>{copy(activeHero.eyebrow)}</p>
-          <h1>{copy(activeHero.title).split("\n").map((line) => <span key={line}>{line}</span>)}</h1>
-          <p className={styles.heroBody}>{copy(activeHero.body)}</p>
-          <div className={styles.heroActions}>
-            <Link href={activeHero.href} prefetch={false} className={styles.primaryButton}>
-              {copy(activeHero.cta)}
-              <ArrowIcon />
-            </Link>
-            <Link href={authHref(UPLOAD_HREF)} prefetch={false} className={styles.uploadButton}>
-              <UploadIcon /><UiText text={"Upload"} /></Link>
-          </div>
-        </div>
-
-        <aside className={styles.heroAside}>
-          <p><UiText text={"More voices."} /><br /><UiText text={"A brighter"} /><br /><UiText text={"tomorrow."} /></p>
-          <span />
-        </aside>
-
-        <div className={styles.heroPager}>
-          <span>{String(heroIndex + 1).padStart(2, "0")} / {String(heroSlides.length).padStart(2, "0")}</span>
-          <button type="button" onClick={() => changeHero(-1)} aria-label={_copy("Previous hero")}>
-            <ArrowIcon direction="left" />
-          </button>
-          <i aria-hidden="true" />
-          <button type="button" onClick={() => changeHero(1)} aria-label={_copy("Next hero")}>
-            <ArrowIcon />
-          </button>
-        </div>
-      </section>
-
       <div className={styles.content}>
         {continueCards.length > 0 ? (
           <FilmSection title={_copy("Continue Watching")} href="/my-list" items={continueCards} />

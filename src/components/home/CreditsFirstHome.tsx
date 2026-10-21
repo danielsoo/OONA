@@ -103,9 +103,9 @@ function useCreditsToHome(
       },
       { rootMargin: "0px 0px -6% 0px", threshold: 0 }
     );
-    // The hero, and each row inside the content block (rows that load late too).
+    // Each row inside the content block (rows that load late too).
     const collect = () => {
-      home.querySelectorAll(":scope > main > section, :scope > main > div > *").forEach((el) => {
+      home.querySelectorAll(":scope > main > div > *").forEach((el) => {
         if (targets.has(el)) return;
         targets.add(el);
         el.classList.add(styles.popPending);
@@ -369,7 +369,7 @@ function useRecedeOnScroll(targetRef: RefObject<HTMLElement | null>, enabled: bo
 
 /**
  * The header stays on screen on "/" (CinematicAppHeader .homeHeader): clear
- * over the credits and the hero, solid once the rows below pass under it.
+ * over the credits, solid once the home's rows reach it.
  */
 function useHomeHeaderState(homeRef: RefObject<HTMLElement | null>) {
   useEffect(() => {
@@ -379,10 +379,8 @@ function useHomeHeaderState(homeRef: RefObject<HTMLElement | null>) {
       raf = 0;
       const home = homeRef.current;
       if (!home) return;
-      const hero = home.querySelector<HTMLElement>(":scope > main > section");
       const header = document.querySelector<HTMLElement>("header");
-      const heroBottom = home.getBoundingClientRect().top + (hero?.offsetHeight ?? 0);
-      const mode = heroBottom < (header?.offsetHeight ?? 82) ? "solid" : "clear";
+      const mode = home.getBoundingClientRect().top < (header?.offsetHeight ?? 82) ? "solid" : "clear";
       if (root.dataset.homeHeader !== mode) root.dataset.homeHeader = mode;
     };
     const onChange = () => {

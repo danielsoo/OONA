@@ -37,7 +37,7 @@
 }
 
 /* "/": stays on screen over the credits and the home (CreditsFirstHome sets
-   data-home-header), turning solid once the rows pass under it. */
+   data-home-header), turning solid once the home's rows reach it. */
 .homeHeader {
   position: fixed;
   transition: background-color 240ms ease, border-color 240ms ease;

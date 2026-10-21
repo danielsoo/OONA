@@ -7,17 +7,6 @@
   color: #f2f4fb;
 }
 
-.hero {
-  --hero-height: clamp(548px, 57vh, 650px);
-  position: relative;
-  min-height: 548px;
-  height: var(--hero-height);
-  max-height: 650px;
-  overflow: visible;
-  isolation: isolate;
-}
-
-
 .header {
   position: relative;
   z-index: 10;
@@ -238,151 +227,19 @@
 .mobileNavExtras { display: none; }
 .navBadge { min-width: 18px; padding: 1px 5px; border-radius: 999px; background: #367ab4; color: white; font-size: 9px; text-align: center; }
 
-.heroCopy {
-  position: absolute;
-  z-index: 2;
-  left: var(--page-pad);
-  top: 148px;
-  max-width: 470px;
-}
-
-.eyebrow,
-.heroAside p,
 .footerMotto {
   text-transform: uppercase;
   letter-spacing: 0.28em;
 }
 
-.eyebrow {
-  margin: 0 0 18px;
-  color: #9bb9dc;
-  font-size: 11px;
-  font-weight: 600;
-}
-
-.heroCopy h1 {
-  margin: 0;
-  color: #f0f1fa;
-  font-family: var(--font-serif), Georgia, serif;
-  font-size: clamp(52px, 4.3vw, 68px);
-  font-weight: 400;
-  line-height: 1.03;
-  letter-spacing: -0.025em;
-  text-shadow: 0 2px 22px rgba(0,0,0,0.5);
-}
-
-.heroCopy h1 span { display: block; }
-
-.heroBody {
-  margin: 15px 0 25px;
-  color: rgba(228, 234, 246, 0.88);
-  font-size: 16px;
-  line-height: 1.5;
-}
-
-.primaryButton {
-  width: 198px;
-  height: 47px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 18px;
-  border: 1px solid rgba(119, 203, 255, 0.82);
-  border-radius: 999px;
-  background: rgba(4, 17, 28, 0.32);
-  color: white;
-  font-size: 14px;
-  font-weight: 500;
-  box-shadow: 0 0 22px rgba(61, 163, 232, 0.12), inset 0 0 18px rgba(83, 171, 233, 0.06);
-  transition: transform 180ms ease, background 180ms ease, box-shadow 180ms ease;
-}
-
-.primaryButton:hover {
-  transform: translateY(-2px);
-  background: rgba(49, 119, 168, 0.22);
-  box-shadow: 0 0 28px rgba(61, 163, 232, 0.22);
-}
-
-.primaryButton .icon { width: 15px; height: 15px; }
-
-.heroActions { display: flex; flex-wrap: wrap; align-items: center; gap: 11px; }
-.uploadButton {
-  height: 47px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 9px;
-  padding: 0 18px;
-  border: 1px solid rgba(179, 206, 230, 0.2);
-  border-radius: 999px;
-  background: rgba(4, 17, 28, 0.26);
-  color: rgba(240, 246, 253, 0.78);
-  font-size: 13px;
-  transition: background 180ms ease, color 180ms ease;
-}
-.uploadButton:hover { background: rgba(49, 119, 168, 0.2); color: white; }
-.uploadButton .icon { width: 15px; height: 15px; }
-
-.heroAside {
-  position: absolute;
-  z-index: 2;
-  right: var(--page-pad);
-  top: 158px;
-  width: 120px;
-}
-
-.heroAside p {
-  margin: 0;
-  color: #9bb9dc;
-  font-size: 10px;
-  font-weight: 600;
-  line-height: 2.15;
-}
-
-.heroAside span {
-  display: block;
-  width: 76px;
-  height: 1px;
-  margin-top: 17px;
-  background: rgba(170, 202, 231, 0.5);
-}
-
-.heroPager {
-  position: absolute;
-  z-index: 2;
-  right: var(--page-pad);
-  bottom: 70px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  color: #b4c5da;
-  font-size: 12px;
-  letter-spacing: 0.08em;
-}
-
-.heroPager button {
-  width: 26px;
-  height: 30px;
-  display: grid;
-  place-items: center;
-  border: 0;
-  background: transparent;
-  color: #e5f2ff;
-  cursor: pointer;
-}
-
-.heroPager button:hover { color: #78c8ff; }
-.heroPager i { width: 1px; height: 18px; background: rgba(156, 188, 218, 0.18); }
-
 .content {
-  --content-overlap: 64px;
   position: relative;
   z-index: 3;
   display: flex;
   flex-direction: column;
   gap: 31px;
-  margin-top: -64px;
-  padding: 0 var(--page-pad) 44px;
+  /* Clear of the header, which stays over the home (CinematicAppHeader .homeHeader). */
+  padding: 118px var(--page-pad) 44px;
 }
 
 .section { min-width: 0; }
@@ -628,7 +485,6 @@
 }
 
 @media (max-width: 1040px) {
-  .hero { --hero-height: 540px; min-height: 540px; height: var(--hero-height); max-height: none; }
   .header { height: 78px; grid-template-columns: 1fr auto; }
   .logo { width: 106px; }
   .menuButton {
@@ -680,10 +536,7 @@
   .mobileNavExtras .icon { width: 15px; height: 15px; }
   .search { display: none; }
   .mobileSearch { display: grid; }
-  .heroCopy { top: auto; bottom: 106px; }
-  .heroAside { display: none; }
-  .heroPager { bottom: 34px; }
-  .content { --content-overlap: 0px; margin-top: 0; padding-top: 30px; }
+  .content { padding-top: 100px; }
   .trendingRail { display: flex; margin-right: calc(-1 * var(--page-pad)); padding-right: var(--page-pad); }
   .filmCard { flex: 0 0 min(260px, 72vw); }
   .railButton { display: none; }
@@ -693,7 +546,6 @@
 
 @media (max-width: 600px) {
   .page { --page-pad: 20px; }
-  .hero { --hero-height: 520px; min-height: 520px; height: var(--hero-height); }
   .headerActions { gap: 6px; }
   .iconButton,
   .mobileSearch { width: 32px; height: 32px; }
@@ -702,21 +554,6 @@
   .signIn { width: 32px; height: 32px; overflow: hidden; padding: 0; border-radius: 50%; font-size: 0; }
   .signIn::after { content: "→"; font-size: 15px; }
   .menuButton { left: calc(var(--page-pad) + 150px); }
-  .heroCopy { right: var(--page-pad); bottom: 103px; }
-  .eyebrow { margin-bottom: 13px; font-size: 9px; }
-  .heroCopy h1 { font-size: clamp(43px, 14vw, 58px); }
-  /* CJK headlines need fewer characters per line than the Latin display face. */
-  .heroCopy:lang(ko) h1,
-  .heroCopy:lang(ja) h1 {
-    font-size: clamp(36px, 10vw, 48px);
-    line-height: 1.16;
-    word-break: keep-all;
-    overflow-wrap: anywhere;
-  }
-  .heroBody { max-width: 330px; margin: 13px 0 22px; font-size: 14px; }
-  .primaryButton { width: 174px; height: 44px; font-size: 13px; }
-  .uploadButton { height: 44px; padding: 0 14px; font-size: 12px; }
-  .heroPager { right: var(--page-pad); }
   .content { gap: 27px; padding-bottom: 30px; }
   .sectionHeader a { font-size: 17px; }
   .creatorGrid,
@@ -730,6 +567,5 @@
   .filmCardSkeleton { animation: none; }
   .cardVideo { animation: none; }
   .filmCard,
-  .cardImage,
-  .primaryButton { transition: none; }
+  .cardImage { transition: none; }
 }
