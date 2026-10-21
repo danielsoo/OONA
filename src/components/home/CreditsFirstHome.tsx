@@ -24,10 +24,12 @@ function prefersReducedMotion(): boolean {
  * The credits and the home are two screens, one stop apart. The browser's own
  * scroll snapping does the stopping (html[data-home-snap] and .snapStop in
  * the module CSS): a scroll down from the credits comes to rest at the top of
- * the home, and one up from there at the credits, with a trackpad's momentum
- * and a finger's fling carried by the browser rather than fought by script.
- * Inside the home, which is taller than the window, scrolling is free; each
- * row pops up as it comes into view.
+ * the home, and one up from the home at its top or the credits, with a
+ * trackpad's momentum and a finger's fling carried by the browser rather than
+ * fought by script. The snapping is on only above the top of the home: inside
+ * the home, top to bottom, the page is one screen and scrolls freely (left on,
+ * a browser may snap inside it, between its top and the end of the page).
+ * Each row pops up as it comes into view.
  */
 function useCreditsToHome(
   homeRef: RefObject<HTMLElement | null>,
@@ -38,7 +40,64 @@ function useCreditsToHome(
     const home = homeRef.current;
     if (!enabled || !home || prefersReducedMotion()) return;
     const root = document.documentElement;
-    root.dataset.homeSnap = "";
+    const homeTop = () => home.getBoundingClientRect().top + window.scrollY;
+
+    // --- The snapping: on above the top of the home, off inside it ---
+    let snapping = false;
+    // A scroll the page makes itself (Home, "Explore OONA") runs to its end
+    // before the snapping is looked at again, so it isn't cut short.
+    let movingUntil = 0;
+    const setSnap = (on: boolean) => {
+      if (on === snapping) return;
+      snapping = on;
+      if (on) root.dataset.homeSnap = "";
+      else delete root.dataset.homeSnap;
+    };
+    let snapRaf = 0;
+    const updateSnap = () => {
+      snapRaf = 0;
+      if (performance.now() < movingUntil) return;
+      setSnap(window.scrollY < homeTop() - 1);
+    };
+    const onScrollSnap = () => {
+      if (!snapRaf) snapRaf = requestAnimationFrame(updateSnap);
+    };
+    updateSnap();
+    window.addEventListener("scroll", onScrollSnap, { passive: true });
+    window.addEventListener("resize", onScrollSnap);
+    const moveTo = (top: number) => {
+      setSnap(false);
+      movingUntil = performance.now() + 1500;
+      window.scrollTo({ top, behavior: "smooth" });
+      window.setTimeout(onScrollSnap, 1550);
+    };
+    // A scroll that began inside the home (a key, say) can end between the
+    // two screens before the snapping took hold; it finishes the trip: on to
+    // the credits going up, unless it barely left the home, and the other way.
+    let lastY = window.scrollY;
+    let direction = 0;
+    let settleTimer = 0;
+    const hasScrollEnd = "onscrollend" in window;
+    const settle = () => {
+      if (performance.now() < movingUntil) return;
+      const y = window.scrollY;
+      const top = homeTop();
+      const end = Math.max(0, top - window.innerHeight); // credits taller than the window scroll inside first
+      if (y <= end + 2 || y >= top - 2) return;
+      const barely = window.innerHeight * 0.25;
+      moveTo(direction < 0 ? (top - y < barely ? top : end) : y - end < barely ? end : top);
+    };
+    const onScrollSettle = () => {
+      const y = window.scrollY;
+      if (y !== lastY) direction = Math.sign(y - lastY);
+      lastY = y;
+      if (!hasScrollEnd) {
+        window.clearTimeout(settleTimer);
+        settleTimer = window.setTimeout(settle, 180);
+      }
+    };
+    window.addEventListener("scroll", onScrollSettle, { passive: true });
+    window.addEventListener("scrollend", settle);
 
     // --- The pop ---
     const targets = new Set<Element>();
@@ -82,14 +141,19 @@ function useCreditsToHome(
     };
     window.addEventListener("scroll", onScroll, { passive: true });
 
-    const homeTop = () => home.getBoundingClientRect().top + window.scrollY;
     glideRef.current = {
-      home: () => window.scrollTo({ top: homeTop(), behavior: "smooth" }),
-      top: () => window.scrollTo({ top: 0, behavior: "smooth" }),
+      home: () => moveTo(homeTop()),
+      top: () => moveTo(0),
     };
 
     return () => {
       delete root.dataset.homeSnap;
+      cancelAnimationFrame(snapRaf);
+      window.clearTimeout(settleTimer);
+      window.removeEventListener("scroll", onScrollSettle);
+      window.removeEventListener("scrollend", settle);
+      window.removeEventListener("scroll", onScrollSnap);
+      window.removeEventListener("resize", onScrollSnap);
       window.removeEventListener("scroll", onScroll);
       glideRef.current = null;
       mutations.disconnect();

@@ -30,8 +30,8 @@ html[data-locale-pending] body > * {
   }
 }
 
-/* "/" with its credits: the page snaps between the credits and the home
-   (CreditsFirstHome's useCreditsToHome, .snapStop). */
+/* "/" with its credits: above the top of the home, the page snaps between
+   the credits and the home (CreditsFirstHome's useCreditsToHome, .snapStop). */
 html[data-home-snap] {
   scroll-snap-type: y mandatory;
 }

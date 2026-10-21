@@ -51,7 +51,7 @@
      back by width as well as colour once the rows pass under it. */
   border-bottom-width: 1px;
   border-bottom-color: rgba(125, 171, 205, 0.12);
-  background: rgba(8, 8, 8, 0.94);
+  background: #080808;
 }
 
 .schoolHeader {

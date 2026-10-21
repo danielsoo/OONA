@@ -78,9 +78,9 @@ section.first {
 }
 
 /* The two screens, credits and home, one stop apart (useCreditsToHome; the
-   page snaps under html[data-home-snap] in globals.css): a scroll comes to
-   rest at the start of either, never passing over it; inside either, if it
-   is taller than the window, scrolling is free. */
+   page snaps under html[data-home-snap] in globals.css, which is set only
+   above the top of the home): a scroll comes to rest at the start of either,
+   never passing over it; the home, top to bottom, scrolls freely. */
 .snapStop {
   scroll-snap-align: start;
   scroll-snap-stop: always;
