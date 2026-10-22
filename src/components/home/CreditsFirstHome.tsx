@@ -375,9 +375,10 @@ function useRecedeOnScroll(targetRef: RefObject<HTMLElement | null>, enabled: bo
 
 /**
  * The header stays on screen on "/" (CinematicAppHeader .homeHeader): clear
- * over the credits, solid once the home's rows reach it.
+ * over the credits, solid once the home's rows reach it (or, where the page
+ * scrolls freely, as soon as it leaves the top).
  */
-function useHomeHeaderState(homeRef: RefObject<HTMLElement | null>) {
+function useHomeHeaderState(homeRef: RefObject<HTMLElement | null>, solidOnceScrolled: boolean) {
   useEffect(() => {
     const root = document.documentElement;
     let raf = 0;
@@ -386,7 +387,9 @@ function useHomeHeaderState(homeRef: RefObject<HTMLElement | null>) {
       const home = homeRef.current;
       if (!home) return;
       const header = document.querySelector<HTMLElement>("header");
-      const mode = home.getBoundingClientRect().top < (header?.offsetHeight ?? 82) ? "solid" : "clear";
+      // Scrolling freely (the demo), the credits can rest under the header too.
+      const under = home.getBoundingClientRect().top < (header?.offsetHeight ?? 82) || (solidOnceScrolled && window.scrollY > 4);
+      const mode = under ? "solid" : "clear";
       if (root.dataset.homeHeader !== mode) root.dataset.homeHeader = mode;
     };
     const onChange = () => {
@@ -401,7 +404,7 @@ function useHomeHeaderState(homeRef: RefObject<HTMLElement | null>) {
       cancelAnimationFrame(raf);
       delete root.dataset.homeHeader;
     };
-  }, [homeRef]);
+  }, [homeRef, solidOnceScrolled]);
 }
 
 /** Whether this page load began at "/" (not a later in-app move to it). */
@@ -465,7 +468,7 @@ function DownIcon() {
 /**
  * The main home: the credits roll fills the first screen ("Stay for the
  * credits") over a row of many small works, and one scroll down glides to the
- * cinematic home, which pops in.
+ * cinematic home, which pops in (in the demo, the page scrolls freely instead).
  * With no credits yet (or if they fail to load) the cinematic home shows as before.
  */
 export default function CreditsFirstHome() {
@@ -478,7 +481,13 @@ export default function CreditsFirstHome() {
   const innerRef = useRef<HTMLDivElement>(null);
   const glideRef = useRef<{ home: () => void; top: () => void } | null>(null);
   const [intro, endIntro] = useIntroOnce();
-  useCreditsToHome(homeRef, hasCredits, glideRef);
+  // In the demo the two screens scroll freely into each other, with no glide
+  // and no receding credits, so the row of works under the credits and the
+  // home's rows can be seen and compared together.
+  const [demo, setDemo] = useState(false);
+  useEffect(() => setDemo(isDemoVisit()), []);
+  const glides = hasCredits && !demo;
+  useCreditsToHome(homeRef, glides, glideRef);
 
   // "Home" pressed while already here: back up to the credits, as scrolling up does.
   useEffect(() => {
@@ -489,12 +498,12 @@ export default function CreditsFirstHome() {
     window.addEventListener(HOME_TO_TOP_EVENT, toTop);
     return () => window.removeEventListener(HOME_TO_TOP_EVENT, toTop);
   }, []);
-  useRecedeOnScroll(innerRef, hasCredits);
-  useHomeHeaderState(homeRef);
+  useRecedeOnScroll(innerRef, glides);
+  useHomeHeaderState(homeRef, demo);
 
   const scrollToHome = useCallback(() => {
     if (glideRef.current) glideRef.current.home();
-    else homeRef.current?.scrollIntoView({ block: "start" });
+    else homeRef.current?.scrollIntoView({ block: "start", behavior: prefersReducedMotion() ? "auto" : "smooth" });
   }, []);
 
   return (
