@@ -562,9 +562,11 @@
 .profileTabs button:hover {
   color: #fff;
 }
+/* Inside the button: the tab strip scrolls sideways and so clips
+   vertically, and an outside ring loses its top edge. */
 .profileTabs button:focus-visible {
   outline: 1px solid rgba(119, 203, 255, 0.8);
-  outline-offset: 2px;
+  outline-offset: -2px;
 }
 .profileTabs .profileTabOn {
   color: #fff;

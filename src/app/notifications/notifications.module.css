@@ -56,6 +56,13 @@
 
 .filters::-webkit-scrollbar { display: none; }
 
+/* Inside the button: the strip scrolls sideways and so clips vertically,
+   and an outside ring loses its top and bottom. */
+.filters button:focus-visible {
+  outline: 1px solid rgba(140, 200, 255, 0.85);
+  outline-offset: -2px;
+}
+
 .filters button {
   position: relative;
   flex: 0 0 auto;
