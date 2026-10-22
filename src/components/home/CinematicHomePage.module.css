@@ -262,12 +262,20 @@
 
 .sectionHeader .icon { width: 13px; height: 13px; }
 
-.railWrap { position: relative; }
+/* flow-root so the rail's negative margins below stay inside the wrap
+   instead of collapsing out of it and dragging the row around. */
+.railWrap { position: relative; display: flow-root; }
 
 .trendingRail {
   display: flex;
   gap: 15px;
   overflow-x: auto;
+  /* Setting overflow-x alone makes overflow-y compute to auto, so the rail
+     clips vertically too: the 3px a card lifts on hover took its top border
+     with it, and the shadow went the same way. The padding gives both room
+     and the negative margin hands the space back, so nothing moves. */
+  padding: 18px 0 34px;
+  margin: -18px 0 -34px;
   scrollbar-width: none;
 }
 
