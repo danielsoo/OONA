@@ -16,6 +16,23 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* A soft shadow drawn inside all four edges of the window, so the page reads
+   as sitting a little behind the glass rather than flush against it. The
+   blur follows the smaller side of the window, so a phone gets a band in
+   proportion to its screen rather than a desktop's.
+   It sits above the header (z-index 50) so the frame goes right round the
+   window, and below the menus, the demo badge and the scroll toggle (60) so
+   those stay crisp where they open into a corner. Modal backdrops (80 and
+   up) cover it, as they should. It never takes a click. */
+body::after {
+  content: "";
+  position: fixed;
+  z-index: 55;
+  inset: 0;
+  box-shadow: inset 0 0 clamp(70px, 16vmin, 170px) clamp(4px, 1vmin, 12px) rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+}
+
 /* Korean and Japanese readers: the page waits (blank) for their language
    instead of flashing the server's English first (src/i18n/locale-boot.ts);
    it shows after 2.5s regardless, should scripts never run. */
