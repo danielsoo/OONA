@@ -254,19 +254,26 @@
   display: flex;
   align-items: center;
   min-height: 33px;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
+/* Set like the "Now showing on OONA" row above them (HomeWorksStrip.module.css .title). */
 .sectionHeader a {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  color: #f3f5fa;
-  font-size: 18px;
-  font-weight: 550;
+  gap: 8px;
+  color: #9bb9dc;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  transition: color 150ms ease;
 }
 
-.sectionHeader .icon { width: 13px; height: 13px; }
+.sectionHeader a:hover,
+.sectionHeader a:focus-visible { color: #fff; }
+
+.sectionHeader .icon { width: 11px; height: 11px; }
 
 /* flow-root so the rail's negative margins below stay inside the wrap
    instead of collapsing out of it and dragging the row around. */
@@ -569,7 +576,6 @@
   .signIn::after { content: "→"; font-size: 15px; }
   .menuButton { left: calc(var(--page-pad) + 150px); }
   .content { gap: 27px; padding-bottom: 30px; }
-  .sectionHeader a { font-size: 17px; }
   .creatorGrid,
   .schoolGrid { grid-template-columns: 1fr; gap: 10px; }
   .footer { grid-template-columns: 1fr; gap: 18px; padding: 22px 0 10px; }

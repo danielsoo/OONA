@@ -512,6 +512,11 @@ a.creditCard:focus-visible {
   }
 }
 
+/* Phones: the same edge as the header and the home rows below. */
+@media (max-width: 600px) {
+  .page { --page-pad: 20px; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .layerEnter,
   .video,
