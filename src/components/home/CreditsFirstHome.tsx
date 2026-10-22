@@ -13,6 +13,8 @@ import CreditsLightIntro from "./CreditsLightIntro";
 import styles from "./CreditsFirstHome.module.css";
 
 const POP_STAGGER_MS = 90;
+/** Between the header and what the glide lands on (the row of works under the credits). */
+const GAP_UNDER_HEADER = 36;
 const GLIDE_MS = 820;
 /** How far into the glide the arriving screen pops: it lands as the glide ends. */
 const POP_AT = 0.35;
@@ -57,6 +59,7 @@ function isTypingTarget(target: EventTarget | null, space: boolean): boolean {
  */
 function useCreditsToHome(
   homeRef: RefObject<HTMLElement | null>,
+  stripRef: RefObject<HTMLElement | null>,
   enabled: boolean,
   glideRef: MutableRefObject<{ home: () => void; top: () => void } | null>
 ) {
@@ -69,9 +72,14 @@ function useCreditsToHome(
     // count as one screen (end 0), so the first scroll goes straight to the
     // home rather than nudging a few pixels; only much taller ones (phones)
     // scroll inside first.
+    // The glide lands on the row of works under the credits ("Now showing"),
+    // which only peeks in under the first screen: it comes up to just under
+    // the header, with the home's rows following it.
     const edges = () => {
-      const top = home.getBoundingClientRect().top + window.scrollY;
-      const overflow = top - window.innerHeight;
+      const homeTop = home.getBoundingClientRect().top + window.scrollY;
+      const overflow = homeTop - window.innerHeight;
+      const strip = stripRef.current;
+      const top = strip ? Math.max(0, restTop(strip) + window.scrollY - headerHeight() - GAP_UNDER_HEADER) : homeTop;
       return { top, end: overflow > window.innerHeight * 0.25 ? overflow : 0 };
     };
     // Glide only from one screen to the other: from the credits down, or from
@@ -343,7 +351,7 @@ function useCreditsToHome(
       observer.disconnect();
       targets.forEach((el) => el.classList.remove(styles.popPending, styles.popIn));
     };
-  }, [homeRef, enabled, glideRef]);
+  }, [homeRef, stripRef, enabled, glideRef]);
 }
 
 /** As the page leaves the credits, they shrink back and dim a little. */
@@ -378,7 +386,11 @@ function useRecedeOnScroll(targetRef: RefObject<HTMLElement | null>, enabled: bo
  * over the credits, solid once the home's rows reach it (or, where the page
  * scrolls freely, as soon as it leaves the top).
  */
-function useHomeHeaderState(homeRef: RefObject<HTMLElement | null>, solidOnceScrolled: boolean) {
+function useHomeHeaderState(
+  homeRef: RefObject<HTMLElement | null>,
+  stripRef: RefObject<HTMLElement | null>,
+  solidOnceScrolled: boolean
+) {
   useEffect(() => {
     const root = document.documentElement;
     let raf = 0;
@@ -386,9 +398,10 @@ function useHomeHeaderState(homeRef: RefObject<HTMLElement | null>, solidOnceScr
       raf = 0;
       const home = homeRef.current;
       if (!home) return;
-      const header = document.querySelector<HTMLElement>("header");
+      const strip = stripRef.current;
+      const reached = strip ? restTop(strip) <= headerHeight() + GAP_UNDER_HEADER + 2 : home.getBoundingClientRect().top < headerHeight();
       // Scrolling freely (the demo), the credits can rest under the header too.
-      const under = home.getBoundingClientRect().top < (header?.offsetHeight ?? 82) || (solidOnceScrolled && window.scrollY > 4);
+      const under = reached || (solidOnceScrolled && window.scrollY > 4);
       const mode = under ? "solid" : "clear";
       if (root.dataset.homeHeader !== mode) root.dataset.homeHeader = mode;
     };
@@ -404,7 +417,16 @@ function useHomeHeaderState(homeRef: RefObject<HTMLElement | null>, solidOnceScr
       cancelAnimationFrame(raf);
       delete root.dataset.homeHeader;
     };
-  }, [homeRef, solidOnceScrolled]);
+  }, [homeRef, stripRef, solidOnceScrolled]);
+}
+
+function headerHeight(): number {
+  return document.querySelector<HTMLElement>("header")?.offsetHeight ?? 82;
+}
+
+/** Where the row of works under the credits starts, in the window (its slot's padding aside). */
+function restTop(strip: HTMLElement): number {
+  return strip.getBoundingClientRect().top + parseFloat(getComputedStyle(strip).paddingTop);
 }
 
 /** Whether this page load began at "/" (not a later in-app move to it). */
@@ -479,6 +501,7 @@ export default function CreditsFirstHome() {
 
   const homeRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
+  const stripRef = useRef<HTMLDivElement>(null);
   const glideRef = useRef<{ home: () => void; top: () => void } | null>(null);
   const [intro, endIntro] = useIntroOnce();
   // In the demo the two screens scroll freely into each other, with no glide
@@ -487,7 +510,7 @@ export default function CreditsFirstHome() {
   const [demo, setDemo] = useState(false);
   useEffect(() => setDemo(isDemoVisit()), []);
   const glides = hasCredits && !demo;
-  useCreditsToHome(homeRef, glides, glideRef);
+  useCreditsToHome(homeRef, stripRef, glides, glideRef);
 
   // "Home" pressed while already here: back up to the credits, as scrolling up does.
   useEffect(() => {
@@ -499,11 +522,15 @@ export default function CreditsFirstHome() {
     return () => window.removeEventListener(HOME_TO_TOP_EVENT, toTop);
   }, []);
   useRecedeOnScroll(innerRef, glides);
-  useHomeHeaderState(homeRef, demo);
+  useHomeHeaderState(homeRef, stripRef, demo);
 
   const scrollToHome = useCallback(() => {
     if (glideRef.current) glideRef.current.home();
-    else homeRef.current?.scrollIntoView({ block: "start", behavior: prefersReducedMotion() ? "auto" : "smooth" });
+    else if (stripRef.current) {
+      // Where the glide would land: the row of works just under the header.
+      const top = restTop(stripRef.current) + window.scrollY - headerHeight() - GAP_UNDER_HEADER;
+      window.scrollTo({ top: Math.max(0, top), behavior: prefersReducedMotion() ? "auto" : "smooth" });
+    }
   }, []);
 
   return (
@@ -511,12 +538,15 @@ export default function CreditsFirstHome() {
       {intro ? <CreditsLightIntro ready={hasCredits ? true : loading ? null : false} onDone={endIntro} /> : null}
       {loading || hasCredits ? (
         <section className={`${creditsStyles.page} ${styles.first}`} aria-label={copy("Credits roll")}>
-          <div ref={innerRef} className={styles.firstInner}>
+          <div className={styles.firstInner}>
             {hasCredits ? (
               <>
-                <CreditsIntro />
-                <CreditsRoll works={works} held={intro} />
-                <div className={styles.stripSlot}>
+                {/* The roll and its screen recede as the page leaves them; the row of works below doesn't. */}
+                <div ref={innerRef} className={styles.recede}>
+                  <CreditsIntro />
+                  <CreditsRoll works={works} held={intro} />
+                </div>
+                <div ref={stripRef} className={styles.stripSlot}>
                   <HomeWorksStrip
                     action={
                       <button type="button" className={styles.cue} onClick={scrollToHome}>
@@ -535,7 +565,7 @@ export default function CreditsFirstHome() {
           </div>
         </section>
       ) : null}
-      <div ref={homeRef}>
+      <div ref={homeRef} className={loading || hasCredits ? styles.afterCredits : undefined}>
         <CinematicHomePage />
       </div>
     </>

@@ -7,27 +7,28 @@ section.first {
   padding-top: 94px;
   padding-bottom: 24px;
   overflow: hidden;
-  /* The roll and the large screen give up height so the row of works below
-     them fits on the first screen too (read by CreditsHome.module.css and
-     HomeWorksStrip.module.css). */
+  /* The large screen takes all the height the first screen has, but for the
+     heading of the row of works below it and the top of its pictures, which
+     peek in like a streaming home's next row (read by CreditsHome.module.css
+     and HomeWorksStrip.module.css). */
   /* Six thumbnails across the page (HomeWorksStrip.module.css: 14px gaps). */
   --strip-thumb-w: calc((100vw - 2 * var(--page-pad) - 70px) / 6);
   --strip-thumb-h: calc(var(--strip-thumb-w) * 0.5625);
-  /* 261px: the header and the intro above (129), the gap (20), the row's
-     heading and titles (88) and the bottom padding (24). */
-  --side-screen-max: max(220px, calc(100svh - 261px - var(--strip-thumb-h)));
+  /* 229px: the header and the intro above (129), the gap (20), and the row's
+     heading with the top of its pictures (80). */
+  --side-screen-max: max(220px, calc(100svh - 229px));
   /* The large screen stays 16:9, so that height caps its width. */
   --side-screen-max-w: calc(var(--side-screen-max) * 16 / 9);
   /* The roll's column (roll + note + pause button) is no taller than the screen. */
-  --home-roll-h: clamp(200px, calc(100svh - 390px - var(--strip-thumb-h)), 504px);
+  --home-roll-h: clamp(200px, calc(100svh - 358px), 504px);
 }
 
-/* Short screens: the roll's note goes (the pause button stays) to keep the
-   row of works in view. */
+/* Short screens: the roll's note goes (the pause button stays) to give the
+   roll the room. */
 @media (max-height: 860px) {
   section.first {
     --side-foot-note: none;
-    --home-roll-h: clamp(176px, calc(100svh - 342px - var(--strip-thumb-h)), 504px);
+    --home-roll-h: clamp(176px, calc(100svh - 310px), 504px);
   }
 }
 
@@ -35,8 +36,16 @@ section.first {
   display: flex;
   flex: 1;
   flex-direction: column;
+}
+
+.recede {
   transform-origin: 50% 0;
   will-change: transform, opacity;
+}
+
+/* The home right after the credits: its rows follow the row of works closely. */
+.afterCredits {
+  --home-content-top: 12px;
 }
 
 /* The row of works sits just under the large screen (about the gap above it). */
