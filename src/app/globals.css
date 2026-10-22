@@ -28,6 +28,18 @@ body {
    has a visible end, and it is shallow on purpose: about a sixth off the
    frame and next to nothing past it.
 
+   edge-dither.png is what makes that shallowness possible. The site is
+   nearly black, so the whole band only spans about two of the 255 values a
+   channel has, and 8-bit colour can only deliver that as a few flat
+   plateaus with a whole level between them — four hard vertical lines,
+   which is what a faint gradient on a dark page looks like without help.
+   The tile is white noise at alpha 0-2, so roughly a level of jitter, and
+   it scatters those steps: measured on a flat field the band goes from 5
+   distinct values to 69, and the worst single step halves. It is laid over
+   the whole window rather than just the bands so there is no seam where it
+   stops; at a mean alpha of 1/255 it lifts the page by about one value and
+   is not grain anyone can see.
+
    It sits above the header (z-index 50) so the frame goes right round the
    window, and below the menus, the demo badge and the scroll toggle (60) so
    those stay crisp where they open into a corner. Modal backdrops (80 and
@@ -46,13 +58,14 @@ body::after {
   z-index: 55;
   inset: 0;
   background-image:
+    url("/images/ui/edge-dither.png"),
     linear-gradient(to right, var(--edge-fade)),
     linear-gradient(to left, var(--edge-fade)),
     linear-gradient(to bottom, var(--edge-fade)),
     linear-gradient(to top, var(--edge-fade));
-  background-position: left center, right center, center top, center bottom;
-  background-size: var(--edge) 100%, var(--edge) 100%, 100% var(--edge), 100% var(--edge);
-  background-repeat: no-repeat;
+  background-position: 0 0, left center, right center, center top, center bottom;
+  background-size: 96px 96px, var(--edge) 100%, var(--edge) 100%, 100% var(--edge), 100% var(--edge);
+  background-repeat: repeat, no-repeat, no-repeat, no-repeat, no-repeat;
   pointer-events: none;
 }
 
