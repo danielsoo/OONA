@@ -13,9 +13,10 @@ import { watchHref } from "@/lib/works/catalog-ui";
 import type { CreditsRollPerson, CreditsRollWork } from "@/types/creditsRoll";
 import styles from "./CreditsHome.module.css";
 
-const LINE_H = 56;
-/** Lines kept rendered either side of the centre (the roll shows about nine). */
+/** Lines kept rendered either side of the centre (the roll shows seven). */
 const LINE_WINDOW = 7;
+/** Names on show at once: the centre one and three either side (CreditsHome.module.css .sideRoll). */
+const LINES_SHOWN = 7;
 const SECONDS_PER_LINE = 2.2;
 const BLIND_FRAMES = 8;
 
@@ -207,7 +208,11 @@ function useSteppedRoll(
     const timer = window.setInterval(() => {
       if (holdRef.current || heldRef.current || hiddenRef.current || pausedRef.current) return;
       setIndex((i) => {
-        // Back to the top without animating through every line.
+        // More names than the roll shows: it runs on round and round (the
+        // lines are drawn modulo the list), so the names before the first
+        // are the list's last ones, and every step slides.
+        if (lines.length > LINES_SHOWN) return i + 1;
+        // Fewer: back to the top without animating through every line.
         const next = i + 1 >= lines.length ? 0 : i + 1;
         setJump(next === 0);
         return next;
@@ -278,8 +283,10 @@ export function CreditsRoll({ works, held = false }: { works: CreditsRollWork[];
   // while it rolls, the work changes every step, and a new player each time stutters.
   const settled = pinned !== null || stepped.paused;
 
+  // Positions on the track run on past the list's end (see useSteppedRoll); a line is its position modulo the list.
+  const lineAt = (position: number) => lines[((position % lines.length) + lines.length) % lines.length];
   const current = pinned ?? (reducedMotion ? 0 : stepped.index);
-  const line = lines[current % lines.length];
+  const line = lineAt(current);
   if (!line) return null;
   const work = byId.get(line.workId)!;
   const renderLine = (l: Line, i: number, distance?: number) => {
@@ -288,7 +295,7 @@ export function CreditsRoll({ works, held = false }: { works: CreditsRollWork[];
     const opacity = distance === undefined ? undefined : distance === 0 ? 1 : distance === 1 ? 0.6 : distance <= 3 ? 0.34 : 0.2;
     // On the moving track, each line sits at its own place (only those near the
     // centre are rendered); in the reduced-motion list they simply stack.
-    const style = distance === undefined ? undefined : { opacity, position: "absolute" as const, top: i * LINE_H, left: 0, right: 0 };
+    const style = distance === undefined ? undefined : { opacity, position: "absolute" as const, top: `calc(var(--side-line-h) * ${i})`, left: 0, right: 0 };
     return (
       <div className={styles.sideLine} style={style}>
         <span className={styles.sideRole}>{roleLabel(l.credit)}</span>
@@ -318,7 +325,8 @@ export function CreditsRoll({ works, held = false }: { works: CreditsRollWork[];
         <div
           className={styles.track}
           style={{
-            transform: `translateY(calc(50% - ${LINE_H / 2}px - ${stepped.index * LINE_H}px))`,
+            // Lines are --side-line-h tall (CreditsHome.module.css .side).
+            transform: `translateY(calc(50% - var(--side-line-h) / 2 - var(--side-line-h) * ${stepped.index}))`,
             transition: stepped.jump ? "none" : "transform 900ms cubic-bezier(0.3, 0, 0.2, 1)",
             height: "100%",
             position: "relative",
@@ -326,9 +334,9 @@ export function CreditsRoll({ works, held = false }: { works: CreditsRollWork[];
         >
           {/* Up to 240 lines; only the ones in and near view are in the page,
               so each step restyles a dozen rows rather than all of them. */}
-          {lines.map((l, i) =>
-            Math.abs(i - stepped.index) <= LINE_WINDOW ? (
-              <Fragment key={i}>{renderLine(l, i, Math.abs(i - current))}</Fragment>
+          {Array.from({ length: LINE_WINDOW * 2 + 1 }, (_, k) => stepped.index - LINE_WINDOW + k).map((position) =>
+            lines.length > LINES_SHOWN || (position >= 0 && position < lines.length) ? (
+              <Fragment key={position}>{renderLine(lineAt(position)!, position, Math.abs(position - current))}</Fragment>
             ) : null
           )}
         </div>

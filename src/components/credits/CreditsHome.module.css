@@ -45,6 +45,9 @@
 .side {
   /* "/" sets --home-roll-h to leave room for its row of works. */
   --side-roll-h: var(--home-roll-h, clamp(392px, calc(100svh - 300px), 504px));
+  /* The roll shows seven names, the centre one and three either side: where
+     that room is short, the lines close up rather than a name dropping out. */
+  --side-line-h: clamp(44px, calc(var(--side-roll-h) / 7), 56px);
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -60,17 +63,18 @@
 }
 
 .roll.sideRoll {
-  height: var(--side-roll-h);
-  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 18%, #000 82%, transparent);
-  mask-image: linear-gradient(to bottom, transparent, #000 18%, #000 82%, transparent);
+  height: calc(var(--side-line-h) * 7);
+  /* Just the edges soften, so the outermost of the seven still reads. */
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 12px, #000 calc(100% - 12px), transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 12px, #000 calc(100% - 12px), transparent);
 }
 
 .sideCenter {
   position: absolute;
-  top: calc(50% - 28px);
+  top: calc(50% - var(--side-line-h) / 2);
   right: 0;
   left: 0;
-  height: 56px;
+  height: var(--side-line-h);
   border-top: 1px solid rgba(155, 185, 220, 0.12);
   border-bottom: 1px solid rgba(155, 185, 220, 0.12);
   pointer-events: none;
@@ -78,7 +82,7 @@
 
 .sideLine {
   display: grid;
-  height: 56px;
+  height: var(--side-line-h);
   grid-template-columns: repeat(2, minmax(0, 1fr));
   align-items: center;
   column-gap: 22px;
