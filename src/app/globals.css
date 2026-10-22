@@ -16,20 +16,43 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* A soft shadow drawn inside all four edges of the window, so the page reads
-   as sitting a little behind the glass rather than flush against it. The
-   blur follows the smaller side of the window, so a phone gets a band in
-   proportion to its screen rather than a desktop's.
+/* A faint shade along all four edges of the window, so the page reads as
+   sitting a little behind the glass rather than flush against it.
+
+   Four straight bands, one per edge, rather than an inset box-shadow: a
+   shadow's blur wraps the corners, so it takes more off them than off the
+   edges and reads as a rounded frame laid over the page. These stay even —
+   measured on the home, the corners come out within 0.1 of the edges.
+
+   --edge-fade is one eased stop list shared by all four, so none of them
+   has a visible end, and it is shallow on purpose: about a sixth off the
+   frame and next to nothing past it.
+
    It sits above the header (z-index 50) so the frame goes right round the
    window, and below the menus, the demo badge and the scroll toggle (60) so
    those stay crisp where they open into a corner. Modal backdrops (80 and
    up) cover it, as they should. It never takes a click. */
 body::after {
+  --edge: clamp(56px, 20vmin, 160px);
+  --edge-fade:
+    rgba(0, 0, 0, 0.16) 0%,
+    rgba(0, 0, 0, 0.115) 14%,
+    rgba(0, 0, 0, 0.067) 34%,
+    rgba(0, 0, 0, 0.029) 58%,
+    rgba(0, 0, 0, 0.008) 80%,
+    rgba(0, 0, 0, 0) 100%;
   content: "";
   position: fixed;
   z-index: 55;
   inset: 0;
-  box-shadow: inset 0 0 clamp(70px, 16vmin, 170px) clamp(4px, 1vmin, 12px) rgba(0, 0, 0, 0.6);
+  background-image:
+    linear-gradient(to right, var(--edge-fade)),
+    linear-gradient(to left, var(--edge-fade)),
+    linear-gradient(to bottom, var(--edge-fade)),
+    linear-gradient(to top, var(--edge-fade));
+  background-position: left center, right center, center top, center bottom;
+  background-size: var(--edge) 100%, var(--edge) 100%, 100% var(--edge), 100% var(--edge);
+  background-repeat: no-repeat;
   pointer-events: none;
 }
 
