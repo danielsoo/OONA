@@ -13,6 +13,8 @@ import CreditsLightIntro from "./CreditsLightIntro";
 import styles from "./CreditsFirstHome.module.css";
 
 const POP_STAGGER_MS = 90;
+/** Between the header and the home's first row once the home is reached (as when it starts the page). */
+const ROW_GAP_UNDER_HEADER = 36;
 const GLIDE_MS = 820;
 /** How far into the glide the arriving screen pops: it lands as the glide ends. */
 const POP_AT = 0.35;
@@ -69,10 +71,12 @@ function useCreditsToHome(
     // count as one screen (end 0), so the first scroll goes straight to the
     // home rather than nudging a few pixels; only much taller ones (phones)
     // scroll inside first.
+    // The home follows the credits closely, so its first row peeks in under
+    // the first screen; the glide lands with that row just under the header.
     const edges = () => {
-      const top = home.getBoundingClientRect().top + window.scrollY;
-      const overflow = top - window.innerHeight;
-      return { top, end: overflow > window.innerHeight * 0.25 ? overflow : 0 };
+      const homeTop = home.getBoundingClientRect().top + window.scrollY;
+      const overflow = homeTop - window.innerHeight;
+      return { top: Math.max(0, firstRowTop(home) + window.scrollY - headerHeight() - ROW_GAP_UNDER_HEADER), end: overflow > window.innerHeight * 0.25 ? overflow : 0 };
     };
     // Glide only from one screen to the other: from the credits down, or from
     // the top of the home up. Already at (or almost at) the home, or still
@@ -375,8 +379,8 @@ function useRecedeOnScroll(targetRef: RefObject<HTMLElement | null>, enabled: bo
 
 /**
  * The header stays on screen on "/" (CinematicAppHeader .homeHeader): clear
- * over the credits, solid once the home's rows reach it (or, where the page
- * scrolls freely, as soon as it leaves the top).
+ * over the credits, solid once the home's first row is just under it (or,
+ * where the page scrolls freely, as soon as it leaves the top).
  */
 function useHomeHeaderState(homeRef: RefObject<HTMLElement | null>, solidOnceScrolled: boolean) {
   useEffect(() => {
@@ -386,9 +390,8 @@ function useHomeHeaderState(homeRef: RefObject<HTMLElement | null>, solidOnceScr
       raf = 0;
       const home = homeRef.current;
       if (!home) return;
-      const header = document.querySelector<HTMLElement>("header");
       // Scrolling freely (the demo), the credits can rest under the header too.
-      const under = home.getBoundingClientRect().top < (header?.offsetHeight ?? 82) || (solidOnceScrolled && window.scrollY > 4);
+      const under = firstRowTop(home) <= headerHeight() + ROW_GAP_UNDER_HEADER + 2 || (solidOnceScrolled && window.scrollY > 4);
       const mode = under ? "solid" : "clear";
       if (root.dataset.homeHeader !== mode) root.dataset.homeHeader = mode;
     };
@@ -405,6 +408,17 @@ function useHomeHeaderState(homeRef: RefObject<HTMLElement | null>, solidOnceScr
       delete root.dataset.homeHeader;
     };
   }, [homeRef, solidOnceScrolled]);
+}
+
+function headerHeight(): number {
+  return document.querySelector<HTMLElement>("header")?.offsetHeight ?? 82;
+}
+
+/** Where the home's first row starts, in the window (its rows' pop offsets aside). */
+function firstRowTop(home: HTMLElement): number {
+  const content = home.querySelector<HTMLElement>(":scope > main > div");
+  if (!content) return home.getBoundingClientRect().top;
+  return content.getBoundingClientRect().top + parseFloat(getComputedStyle(content).paddingTop);
 }
 
 /** Whether this page load began at "/" (not a later in-app move to it). */
@@ -503,7 +517,11 @@ export default function CreditsFirstHome() {
 
   const scrollToHome = useCallback(() => {
     if (glideRef.current) glideRef.current.home();
-    else homeRef.current?.scrollIntoView({ block: "start", behavior: prefersReducedMotion() ? "auto" : "smooth" });
+    else if (homeRef.current) {
+      // Where the glide would land: the first row just under the header.
+      const top = firstRowTop(homeRef.current) + window.scrollY - headerHeight() - ROW_GAP_UNDER_HEADER;
+      window.scrollTo({ top: Math.max(0, top), behavior: prefersReducedMotion() ? "auto" : "smooth" });
+    }
   }, []);
 
   return (
@@ -535,7 +553,7 @@ export default function CreditsFirstHome() {
           </div>
         </section>
       ) : null}
-      <div ref={homeRef}>
+      <div ref={homeRef} className={loading || hasCredits ? styles.afterCredits : undefined}>
         <CinematicHomePage />
       </div>
     </>
