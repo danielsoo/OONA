@@ -1,10 +1,7 @@
 /* "/" — the credits roll is the first screen; the cinematic home pops in below it. */
 section.first {
-  /* Like a streaming home, the next row shows under the first screen (its
-     heading and the top of its pictures), so it's plain there is more. */
-  --home-peek: 72px;
   display: flex;
-  min-height: calc(100svh - var(--home-peek));
+  min-height: 100svh;
   flex-direction: column;
   /* The header overlays "/" (82px), so the roll starts just below it. */
   padding-top: 94px;
@@ -18,11 +15,11 @@ section.first {
   --strip-thumb-h: calc(var(--strip-thumb-w) * 0.5625);
   /* 261px: the header and the intro above (129), the gap (20), the row's
      heading and titles (88) and the bottom padding (24). */
-  --side-screen-max: max(220px, calc(100svh - 261px - var(--strip-thumb-h) - var(--home-peek)));
+  --side-screen-max: max(220px, calc(100svh - 261px - var(--strip-thumb-h)));
   /* The large screen stays 16:9, so that height caps its width. */
   --side-screen-max-w: calc(var(--side-screen-max) * 16 / 9);
   /* The roll's column (roll + note + pause button) is no taller than the screen. */
-  --home-roll-h: clamp(200px, calc(100svh - 390px - var(--strip-thumb-h) - var(--home-peek)), 504px);
+  --home-roll-h: clamp(200px, calc(100svh - 390px - var(--strip-thumb-h)), 504px);
 }
 
 /* Short screens: the roll's note goes (the pause button stays) to keep the
@@ -30,13 +27,8 @@ section.first {
 @media (max-height: 860px) {
   section.first {
     --side-foot-note: none;
-    --home-roll-h: clamp(176px, calc(100svh - 342px - var(--strip-thumb-h) - var(--home-peek)), 504px);
+    --home-roll-h: clamp(176px, calc(100svh - 342px - var(--strip-thumb-h)), 504px);
   }
-}
-
-/* The home right after the credits: its first row starts close under them. */
-.afterCredits {
-  --home-content-top: 16px;
 }
 
 .firstInner {

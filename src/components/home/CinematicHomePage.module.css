@@ -242,10 +242,8 @@
   display: flex;
   flex-direction: column;
   gap: 31px;
-  /* Clear of the header, which stays over the home (CinematicAppHeader
-     .homeHeader); after the credits, close under them instead
-     (CreditsFirstHome .afterCredits), so the first row peeks in. */
-  padding: var(--home-content-top, 118px) var(--page-pad) 44px;
+  /* Clear of the header, which stays over the home (CinematicAppHeader .homeHeader). */
+  padding: 118px var(--page-pad) 44px;
 }
 
 .section { min-width: 0; }
@@ -550,7 +548,7 @@
   .mobileNavExtras .icon { width: 15px; height: 15px; }
   .search { display: none; }
   .mobileSearch { display: grid; }
-  .content { padding-top: var(--home-content-top, 100px); }
+  .content { padding-top: 100px; }
   .trendingRail { display: flex; margin-right: calc(-1 * var(--page-pad)); padding-right: var(--page-pad); }
   .filmCard { flex: 0 0 min(260px, 72vw); }
   .railButton { display: none; }

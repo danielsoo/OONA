@@ -47,7 +47,7 @@
   --side-roll-h: var(--home-roll-h, clamp(392px, calc(100svh - 300px), 504px));
   /* The roll shows seven names, the centre one and three either side: where
      that room is short, the lines close up rather than a name dropping out. */
-  --side-line-h: clamp(40px, calc(var(--side-roll-h) / 7), 56px);
+  --side-line-h: clamp(44px, calc(var(--side-roll-h) / 7), 56px);
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -145,8 +145,6 @@
   overflow: hidden;
   color: rgba(229, 235, 248, 0.55);
   font-size: 14px;
-  /* Tight enough for the closed-up lines on short screens (.side --side-line-h). */
-  line-height: 1.25;
   font-style: italic;
   text-overflow: ellipsis;
   white-space: nowrap;
