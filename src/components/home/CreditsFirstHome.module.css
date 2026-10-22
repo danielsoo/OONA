@@ -77,6 +77,15 @@ section.first {
   font-size: 14px;
 }
 
+/* The two screens, credits and home, one stop apart (useCreditsToHome; the
+   page snaps under html[data-home-snap] in globals.css, which is set only
+   above the top of the home): a scroll comes to rest at the start of either,
+   never passing over it; the home, top to bottom, scrolls freely. */
+.snapStop {
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
 /* The pop: each part of the home springs up as it scrolls into view. */
 .popPending {
   opacity: 0;

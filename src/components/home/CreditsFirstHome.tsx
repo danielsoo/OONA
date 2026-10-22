@@ -13,8 +13,6 @@ import CreditsLightIntro from "./CreditsLightIntro";
 import styles from "./CreditsFirstHome.module.css";
 
 const POP_STAGGER_MS = 90;
-/** How long the page has to be still before a scroll counts as finished. */
-const SETTLE_MS = 220;
 /** Set once the intro has played, so coming back to "/" in the app doesn't replay it. */
 let introPlayedThisLoad = false;
 
@@ -23,12 +21,15 @@ function prefersReducedMotion(): boolean {
 }
 
 /**
- * The credits and the home are two screens. Scrolling is the browser's own
- * everywhere, a trackpad's momentum and a finger's fling included, so one
- * long swipe from the credits can run all the way to the end of the page.
- * Only a scroll that comes to rest between the two screens, with part of each
- * on screen, is finished, on in the direction it was going. Each row of the
- * home pops up as it comes into view.
+ * The credits and the home are two screens, one stop apart. The browser's own
+ * scroll snapping does the stopping (html[data-home-snap] and .snapStop in
+ * the module CSS): a scroll down from the credits comes to rest at the top of
+ * the home, and one up from the home at its top or the credits, with a
+ * trackpad's momentum and a finger's fling carried by the browser rather than
+ * fought by script. The snapping is on only above the top of the home: inside
+ * the home, top to bottom, the page is one screen and scrolls freely (left on,
+ * a browser may snap inside it, between its top and the end of the page).
+ * Each row pops up as it comes into view.
  */
 function useCreditsToHome(
   homeRef: RefObject<HTMLElement | null>,
@@ -38,32 +39,65 @@ function useCreditsToHome(
   useEffect(() => {
     const home = homeRef.current;
     if (!enabled || !home || prefersReducedMotion()) return;
+    const root = document.documentElement;
     const homeTop = () => home.getBoundingClientRect().top + window.scrollY;
-    const moveTo = (top: number) => window.scrollTo({ top, behavior: "smooth" });
 
-    // --- Settling between the two screens ---
+    // --- The snapping: on above the top of the home, off inside it ---
+    let snapping = false;
+    // A scroll the page makes itself (Home, "Explore OONA") runs to its end
+    // before the snapping is looked at again, so it isn't cut short.
+    let movingUntil = 0;
+    const setSnap = (on: boolean) => {
+      if (on === snapping) return;
+      snapping = on;
+      if (on) root.dataset.homeSnap = "";
+      else delete root.dataset.homeSnap;
+    };
+    let snapRaf = 0;
+    const updateSnap = () => {
+      snapRaf = 0;
+      if (performance.now() < movingUntil) return;
+      setSnap(window.scrollY < homeTop() - 1);
+    };
+    const onScrollSnap = () => {
+      if (!snapRaf) snapRaf = requestAnimationFrame(updateSnap);
+    };
+    updateSnap();
+    window.addEventListener("scroll", onScrollSnap, { passive: true });
+    window.addEventListener("resize", onScrollSnap);
+    const moveTo = (top: number) => {
+      setSnap(false);
+      movingUntil = performance.now() + 1500;
+      window.scrollTo({ top, behavior: "smooth" });
+      window.setTimeout(onScrollSnap, 1550);
+    };
+    // A scroll that began inside the home (a key, say) can end between the
+    // two screens before the snapping took hold; it finishes the trip: on to
+    // the credits going up, unless it barely left the home, and the other way.
     let lastY = window.scrollY;
     let direction = 0;
     let settleTimer = 0;
+    const hasScrollEnd = "onscrollend" in window;
     const settle = () => {
+      if (performance.now() < movingUntil) return;
       const y = window.scrollY;
       const top = homeTop();
-      // Credits taller than the window (phones) scroll freely down to their end.
-      const end = Math.max(0, top - window.innerHeight);
+      const end = Math.max(0, top - window.innerHeight); // credits taller than the window scroll inside first
       if (y <= end + 2 || y >= top - 2) return;
-      moveTo(direction < 0 ? end : top);
+      const barely = window.innerHeight * 0.25;
+      moveTo(direction < 0 ? (top - y < barely ? top : end) : y - end < barely ? end : top);
     };
-    // A scroll has come to rest when no scroll event follows for a moment:
-    // after a trackpad's momentum, or between a mouse wheel's notches, which
-    // each end a scroll of their own.
     const onScrollSettle = () => {
       const y = window.scrollY;
       if (y !== lastY) direction = Math.sign(y - lastY);
       lastY = y;
-      window.clearTimeout(settleTimer);
-      settleTimer = window.setTimeout(settle, SETTLE_MS);
+      if (!hasScrollEnd) {
+        window.clearTimeout(settleTimer);
+        settleTimer = window.setTimeout(settle, 180);
+      }
     };
     window.addEventListener("scroll", onScrollSettle, { passive: true });
+    window.addEventListener("scrollend", settle);
 
     // --- The pop ---
     const targets = new Set<Element>();
@@ -113,8 +147,13 @@ function useCreditsToHome(
     };
 
     return () => {
+      delete root.dataset.homeSnap;
+      cancelAnimationFrame(snapRaf);
       window.clearTimeout(settleTimer);
       window.removeEventListener("scroll", onScrollSettle);
+      window.removeEventListener("scrollend", settle);
+      window.removeEventListener("scroll", onScrollSnap);
+      window.removeEventListener("resize", onScrollSnap);
       window.removeEventListener("scroll", onScroll);
       glideRef.current = null;
       mutations.disconnect();
@@ -242,8 +281,8 @@ function DownIcon() {
 
 /**
  * The main home: the credits roll fills the first screen ("Stay for the
- * credits") over a row of many small works, and scrolling down leads on into
- * the cinematic home, which pops in.
+ * credits") over a row of many small works, and one scroll down snaps to the
+ * cinematic home, which pops in.
  * With no credits yet (or if they fail to load) the cinematic home shows as before.
  */
 export default function CreditsFirstHome() {
@@ -279,7 +318,7 @@ export default function CreditsFirstHome() {
     <>
       {intro ? <CreditsLightIntro ready={hasCredits ? true : loading ? null : false} onDone={endIntro} /> : null}
       {loading || hasCredits ? (
-        <section className={`${creditsStyles.page} ${styles.first}`} aria-label={copy("Credits roll")}>
+        <section className={`${creditsStyles.page} ${styles.first} ${styles.snapStop}`} aria-label={copy("Credits roll")}>
           <div ref={innerRef} className={styles.firstInner}>
             {hasCredits ? (
               <>
@@ -304,7 +343,7 @@ export default function CreditsFirstHome() {
           </div>
         </section>
       ) : null}
-      <div ref={homeRef}>
+      <div ref={homeRef} className={styles.snapStop}>
         <CinematicHomePage />
       </div>
     </>

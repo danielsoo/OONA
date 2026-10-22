@@ -30,6 +30,12 @@ html[data-locale-pending] body > * {
   }
 }
 
+/* "/" with its credits: above the top of the home, the page snaps between
+   the credits and the home (CreditsFirstHome's useCreditsToHome, .snapStop). */
+html[data-home-snap] {
+  scroll-snap-type: y mandatory;
+}
+
 /* The home's light intro, held over the page from the first paint so the home
    is never seen before it (src/components/home/intro-boot.ts decides this
    before React runs). CreditsLightIntro's own dark takes over the moment it
