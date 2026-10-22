@@ -53,6 +53,11 @@
   scrollbar-width: none;
 }
 .tabs::-webkit-scrollbar { display: none; }
+/* Inside the button: the strip scrolls sideways and so clips vertically. */
+.tabs button:focus-visible {
+  outline: 1px solid rgba(140, 200, 255, 0.85);
+  outline-offset: -2px;
+}
 .tabs button {
   position: relative;
   min-height: 49px;

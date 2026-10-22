@@ -378,6 +378,14 @@ a.tip:hover { border-color: rgba(119, 203, 255, 0.6); }
 
 .sections::-webkit-scrollbar { display: none; }
 
+/* The strip scrolls sideways, which makes it clip vertically too, so a
+   ring drawn outside the button loses its top and bottom. Inside, it
+   survives and the active tab's underline stays where it is. */
+.sections button:focus-visible {
+  outline: 1px solid rgba(185, 237, 255, 0.85);
+  outline-offset: -2px;
+}
+
 .sections button {
   flex-shrink: 0;
   padding: 0 0 7px;
