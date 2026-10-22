@@ -2,7 +2,10 @@
 .emptyPage {
   min-height: calc(100svh - 82px);
   width: 100%;
+  /* Clipped, not hidden, so the page isn't a scroll container that can take
+     a swipe from the window (see CinematicHomePage.module.css .page). */
   overflow-x: hidden;
+  overflow: clip;
   background: #080808;
   color: #f5f4f2;
 }

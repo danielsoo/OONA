@@ -2,7 +2,11 @@
   --page-pad: clamp(24px, 4.9vw, 76px);
   --page-background-rgb: 7, 17, 27;
   min-height: 100svh;
+  /* Clipped, not hidden: a hidden overflow makes this a scroll container of
+     its own, and the rows' pop offsets left it a few pixels to scroll, so a
+     swipe starting over the rows scrolled it instead of the page. */
   overflow-x: hidden;
+  overflow: clip;
   background: rgb(var(--page-background-rgb));
   color: #f2f4fb;
 }
