@@ -367,16 +367,25 @@ a.tip:hover { border-color: rgba(119, 203, 255, 0.6); }
 .sections {
   position: absolute;
   z-index: 6;
-  top: 100px;
+  /* 4px above and below for the focus ring: scrolling sideways makes the
+     strip clip vertically too, and the ring sits outside the button. The
+     top comes back by the same 4px, so the row reads where it always did. */
+  top: 96px;
   right: var(--pad);
   left: var(--pad);
   display: flex;
   gap: 28px;
+  padding: 4px 0;
   overflow-x: auto;
   scrollbar-width: none;
 }
 
 .sections::-webkit-scrollbar { display: none; }
+
+.sections button:focus-visible {
+  outline: 1px solid rgba(185, 237, 255, 0.85);
+  outline-offset: 2px;
+}
 
 .sections button {
   flex-shrink: 0;

@@ -48,7 +48,10 @@
 .filters {
   display: flex;
   gap: clamp(26px, 5vw, 76px);
-  margin-top: 38px;
+  /* 4px of room for the focus ring, taken back out of the top margin and
+     the buttons' own padding, so nothing below the rule moves. */
+  margin-top: 34px;
+  padding: 4px 0;
   overflow-x: auto;
   border-bottom: 1px solid rgba(140, 174, 204, 0.28);
   scrollbar-width: none;
@@ -56,10 +59,15 @@
 
 .filters::-webkit-scrollbar { display: none; }
 
+.filters button:focus-visible {
+  outline: 1px solid rgba(140, 200, 255, 0.85);
+  outline-offset: 2px;
+}
+
 .filters button {
   position: relative;
   flex: 0 0 auto;
-  padding: 0 4px 14px;
+  padding: 0 4px 10px;
   border: 0;
   background: transparent;
   color: rgba(225, 234, 246, 0.68);
@@ -73,7 +81,9 @@
   content: "";
   position: absolute;
   left: 50%;
-  bottom: -3px;
+  /* -7px, not -3px: the strip's 4px of ring room sits between the button
+     and the rule this dot straddles. */
+  bottom: -7px;
   width: 7px;
   height: 7px;
   transform: translateX(-50%);

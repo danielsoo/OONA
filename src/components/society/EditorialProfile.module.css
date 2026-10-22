@@ -540,6 +540,9 @@
 .profileTabs {
   display: flex;
   gap: 36px;
+  /* 4px of room for the focus ring, taken out of the buttons' own padding
+     below, so the tabs and the rule under them do not move. */
+  padding: 4px 0;
   overflow-x: auto;
   border-bottom: 1px solid var(--line);
   scrollbar-width: none;
@@ -550,7 +553,7 @@
   flex: none;
   align-items: center;
   gap: 8px;
-  padding: 16px 0;
+  padding: 12px 0;
   border: 0;
   background: transparent;
   color: rgba(196, 214, 236, 0.62);
@@ -573,7 +576,9 @@
   content: "";
   position: absolute;
   right: 0;
-  bottom: -1px;
+  /* -5px, not -1px: the strip's 4px of ring room sits between the button
+     and the rule this underline belongs on. */
+  bottom: -5px;
   left: 0;
   height: 1px;
   background: #77cbff;
