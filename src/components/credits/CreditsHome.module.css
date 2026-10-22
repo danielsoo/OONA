@@ -164,17 +164,21 @@
   display: var(--side-foot-note, inline);
 }
 
+/* The screen and the name card over it. The screen is always 16:9: where
+   height is short ("/" sets a cap so the row of works below still fits), the
+   whole wrap narrows rather than the picture flattening, and keeps to the
+   right edge, in line with the note above and the row below. */
 .sideScreenWrap {
   position: relative;
   flex: 999 1 640px;
   min-width: 0;
+  max-width: var(--side-screen-max-w, none);
+  margin-left: auto;
 }
 
 .sideScreen {
   position: relative;
-  /* Full width always; "/" may cap the height, and the picture crops. */
   width: 100%;
-  max-height: var(--side-screen-max, none);
   aspect-ratio: 16 / 9;
   overflow: hidden;
   border-radius: 14px;

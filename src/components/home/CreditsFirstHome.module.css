@@ -16,6 +16,8 @@ section.first {
   /* 275px: the header and the intro above (143), the gap (20), the row's
      heading and titles (88) and the bottom padding (24). */
   --side-screen-max: max(220px, calc(100svh - 275px - var(--strip-thumb-h)));
+  /* The large screen stays 16:9, so that height caps its width. */
+  --side-screen-max-w: calc(var(--side-screen-max) * 16 / 9);
   /* The roll's column (roll + note + pause button) is no taller than the screen. */
   --home-roll-h: clamp(200px, calc(100svh - 404px - var(--strip-thumb-h)), 504px);
 }
