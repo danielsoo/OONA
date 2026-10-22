@@ -1756,10 +1756,6 @@ export const uiMessages: Record<string, readonly [string, string]> = {
     "크레딧",
     "クレジット"
   ],
-  "every name here is a confirmed credit on a real oona work.": [
-    "여기 나오는 이름은 모두 OONA 작품에서 확인된 실제 크레딧입니다.",
-    "ここに流れる名前は、すべてOONAの作品で確認された実際のクレジットです。"
-  ],
   "play the credits": [
     "크레딧 다시 흐르게",
     "クレジットを再開"

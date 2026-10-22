@@ -56,9 +56,6 @@ export function CreditsIntro() {
       <h1 className={styles.eyebrow}>
         <UiText text="Stay for the credits" />
       </h1>
-      <p className={styles.introNote}>
-        <UiText text="Every name here is a confirmed credit on a real OONA work." />
-      </p>
     </div>
   );
 }

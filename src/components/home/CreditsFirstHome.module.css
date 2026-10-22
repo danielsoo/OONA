@@ -3,8 +3,8 @@ section.first {
   display: flex;
   min-height: 100svh;
   flex-direction: column;
-  /* The header overlays "/" (82px), so the roll starts below it. */
-  padding-top: 104px;
+  /* The header overlays "/" (82px), so the roll starts just below it. */
+  padding-top: 94px;
   padding-bottom: 24px;
   overflow: hidden;
   /* The roll and the large screen give up height so the row of works below
@@ -13,13 +13,13 @@ section.first {
   /* Six thumbnails across the page (HomeWorksStrip.module.css: 14px gaps). */
   --strip-thumb-w: calc((100vw - 2 * var(--page-pad) - 70px) / 6);
   --strip-thumb-h: calc(var(--strip-thumb-w) * 0.5625);
-  /* 275px: the header and the intro above (143), the gap (20), the row's
+  /* 261px: the header and the intro above (129), the gap (20), the row's
      heading and titles (88) and the bottom padding (24). */
-  --side-screen-max: max(220px, calc(100svh - 275px - var(--strip-thumb-h)));
+  --side-screen-max: max(220px, calc(100svh - 261px - var(--strip-thumb-h)));
   /* The large screen stays 16:9, so that height caps its width. */
   --side-screen-max-w: calc(var(--side-screen-max) * 16 / 9);
   /* The roll's column (roll + note + pause button) is no taller than the screen. */
-  --home-roll-h: clamp(200px, calc(100svh - 404px - var(--strip-thumb-h)), 504px);
+  --home-roll-h: clamp(200px, calc(100svh - 390px - var(--strip-thumb-h)), 504px);
 }
 
 /* Short screens: the roll's note goes (the pause button stays) to keep the
@@ -27,7 +27,7 @@ section.first {
 @media (max-height: 860px) {
   section.first {
     --side-foot-note: none;
-    --home-roll-h: clamp(176px, calc(100svh - 356px - var(--strip-thumb-h)), 504px);
+    --home-roll-h: clamp(176px, calc(100svh - 342px - var(--strip-thumb-h)), 504px);
   }
 }
 
