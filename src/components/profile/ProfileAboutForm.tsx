@@ -18,7 +18,7 @@ type Props = {
 
 export default function ProfileAboutForm({ profile, handleLocked, onSaved }: Props) {
   const { t } = useTranslations();
-  const { fields, applyFields, save, busy, err, msg, fieldErrors, clearMessages } =
+  const { fields, applyFields, save, busy, err, msg, msgIsDemo, fieldErrors, clearMessages } =
     useProfessionalProfileSave({
     handleLocked,
   });
@@ -144,7 +144,8 @@ export default function ProfileAboutForm({ profile, handleLocked, onSaved }: Pro
         )}
       </div>
       {err && <p className={`${styles.error} ${styles.avatarNote}`}>{err}</p>}
-      {msg && <p className={`${styles.ok} ${styles.avatarNote}`}>{msg}</p>}
+      {/* In the demo the save went nowhere, so it is not a green confirmation. */}
+      {msg && <p className={`${msgIsDemo ? styles.quiet : styles.ok} ${styles.avatarNote}`}>{msg}</p>}
       <div className={styles.actions}>
         <button
           type="button"

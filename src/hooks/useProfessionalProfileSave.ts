@@ -2,7 +2,9 @@
 
 import { useCallback, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { useUiCopy } from "@/components/i18n/UiText";
 import { useTranslations } from "@/context/LocaleContext";
+import { isDemoVisit } from "@/lib/demo-flags";
 import {
   getHandleErrorMessage,
   getHandleValidationError,
@@ -68,9 +70,12 @@ export function useProfessionalProfileSave(options: Options = {}) {
   const { includeDiscoverable = false, handleLocked = false } = options;
   const { user } = useAuth();
   const { t } = useTranslations();
+  const copy = useUiCopy();
   const [fields, setFields] = useState<ProfessionalProfileFields>(emptyFields);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+  /** The last save went nowhere because this tab is the demo, so msg is not a confirmation. */
+  const [msgIsDemo, setMsgIsDemo] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<ProfessionalProfileFieldErrors>({});
 
@@ -101,6 +106,7 @@ export function useProfessionalProfileSave(options: Options = {}) {
     setBusy(true);
     setErr(null);
     setMsg(null);
+    setMsgIsDemo(false);
     setFieldErrors({});
 
     const willSendHandle = !handleLocked && fields.handle.trim();
@@ -160,6 +166,23 @@ export function useProfessionalProfileSave(options: Options = {}) {
         }
         return null;
       }
+      // The demo answers /api/* in the browser and keeps nothing, so its reply
+      // carries no profile: taking it as the saved one blanked the form behind
+      // a green "saved". Keep what was typed on screen and say it is not kept.
+      if (isDemoVisit()) {
+        const shown: ProfessionalProfileSaved = {
+          handle: fields.handle.trim() || null,
+          headline: fields.headline.trim() || null,
+          bio: fields.bio.trim() || null,
+          profileLink: parsedLink ?? null,
+          isDiscoverable: fields.isDiscoverable,
+          openToCollaborate: fields.openToCollaborate,
+          collaborationNote: fields.collaborationNote.trim() || null,
+        };
+        setMsg(copy("Not saved — the demo keeps nothing."));
+        setMsgIsDemo(true);
+        return shown;
+      }
       const saved: ProfessionalProfileSaved = {
         handle: data.handle ?? null,
         headline: data.headline ?? null,
@@ -178,10 +201,11 @@ export function useProfessionalProfileSave(options: Options = {}) {
     } finally {
       setBusy(false);
     }
-  }, [user, fields, includeDiscoverable, handleLocked, t]);
+  }, [user, fields, includeDiscoverable, handleLocked, t, copy]);
 
   const clearMessages = useCallback(() => {
     setMsg(null);
+    setMsgIsDemo(false);
     setErr(null);
     setFieldErrors({});
   }, []);
@@ -194,6 +218,7 @@ export function useProfessionalProfileSave(options: Options = {}) {
     save,
     busy,
     msg,
+    msgIsDemo,
     err,
     fieldErrors,
     clearMessages,

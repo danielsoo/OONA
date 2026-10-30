@@ -8,6 +8,7 @@ import { useTranslations } from "@/context/LocaleContext";
 import { LOCALES, type Locale } from "@/i18n";
 import type { XiioTimezoneId } from "@/lib/timezone";
 import AccountProfileNav from "@/components/account/AccountProfileNav";
+import DemoSaveNote from "@/components/demo/DemoSaveNote";
 import UiText from "@/components/i18n/UiText";
 import ProfileAvatar from "@/components/profile/ProfileAvatar";
 import { getUserProfile } from "@/lib/userProfile";
@@ -79,6 +80,8 @@ export default function SettingsPage() {
             <h1 className={styles.title}>{t("settings.title")}</h1>
             <p className={styles.lede}>{t("settings.pageLead")}</p>
           </header>
+
+          <DemoSaveNote className={styles.note} />
 
           {/* Who you are: the profile others see, and the name on your credits. */}
           <div className={styles.group}>

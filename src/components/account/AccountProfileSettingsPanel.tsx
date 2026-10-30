@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useTranslations } from "@/context/LocaleContext";
+import { useIsDemoVisit } from "@/hooks/useIsDemoVisit";
 import ProfileAboutForm from "@/components/profile/ProfileAboutForm";
 import SchoolAffiliationSettings from "@/components/school/SchoolAffiliationSettings";
 import ProfileDiscoverSettings from "@/components/profile/ProfileDiscoverSettings";
@@ -32,6 +33,7 @@ export default function AccountProfileSettingsPanel({
 }: Props) {
   const { user } = useAuth();
   const { t } = useTranslations();
+  const demo = useIsDemoVisit();
   const [data, setData] = useState<PeopleProfilePayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
@@ -211,7 +213,8 @@ export default function AccountProfileSettingsPanel({
               <h2 className={styles.sectionTitle}>{t("accountProfile.sections.preview")}</h2>
               <p className={styles.sectionHint}>{t("profile.tabs.previewHint")}</p>
             </div>
-            {savedBanner && <p className={styles.notice}>{t("profile.tabs.savedGoPreview")}</p>}
+            {/* Nothing was saved in the demo, so DemoSaveNote above speaks instead. */}
+            {savedBanner && !demo && <p className={styles.notice}>{t("profile.tabs.savedGoPreview")}</p>}
             <PublicProfileCard profile={data.profile} isSelf />
           </section>
           {renderWorks(data.directed, t("network.people.directed"))}
