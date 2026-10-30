@@ -10,7 +10,7 @@ import SchoolAffiliationSettings from "@/components/school/SchoolAffiliationSett
 import ProfileDiscoverSettings from "@/components/profile/ProfileDiscoverSettings";
 import ProfileIdentityChangePanel from "@/components/profile/ProfileIdentityChangePanel";
 import ProfileWorksThumbnailGrid from "@/components/profile/ProfileWorksThumbnailGrid";
-import PublicProfileCard from "@/components/profile/PublicProfileCard";
+import PublicProfilePreview from "@/components/profile/PublicProfilePreview";
 import PortfolioShareSection from "@/components/settings/PortfolioShareSection";
 import type { PeopleProfilePayload } from "@/components/profile/PeopleProfileView";
 import type { ProfileSectionId } from "@/lib/profileSections";
@@ -215,7 +215,12 @@ export default function AccountProfileSettingsPanel({
             </div>
             {/* Nothing was saved in the demo, so DemoSaveNote above speaks instead. */}
             {savedBanner && !demo && <p className={styles.notice}>{t("profile.tabs.savedGoPreview")}</p>}
-            <PublicProfileCard profile={data.profile} isSelf />
+            {/* The same preview as the aside, so the two never disagree. */}
+            <PublicProfilePreview
+              profile={data.profile}
+              showLabel={false}
+              className={styles.previewFlat}
+            />
           </section>
           {renderWorks(data.directed, t("network.people.directed"))}
           {renderWorks(data.credited, t("network.people.credited"))}

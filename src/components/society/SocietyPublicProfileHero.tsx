@@ -9,6 +9,7 @@ import type { HeroBackgroundId } from "@/lib/heroBackgroundPresets";
 import type { ProfileTab } from "./SocietyProfileBody";
 import ProfileConstellation, { type ConstellationWork } from "./ProfileConstellation";
 import { DEMO_SOCIETY_HREF } from "@/lib/demo-flags";
+import { displayLines, profileRoleLine, PROFILE_SKY, PROFILE_SKY_POSITION } from "@/lib/profileHeroLook";
 import styles from "./EditorialProfile.module.css";
 import UiText from "@/components/i18n/UiText";
 import { useUiCopy } from "@/components/i18n/UiText";
@@ -21,13 +22,6 @@ const TABS: { id: ProfileTab; label: string }[] = [
   { id: "credits", label: "Credits" },
 ];
 
-/** The same deep space Society is in, so a profile is a corner of it. */
-export const PROFILE_SKY = "/images/society/society_space.webp";
-export const PROFILE_SKY_POSITION = "64% 50%";
-
-/** A name over two lines: the last word on its own. */
-export function displayLines(value: string) { const pieces = value.trim().split(/\s+/); return pieces.length < 2 ? [value] : [pieces.slice(0, -1).join(" "), pieces.at(-1)!]; }
-
 /**
  * A profile's first screen: their name under the same night sky as Society,
  * and their star with what they made around it.
@@ -37,7 +31,7 @@ export default function SocietyPublicProfileHero(props: Props) {
   const lines = displayLines(props.displayName || props.handle);
   // Follow / unfollow here moves the count right away.
   const [followerCount, setFollowerCount] = useState(props.followerCount ?? 0);
-  const role = [props.headline?.trim(), props.schoolName?.trim()].filter(Boolean).join(" · ");
+  const role = profileRoleLine(props.headline, props.schoolName);
   return <>
     <section className={styles.hero} data-society-hero="">
       <div className={styles.heroSky} aria-hidden="true">

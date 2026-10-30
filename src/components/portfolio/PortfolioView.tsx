@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import UiText, { useUiCopy } from "@/components/i18n/UiText";
 import ProfileConstellation, { type ConstellationWork } from "@/components/society/ProfileConstellation";
-import { displayLines, PROFILE_SKY, PROFILE_SKY_POSITION } from "@/components/society/SocietyPublicProfileHero";
+import { displayLines, PROFILE_SKY, PROFILE_SKY_POSITION } from "@/lib/profileHeroLook";
 import { useAuth } from "@/context/AuthContext";
 import { useTranslations } from "@/context/LocaleContext";
 import { formatCompactStat } from "@/lib/formatStat";
