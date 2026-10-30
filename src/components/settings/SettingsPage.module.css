@@ -283,15 +283,46 @@
   box-shadow: 0 0 16px rgba(61, 163, 232, 0.18);
 }
 
+/* ---- Groups: the settings that belong together, under one eyebrow ----
+   A group is separated by a brighter rule than the hairline between the
+   sections inside it, so the page reads as three things rather than six. */
+.group + .group {
+  margin-top: 40px;
+  padding-top: 34px;
+  border-top: 1px solid var(--line-strong);
+}
+
+.groupTitle {
+  margin: 0 0 4px;
+  color: var(--eyebrow);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+}
+
+/* Nothing in it, nothing to show: the profile is still loading, or there is
+   no director name yet (DirectorNameSettingsSection renders nothing then).
+   Without this the group leaves its heading and its rule over empty space. */
+.group:not(:has(.section)) {
+  display: none;
+}
+
 /* ---- Sections: a hairline between, a serif title, a hint ---- */
 .section {
   padding: 32px 0;
   border-top: 1px solid var(--line);
 }
 
-.section:first-child {
-  padding-top: 0;
+/* The first section of a group needs no rule: the group's own does that. */
+.section:first-child,
+.group > .section:first-of-type {
+  padding-top: 22px;
   border-top: 0;
+}
+
+.group:first-child > .section:first-of-type {
+  padding-top: 22px;
 }
 
 /* Title and hint on the left, what you change on the right. */

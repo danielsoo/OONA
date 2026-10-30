@@ -2876,4 +2876,16 @@ export const uiMessages: Record<string, readonly [string, string]> = {
     "산호",
     "サンゴ"
   ],
+  "who you are": [
+    "나에 대한 것",
+    "あなたのこと"
+  ],
+  "preferences": [
+    "환경설정",
+    "環境設定"
+  ],
+  "signing out and leaving": [
+    "로그아웃과 탈퇴",
+    "ログアウトと退会"
+  ],
 };
