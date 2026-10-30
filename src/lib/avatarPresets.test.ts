@@ -7,8 +7,12 @@ import {
   parseAvatarUrlInput,
 } from "./avatarPresets.ts";
 
-const UID = "user-1";
-const ownUpload = `https://firebasestorage.googleapis.com/v0/b/x/o/users/${UID}/profile/avatar.jpg`;
+const UID = "abC123xyz";
+// What firebase/storage getDownloadURL() actually hands back: the object path
+// is percent-encoded, so every slash in it is %2F.
+const ownUpload =
+  `https://firebasestorage.googleapis.com/v0/b/oona.appspot.com/o/` +
+  `users%2F${UID}%2Fprofile%2Favatar.jpg?alt=media&token=6f1d6c2e-0b4a-4f1e-9a77-6b2f0f3e1d55`;
 
 describe("avatar presets", () => {
   it("keeps every preset distinct, under public/images/avatars, and named", () => {
@@ -35,8 +39,17 @@ describe("parseAvatarUrlInput", () => {
     assert.equal(parseAvatarUrlInput("  /images/avatars/sea-whale.webp  ", UID), "/images/avatars/sea-whale.webp");
   });
 
-  it("still takes this person's own upload", () => {
+  it("still takes this person's own upload, as getDownloadURL writes it", () => {
     assert.equal(parseAvatarUrlInput(ownUpload, UID), ownUpload);
+  });
+
+  it("takes the other shapes a bucket is served under", () => {
+    const unencoded = `https://firebasestorage.googleapis.com/v0/b/oona.appspot.com/o/users/${UID}/profile/a.jpg`;
+    assert.equal(parseAvatarUrlInput(unencoded, UID), unencoded);
+    const plain = `https://storage.googleapis.com/oona.appspot.com/users/${UID}/profile/a.jpg`;
+    assert.equal(parseAvatarUrlInput(plain, UID), plain);
+    const newDomain = `https://oona.firebasestorage.app/v0/b/oona/o/users%2F${UID}%2Fprofile%2Fa.jpg`;
+    assert.equal(parseAvatarUrlInput(newDomain, UID), newDomain);
   });
 
   it("clears the picture on null or empty", () => {
@@ -47,7 +60,18 @@ describe("parseAvatarUrlInput", () => {
 
   it("refuses anything that is neither", () => {
     // someone else's upload
-    assert.equal(parseAvatarUrlInput(ownUpload.replace(UID, "user-2"), UID), undefined);
+    assert.equal(parseAvatarUrlInput(ownUpload.replaceAll(UID, "someoneElse"), UID), undefined);
+    // the right path on a host that is not the storage bucket
+    assert.equal(parseAvatarUrlInput(`https://anywhere.example/users/${UID}/profile/a.jpg`, UID), undefined);
+    assert.equal(
+      parseAvatarUrlInput(`https://firebasestorage.googleapis.com.evil.test/v0/b/x/o/users%2F${UID}%2Fprofile%2Fa.jpg`, UID),
+      undefined,
+    );
+    // inside the bucket, but not this person's profile folder
+    assert.equal(
+      parseAvatarUrlInput(`https://firebasestorage.googleapis.com/v0/b/x/o/works%2F${UID}%2Fstill.jpg`, UID),
+      undefined,
+    );
     // any other address: an avatar is shown on every page its owner appears on
     assert.equal(parseAvatarUrlInput("https://example.com/tracker.gif", UID), undefined);
     assert.equal(parseAvatarUrlInput("http://example.com/a.png", UID), undefined);
