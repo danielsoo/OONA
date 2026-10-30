@@ -192,8 +192,6 @@ export default function AccountProfileSettingsPanel({
       ) : (
         <p className={styles.note}>{t("accountProfile.profileNoHandle")}</p>
       );
-    case "discover":
-      return <ProfileDiscoverSettings initialDiscoverable={data.identity?.isDiscoverable} />;
     case "portfolio":
       return (
         <PortfolioShareSection
@@ -201,11 +199,18 @@ export default function AccountProfileSettingsPanel({
           thumbs={Object.fromEntries([...data.directed, ...data.credited].map((w) => [`${w.ownerUid}:${w.workId}`, w.thumbnailUrl]))}
         />
       );
-    case "preview":
+    // Whether anyone can find you, and the page they find: two halves of the
+    // same question, so they are answered on one screen — change the switch
+    // and the thing it governs is right there under it.
+    case "public":
       return (
         <>
+          <ProfileDiscoverSettings initialDiscoverable={data.identity?.isDiscoverable} />
           <section className={`${styles.section} ${styles.stack}`}>
-            <p className={styles.note}>{t("profile.tabs.previewHint")}</p>
+            <div className={styles.sectionHead}>
+              <h2 className={styles.sectionTitle}>{t("accountProfile.sections.preview")}</h2>
+              <p className={styles.sectionHint}>{t("profile.tabs.previewHint")}</p>
+            </div>
             {savedBanner && <p className={styles.notice}>{t("profile.tabs.savedGoPreview")}</p>}
             <PublicProfileCard profile={data.profile} isSelf />
           </section>
