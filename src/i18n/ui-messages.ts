@@ -84,6 +84,10 @@ export const uiMessages: Record<string, readonly [string, string]> = {
     "함께할 사람들에게 나를 소개하세요.",
     "制作仲間に、あなたの活動を伝えましょう。"
   ],
+  "upload a photo": [
+    "사진 올리기",
+    "写真をアップロード"
+  ],
   "what you've uploaded, liked and watched.": [
     "내가 올린 작품, 좋아요한 작품, 본 작품을 모아 봐요.",
     "アップロードした作品、いいねした作品、観た作品をまとめて確認できます。"
