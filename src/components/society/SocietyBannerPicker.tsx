@@ -2,8 +2,10 @@
 
 import Image from "next/image";
 import { useState } from "react";
+import { useUiCopy } from "@/components/i18n/UiText";
 import { useAuth } from "@/context/AuthContext";
 import { useTranslations } from "@/context/LocaleContext";
+import { isDemoVisit } from "@/lib/demo-flags";
 import {
   HERO_BACKGROUND_PRESETS,
   type HeroBackgroundId,
@@ -37,6 +39,7 @@ function SettingsIcon({ className }: { className?: string }) {
 export default function SocietyBannerPicker({ value, onChange }: Props) {
   const { user } = useAuth();
   const { t } = useTranslations();
+  const copy = useUiCopy();
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -65,7 +68,9 @@ export default function SocietyBannerPicker({ value, onChange }: Props) {
         return;
       }
       onChange(id);
-      setMsg(t("society.hero.bannerSaved"));
+      // The demo answers this in the browser and keeps nothing, so saying it
+      // was saved would be untrue.
+      setMsg(isDemoVisit() ? copy("Not saved — the demo keeps nothing.") : t("society.hero.bannerSaved"));
       setOpen(false);
     } catch {
       setErr(t("society.hero.bannerSaveError"));

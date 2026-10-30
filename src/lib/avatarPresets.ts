@@ -112,3 +112,25 @@ export function parseAvatarUrlInput(value: unknown, uid: string): string | null 
   if (!isOwnUpload(trimmed, uid)) return undefined;
   return trimmed;
 }
+
+/**
+ * The read side of the same rule: the avatar as it comes back out of a user
+ * doc, for every page that shows someone's picture.
+ *
+ * An uploaded photo is an https URL, but a picked preset is stored as the path
+ * it is served from, so an https-only check threw every preset away on read —
+ * the save wrote it and the next read dropped it, and the picture appeared to
+ * revert on refresh.
+ *
+ * This cannot re-check the uploader's uid (the doc is read in places that do
+ * not have it), so an https URL is taken as written; the write side is where
+ * an upload is pinned to its owner's folder. Anything that is neither is still
+ * refused: a stray string in the doc must not become an image src.
+ */
+export function parseStoredAvatarUrl(value: unknown): string | null | undefined {
+  if (value === null) return null;
+  if (typeof value !== "string") return undefined;
+  const trimmed = value.trim();
+  if (isAvatarPreset(trimmed)) return trimmed;
+  return trimmed.startsWith("https://") ? trimmed.slice(0, 2048) : undefined;
+}

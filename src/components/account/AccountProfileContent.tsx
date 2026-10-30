@@ -22,6 +22,7 @@ import AccountProfileNav, {
   type MainTabId,
 } from "@/components/account/AccountProfileNav";
 import AccountProfileSettingsPanel from "@/components/account/AccountProfileSettingsPanel";
+import DemoSaveNote from "@/components/demo/DemoSaveNote";
 import AccountUploadsList from "@/components/account/AccountUploadsList";
 import AccountWorkActivityList from "@/components/account/AccountWorkActivityList";
 import ProfileAvatar from "@/components/profile/ProfileAvatar";
@@ -277,12 +278,15 @@ export default function AccountProfileContent() {
       );
     }
     return (
-      <AccountProfileSettingsPanel
-        accountProfile={profile}
-        section={profileSection}
-        onHandleClaimed={reloadProfile}
-        onSavedGoPreview={goPreviewSection}
-      />
+      <>
+        <DemoSaveNote className={styles.note} />
+        <AccountProfileSettingsPanel
+          accountProfile={profile}
+          section={profileSection}
+          onHandleClaimed={reloadProfile}
+          onSavedGoPreview={goPreviewSection}
+        />
+      </>
     );
   };
 

@@ -2424,6 +2424,18 @@ export const uiMessages: Record<string, readonly [string, string]> = {
     "작품 바꾸기",
     "作品を変える"
   ],
+  "nothing here is saved in the demo.": [
+    "데모에서는 아무것도 저장되지 않아요.",
+    "デモでは何も保存されません。"
+  ],
+  "what you change stays in this tab and is gone when you reload. leave the demo to change your own account.": [
+    "바꾼 내용은 이 탭에서만 보이고 새로고침하면 사라져요. 실제 계정을 바꾸려면 데모에서 나가 주세요.",
+    "変更したことはこのタブにだけ残り、再読み込みすると消えます。ご自身のアカウントを変えるにはデモを終了してください。"
+  ],
+  "not saved — the demo keeps nothing.": [
+    "저장되지 않았어요 — 데모는 아무것도 남기지 않아요.",
+    "保存されていません — デモには何も残りません。"
+  ],
   "uploading isn't part of the demo.": [
     "업로드는 데모에 포함되어 있지 않아요.",
     "アップロードはデモに含まれていません。"

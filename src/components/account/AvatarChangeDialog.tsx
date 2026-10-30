@@ -5,6 +5,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useTranslations } from "@/context/LocaleContext";
 import UiText, { useUiCopy } from "@/components/i18n/UiText";
 import AvatarPresetPicker from "@/components/profile/AvatarPresetPicker";
+import DemoSaveNote from "@/components/demo/DemoSaveNote";
 import ProfileAvatar from "@/components/profile/ProfileAvatar";
 import { uploadUserProfileAvatar } from "@/lib/userAvatar";
 import { isDemoVisit } from "@/lib/demo-flags";
@@ -190,6 +191,8 @@ export default function AvatarChangeDialog({ open, onClose, displayName, current
               ) : null}
             </div>
           </div>
+
+          <DemoSaveNote className={styles.presets} />
 
           <div className={styles.presets}>
             <AvatarPresetPicker

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import DemoSaveNote from "@/components/demo/DemoSaveNote";
 import PublicProfileCard from "@/components/profile/PublicProfileCard";
 import ProfileAboutForm from "@/components/profile/ProfileAboutForm";
 import ProfileIdentityChangePanel from "@/components/profile/ProfileIdentityChangePanel";
@@ -167,6 +168,7 @@ export default function ProfileOwnerWorkspace({
       <div className={activeTab === "edit" ? "space-y-6" : "hidden"}>
           <section className="bg-xiio-surface rounded-2xl border border-white/10 p-6 sm:p-8 space-y-6">
             <p className="text-sm text-xiio-muted">{t("profile.tabs.editHint")}</p>
+            <DemoSaveNote />
             <ProfilePhotoEditor
               displayName={data.profile.displayName}
               avatarUrl={data.profile.avatarUrl}
