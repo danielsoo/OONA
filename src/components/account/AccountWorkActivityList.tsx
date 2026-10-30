@@ -5,6 +5,7 @@ import { watchHref } from "@/lib/works/catalog-ui";
 import type { AccountActivityItem } from "@/types/account-activity";
 import AccountActivityCard from "@/components/account/AccountActivityCard";
 import AccountEmptyState from "@/components/account/AccountEmptyState";
+import styles from "@/components/settings/SettingsPage.module.css";
 
 type Props = {
   items: AccountActivityItem[];
@@ -30,7 +31,7 @@ export default function AccountWorkActivityList({
   }
 
   return (
-    <ul className="space-y-2">
+    <ul className={styles.list}>
       {items.map((item) => {
         const metaParts: string[] = [t(`myWorks.section.${item.section}`)];
         if (showTarget && item.target) {
@@ -49,6 +50,7 @@ export default function AccountWorkActivityList({
             meta={metaParts.join(" · ")}
             href={watchHref(item.ownerUid, item.workId)}
             watchLabel={t("accountProfile.watchLink")}
+            thumbnailUrl={item.thumbnailUrl}
           />
         );
       })}

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useTranslations } from "@/context/LocaleContext";
 import { formatApiError, formatClientError, readResponseJson } from "@/lib/clientErrors";
+import styles from "@/components/settings/SettingsPage.module.css";
 
 type Props = {
   className?: string;
@@ -54,30 +55,32 @@ export default function ProfileDiscoverSettings({
   }, [user, discoverable, t]);
 
   return (
-    <section
-      className={`rounded-2xl border border-white/10 bg-xiio-surface p-5 ${className}`.trim()}
-    >
-      <h2 className="text-base font-semibold text-white mb-1">{t("profile.edit.boothTitle")}</h2>
-      <p className="text-sm text-xiio-muted mb-4">{t("profile.edit.boothHint")}</p>
-      <label className="flex items-center gap-2 text-sm text-white mb-4">
+    <section className={`${styles.section} ${className}`.trim()}>
+      <div className={styles.sectionHead}>
+        <h2 className={styles.sectionTitle}>{t("profile.edit.boothTitle")}</h2>
+        <p className={styles.sectionHint}>{t("profile.edit.boothHint")}</p>
+      </div>
+      <label className={styles.check}>
         <input
           type="checkbox"
           checked={discoverable}
           onChange={(e) => setDiscoverable(e.target.checked)}
           disabled={busy}
         />
-        {t("profile.edit.discoverable")}
+        <span>{t("profile.edit.discoverable")}</span>
       </label>
-      {err && <p className="text-red-400 text-sm mb-2">{err}</p>}
-      {msg && <p className="text-emerald-400 text-sm mb-2">{msg}</p>}
-      <button
-        type="button"
-        disabled={busy}
-        onClick={() => void save()}
-        className="px-4 py-2 rounded-lg bg-xiio-accent text-white text-sm font-medium disabled:opacity-40"
-      >
-        {t("profile.edit.save")}
-      </button>
+      {err && <p className={`${styles.error} ${styles.avatarNote}`}>{err}</p>}
+      {msg && <p className={`${styles.ok} ${styles.avatarNote}`}>{msg}</p>}
+      <div className={styles.actions}>
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => void save()}
+          className={`${styles.btn} ${styles.primary}`}
+        >
+          {t("profile.edit.save")}
+        </button>
+      </div>
     </section>
   );
 }

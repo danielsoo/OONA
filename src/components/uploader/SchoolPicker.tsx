@@ -127,14 +127,14 @@ export default function SchoolPicker({
   if (value) {
     return (
       <div className="flex items-center gap-2 flex-wrap">
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-xiio-accent/15 border border-xiio-accent/35 px-3 py-1 text-sm text-white">
+        <span className="inline-flex h-9 items-center gap-1.5 rounded-full border border-[rgba(119,203,255,0.86)] bg-[rgba(49,119,168,0.24)] px-4 text-sm text-white shadow-[0_0_16px_rgba(61,163,232,0.18)]">
           {value.name}
         </span>
         {!disabled && (
           <button
             type="button"
             onClick={() => onChange(null)}
-            className="text-xs text-white/50 hover:text-white/80 transition"
+            className="text-xs text-[#8fcfff] hover:text-white transition"
           >
             {t("uploader.schoolPickerClear")}
           </button>
@@ -169,14 +169,14 @@ export default function SchoolPicker({
         <ul
           id={listId}
           role="listbox"
-          className="absolute z-20 left-0 right-0 mt-1 max-h-48 overflow-y-auto rounded-lg border border-white/15 bg-xiio-surface shadow-xl py-1"
+          className="absolute z-20 left-0 right-0 mt-1 max-h-48 overflow-y-auto rounded-lg border border-[rgba(119,174,216,0.26)] bg-[#07111b] shadow-[0_18px_50px_rgba(0,0,0,0.5)] py-1"
         >
           {suggestions.map((s, i) => (
             <li key={s.id} role="option" aria-selected={i === highlight}>
               <button
                 type="button"
                 className={`w-full text-left px-3 py-2 text-sm transition ${
-                  i === highlight ? "bg-xiio-accent/20 text-white" : "text-white/90 hover:bg-white/10"
+                  i === highlight ? "bg-[rgba(49,119,168,0.28)] text-white" : "text-white/90 hover:bg-[rgba(49,119,168,0.16)]"
                 }`}
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => selectSchool(s)}
@@ -199,8 +199,8 @@ export default function SchoolPicker({
                 type="button"
                 className={`w-full text-left px-3 py-2 text-sm transition ${
                   highlight === suggestions.length
-                    ? "bg-xiio-accent/20 text-white"
-                    : "text-white/70 hover:bg-white/10"
+                    ? "bg-[rgba(49,119,168,0.28)] text-white"
+                    : "text-white/70 hover:bg-[rgba(49,119,168,0.16)]"
                 }`}
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => void createSchool(query)}

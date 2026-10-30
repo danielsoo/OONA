@@ -7,6 +7,7 @@ import { useMyWorks } from "@/hooks/useMyWorks";
 import { watchHref } from "@/lib/works/catalog-ui";
 import AccountActivityCard from "@/components/account/AccountActivityCard";
 import AccountEmptyState from "@/components/account/AccountEmptyState";
+import styles from "@/components/settings/SettingsPage.module.css";
 
 export default function AccountUploadsList() {
   const { user } = useAuth();
@@ -14,11 +15,11 @@ export default function AccountUploadsList() {
   const { works, loading, error } = useMyWorks();
 
   if (loading) {
-    return <p className="text-sm text-xiio-muted text-center py-8">{t("common.loading")}</p>;
+    return <p className={styles.status}>{t("common.loading")}</p>;
   }
 
   if (error) {
-    return <p className="text-sm text-red-400">{error}</p>;
+    return <p className={styles.error}>{error}</p>;
   }
 
   if (works.length === 0) {
@@ -33,7 +34,7 @@ export default function AccountUploadsList() {
 
   return (
     <div>
-      <ul className="space-y-2 mb-4">
+      <ul className={styles.list}>
         {works.map((work) => (
           <AccountActivityCard
             key={work.id}
@@ -43,15 +44,15 @@ export default function AccountUploadsList() {
             href={user ? watchHref(user.uid, work.id) : "#"}
             watchLabel={t("accountProfile.watchLink")}
             watchDisabled={work.platformStatus !== "published"}
+            thumbnailUrl={work.promo?.thumbnailUrl}
           />
         ))}
       </ul>
-      <Link
-        href="/uploader/works"
-        className="inline-flex items-center justify-center w-full sm:w-auto px-4 py-2.5 rounded-lg text-sm font-medium border border-white/20 text-white hover:bg-white/5 transition"
-      >
-        {t("accountProfile.manageUploads")}
-      </Link>
+      <div className={styles.actions}>
+        <Link href="/uploader/works" className={styles.btn}>
+          {t("accountProfile.manageUploads")}
+        </Link>
+      </div>
     </div>
   );
 }

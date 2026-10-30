@@ -15,6 +15,7 @@ import type { PeopleProfilePayload } from "@/components/profile/PeopleProfileVie
 import type { ProfileSectionId } from "@/lib/profileSections";
 import type { ProfessionalProfileSaved } from "@/hooks/useProfessionalProfileSave";
 import type { DirectorNameChangeRequest, UserProfileDoc } from "@/types/user";
+import styles from "@/components/settings/SettingsPage.module.css";
 
 type Props = {
   accountProfile: UserProfileDoc;
@@ -113,32 +114,27 @@ export default function AccountProfileSettingsPanel({
       avatarUrl: accountProfile.avatarUrl ?? null,
     };
     return (
-      <div className="space-y-6">
-        <p className="text-sm text-xiio-muted">{t("accountProfile.profileNoHandle")}</p>
+      <section className={styles.section}>
+        <p className={`${styles.note} ${styles.sectionHead}`}>{t("accountProfile.profileNoHandle")}</p>
         {section === "about" && (
-          <>
-            <ProfileAboutForm
-              profile={stubProfile}
-              handleLocked={false}
-              onSaved={(saved) => {
-                if (saved.handle?.trim()) onHandleClaimed?.();
-              }}
-            />
-          </>
+          <ProfileAboutForm
+            profile={stubProfile}
+            handleLocked={false}
+            onSaved={(saved) => {
+              if (saved.handle?.trim()) onHandleClaimed?.();
+            }}
+          />
         )}
-        {section !== "about" && (
-          <p className="text-sm text-xiio-muted">{t("accountProfile.profileNoHandle")}</p>
-        )}
-      </div>
+      </section>
     );
   }
 
   if (loading) {
-    return <p className="text-sm text-xiio-muted py-6 text-center">{t("common.loading")}</p>;
+    return <p className={styles.status}>{t("common.loading")}</p>;
   }
 
   if (err || !data) {
-    return <p className="text-sm text-red-400 py-6">{err ?? t("network.people.loadError")}</p>;
+    return <p className={styles.error}>{err ?? t("network.people.loadError")}</p>;
   }
 
   const handleLocked = !!data.profile.handle?.trim();
@@ -147,8 +143,8 @@ export default function AccountProfileSettingsPanel({
   const renderWorks = (items: PeopleProfilePayload["directed"], title: string) => {
     if (items.length === 0) return null;
     return (
-      <section className="mb-8">
-        <h2 className="text-lg font-semibold text-white mb-4">{title}</h2>
+      <section className={styles.section}>
+        <h2 className={styles.worksTitle}>{title}</h2>
         <ProfileWorksThumbnailGrid items={items} linkToWatch />
       </section>
     );
@@ -157,7 +153,7 @@ export default function AccountProfileSettingsPanel({
   switch (section) {
     case "about":
       return (
-        <div className="space-y-8">
+        <>
           <ProfileIdentityChangePanel
             kind="displayName"
             currentValue={data.profile.displayName}
@@ -168,15 +164,18 @@ export default function AccountProfileSettingsPanel({
             }
             onSubmitted={(req) => onIdentityRequest("displayNameChangeRequest", req)}
           />
-          <div className="border-t border-white/10 pt-6">
+          <section className={styles.section}>
+            <div className={styles.sectionHead}>
+              <h2 className={styles.sectionTitle}>{t("accountProfile.sections.about")}</h2>
+            </div>
             <ProfileAboutForm
               profile={data.profile}
               handleLocked={handleLocked}
               onSaved={onProfileSaved}
             />
-          </div>
+          </section>
           <SchoolAffiliationSettings initialSchoolName={accountProfile.schoolName} />
-        </div>
+        </>
       );
     case "handle":
       return handleLocked ? (
@@ -191,7 +190,7 @@ export default function AccountProfileSettingsPanel({
           onSubmitted={(req) => onIdentityRequest("handleChangeRequest", req)}
         />
       ) : (
-        <p className="text-sm text-xiio-muted">{t("accountProfile.profileNoHandle")}</p>
+        <p className={styles.note}>{t("accountProfile.profileNoHandle")}</p>
       );
     case "discover":
       return <ProfileDiscoverSettings initialDiscoverable={data.identity?.isDiscoverable} />;
@@ -204,27 +203,20 @@ export default function AccountProfileSettingsPanel({
       );
     case "preview":
       return (
-        <div className="space-y-8">
-          <p className="text-sm text-xiio-muted">{t("profile.tabs.previewHint")}</p>
-          {savedBanner && (
-            <p className="text-sm text-emerald-400 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-2">
-              {t("profile.tabs.savedGoPreview")}
-            </p>
-          )}
-          <PublicProfileCard profile={data.profile} isSelf />
+        <>
+          <section className={`${styles.section} ${styles.stack}`}>
+            <p className={styles.note}>{t("profile.tabs.previewHint")}</p>
+            {savedBanner && <p className={styles.notice}>{t("profile.tabs.savedGoPreview")}</p>}
+            <PublicProfileCard profile={data.profile} isSelf />
+          </section>
           {renderWorks(data.directed, t("network.people.directed"))}
           {renderWorks(data.credited, t("network.people.credited"))}
-          <p className="text-sm">
-            <Link
-              href={publicHref}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xiio-accent hover:underline"
-            >
+          <p>
+            <Link href={publicHref} target="_blank" rel="noopener noreferrer" className={styles.textLink}>
               {t("accountProfile.openPublicProfile")} →
             </Link>
           </p>
-        </div>
+        </>
       );
     default:
       return null;

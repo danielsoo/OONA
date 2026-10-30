@@ -160,6 +160,30 @@ function watchProgress(): WatchProgressItem[] {
   });
 }
 
+/** The member's own uploads (account › Activity › Uploads): the works they directed, all published. */
+function myWorks() {
+  return newestFirst
+    .filter((w) => ownerOf(w) === DEMO_ME.uid)
+    .map((w) => ({ id: w.id, ownerUid: DEMO_ME.uid, title: w.title, section: w.section, platformStatus: "published", promo: { id: `${w.id}-promo`, thumbnailUrl: w.still } }));
+}
+
+/** Others' works the member liked or watched (account › Activity), newest first. */
+function activityItems(kind: "like" | "watch") {
+  return newestFirst
+    .filter((w) => ownerOf(w) !== DEMO_ME.uid && hashString(`${kind}:${w.id}`) % 3 === 0)
+    .slice(0, 5)
+    .map((w, i) => ({
+      ownerUid: ownerOf(w),
+      workId: w.id,
+      title: w.title,
+      section: w.section,
+      director: directorOf(w),
+      ...(kind === "watch" ? { target: i % 2 ? "promo" : "full" } : {}),
+      at: hoursAgo(5 + i * 26),
+      thumbnailUrl: w.still,
+    }));
+}
+
 /** The professional profile the member edits in settings (its read shape). */
 function professionalProfile() {
   const p = DEMO_ME_PROFILE;
@@ -328,6 +352,10 @@ export function answerDemoApi(url: URL, method: string, rawBody?: string): Respo
   if (get && path === "/api/me/notifications") return json({ notifications: notifications() });
   if (get && path === "/api/me/watch-progress") return json({ items: watchProgress() });
   if (get && path === "/api/me/professional-profile") return json(professionalProfile());
+  if (get && path === "/api/me/works") return json({ works: myWorks() });
+  if (get && path === "/api/me/liked-promos") return json({ items: activityItems("like") });
+  if (get && path === "/api/me/watch-history") return json({ items: activityItems("watch") });
+  if (get && path === "/api/me/uploader-settings") return json({ defaultDirectorName: DEMO_ME.displayName, directorNameChangeRequest: null });
   if (get && path === "/api/me/following") return json({ uids: society.people.filter((p) => follows(p.uid)).map((p) => p.uid) });
   if (path === "/api/me/watchlist") return watchlist(method, url, parse(rawBody));
   if (parts[0] === "me" && parts[1] === "portfolio-shares" && parts.length <= 3) return portfolioShares(method, parts[2], parse(rawBody));

@@ -10,12 +10,8 @@ import {
   mapHandleApiError,
   sanitizeHandleInput,
 } from "@/lib/handle";
-import {
-  profileFieldErrorClass,
-  profileInputClass,
-  profileInputErrorClass,
-} from "@/lib/profileFormStyles";
 import type { DirectorNameChangeRequest } from "@/types/user";
+import styles from "@/components/settings/SettingsPage.module.css";
 
 type Kind = "displayName" | "handle";
 
@@ -155,77 +151,83 @@ export default function ProfileIdentityChangePanel({
     }
   };
 
+  const inputId = `identity-${kind}-request`;
+  const reasonId = `identity-${kind}-reason`;
+
   return (
-    <section className="rounded-xl border border-white/10 bg-white/[0.02] p-4 mt-4">
-      <h3 className="text-sm font-semibold text-white">{t(copy.titleKey)}</h3>
-      <p className="text-xs text-xiio-muted mt-1 mb-3 leading-relaxed">{t(copy.hintKey)}</p>
-      <p className="text-xs text-xiio-muted">{t(copy.currentKey)}</p>
-      <p className="text-sm text-white font-medium mb-3">
-        {kind === "handle" ? `@${trimmedCurrent}` : trimmedCurrent}
-      </p>
+    <section className={styles.section}>
+      <div className={styles.sectionHead}>
+        <h2 className={styles.sectionTitle}>{t(copy.titleKey)}</h2>
+        <p className={styles.sectionHint}>{t(copy.hintKey)}</p>
+      </div>
 
-      {isPending && pendingRequest && (
-        <div className="mb-3 rounded-lg border border-xiio-accent/30 bg-xiio-accent/10 px-3 py-2 text-sm text-white">
-          {t(copy.pendingKey)}
-          <p className="text-xs text-xiio-muted mt-1">
-            {kind === "handle" ? `@${pendingRequest.requestedName}` : pendingRequest.requestedName}
-            {pendingRequest.reason ? ` — ${pendingRequest.reason}` : ""}
-          </p>
-        </div>
-      )}
+      <div className={styles.stack}>
+        <p className={styles.readout}>
+          <span>{t(copy.currentKey)}</span>
+          <strong>{kind === "handle" ? `@${trimmedCurrent}` : trimmedCurrent}</strong>
+        </p>
 
-      {success && !isPending && (
-        <p className="mb-3 text-sm text-green-400">{t(copy.successKey)}</p>
-      )}
-      {error && <p className="mb-3 text-sm text-red-400 whitespace-pre-wrap break-words">{error}</p>}
+        {isPending && pendingRequest && (
+          <div className={styles.notice}>
+            {t(copy.pendingKey)}
+            <small>
+              {kind === "handle" ? `@${pendingRequest.requestedName}` : pendingRequest.requestedName}
+              {pendingRequest.reason ? ` — ${pendingRequest.reason}` : ""}
+            </small>
+          </div>
+        )}
 
-      <form onSubmit={(e) => void submit(e)} className="space-y-2">
-        <div>
-          <label className="block text-xs text-xiio-muted mb-1">{t(copy.requestLabelKey)}</label>
-          <input
-            type="text"
-            value={requested}
-            onChange={(e) => {
-              const next =
-                kind === "handle"
-                  ? sanitizeHandleInput(e.target.value)
-                  : e.target.value.replace(/^@/, "");
-              setRequested(next);
-              if (kind === "handle") setFieldError(null);
-            }}
-            disabled={busy || isPending}
-            placeholder={copy.inputPlaceholder}
-            className={`${profileInputClass}${fieldError ? ` ${profileInputErrorClass}` : ""}`}
-            maxLength={120}
-          />
-          {kind === "handle" && fieldError && (
-            <p className={profileFieldErrorClass}>{fieldError}</p>
-          )}
-          {kind === "handle" && !fieldError && (
-            <p className="text-xs text-xiio-muted mt-1">{t("profile.edit.handleHint")}</p>
-          )}
-        </div>
-        <div>
-          <label className="block text-xs text-xiio-muted mb-1">
-            {t("profile.identity.reasonLabel")}
-          </label>
-          <textarea
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
-            disabled={busy || isPending}
-            placeholder={t("profile.identity.reasonPlaceholder")}
-            className={`${profileInputClass} min-h-[64px] resize-y`}
-            maxLength={500}
-          />
-        </div>
-        <button
-          type="submit"
-          disabled={busy || isPending || !requested.trim()}
-          className="w-full py-2 rounded-lg bg-white/10 hover:bg-white/15 disabled:opacity-40 text-white text-sm font-medium"
-        >
-          {busy ? t(copy.submittingKey) : t(copy.submitKey)}
-        </button>
-      </form>
+        {success && !isPending && <p className={styles.ok}>{t(copy.successKey)}</p>}
+        {error && <p className={styles.error}>{error}</p>}
+
+        <form onSubmit={(e) => void submit(e)}>
+          <div className={styles.field}>
+            <label className={styles.label} htmlFor={inputId}>{t(copy.requestLabelKey)}</label>
+            <input
+              id={inputId}
+              type="text"
+              value={requested}
+              onChange={(e) => {
+                const next =
+                  kind === "handle"
+                    ? sanitizeHandleInput(e.target.value)
+                    : e.target.value.replace(/^@/, "");
+                setRequested(next);
+                if (kind === "handle") setFieldError(null);
+              }}
+              disabled={busy || isPending}
+              placeholder={copy.inputPlaceholder}
+              className={`${styles.input} ${fieldError ? styles.inputError : ""}`}
+              maxLength={120}
+            />
+            {kind === "handle" && fieldError && <p className={styles.fieldError}>{fieldError}</p>}
+            {kind === "handle" && !fieldError && <p className={styles.help}>{t("profile.edit.handleHint")}</p>}
+          </div>
+          <div className={styles.field}>
+            <label className={styles.label} htmlFor={reasonId}>
+              {t("profile.identity.reasonLabel")}
+            </label>
+            <textarea
+              id={reasonId}
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              disabled={busy || isPending}
+              placeholder={t("profile.identity.reasonPlaceholder")}
+              className={styles.input}
+              maxLength={500}
+            />
+          </div>
+          <div className={styles.actions}>
+            <button
+              type="submit"
+              disabled={busy || isPending || !requested.trim()}
+              className={`${styles.btn} ${styles.primary}`}
+            >
+              {busy ? t(copy.submittingKey) : t(copy.submitKey)}
+            </button>
+          </div>
+        </form>
+      </div>
     </section>
   );
 }

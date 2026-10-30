@@ -9,4 +9,5 @@ export type AccountActivityItem = {
   director?: string;
   target?: EngagementTarget;
   at?: unknown;
+  thumbnailUrl?: string | null;
 };

@@ -6,6 +6,7 @@ import { useTranslations } from "@/context/LocaleContext";
 import SchoolPicker, { type SchoolPickerValue } from "@/components/uploader/SchoolPicker";
 import SchoolEmailVerification from "./SchoolEmailVerification";
 import type { SchoolVerificationStatus } from "@/lib/school-verification";
+import styles from "@/components/settings/SettingsPage.module.css";
 
 export default function SchoolAffiliationSettings({ initialSchoolName }: { initialSchoolName?: string }) {
   const { user } = useAuth();
@@ -24,13 +25,15 @@ export default function SchoolAffiliationSettings({ initialSchoolName }: { initi
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
   }, [user]);
-  return <section className="border-t border-white/10 pt-6">
-    <h2 className="mb-2 text-lg text-white">{t("schoolVerification.title")}</h2>
-    <p className="mb-4 text-sm text-white/60">{t("schoolVerification.profileHint")}</p>
-    {loading ? <p role="status">{t("schoolVerification.checking")}</p> : <>
-      <SchoolPicker value={school} onChange={setSchool} user={user} initialQuery={initialSchoolName} />
+  return <section className={styles.section}>
+    <div className={styles.sectionHead}>
+      <h2 className={styles.sectionTitle}>{t("schoolVerification.title")}</h2>
+      <p className={styles.sectionHint}>{t("schoolVerification.profileHint")}</p>
+    </div>
+    {loading ? <p className={styles.note} role="status">{t("schoolVerification.checking")}</p> : <>
+      <SchoolPicker value={school} onChange={setSchool} user={user} initialQuery={initialSchoolName} inputClassName={styles.input} />
       {school && user ? <SchoolEmailVerification key={`${user.uid}:${school.id}`} schoolId={school.id} /> : null}
-      {error ? <p className="mt-2 text-sm text-amber-200" role="alert">{t("schoolVerification.school_mail_unavailable")}</p> : null}
+      {error ? <p className={`${styles.warn} ${styles.avatarNote}`} role="alert">{t("schoolVerification.school_mail_unavailable")}</p> : null}
     </>}
   </section>;
 }

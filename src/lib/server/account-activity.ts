@@ -64,11 +64,12 @@ async function resolvePublishedActivity(
 
   let title = work.title;
 
+  // The promo carries the work's picture, so it is read for the full film too.
+  const pSnap = await promoRef(db, ownerUid, workId).get();
+  const promo = pSnap.exists ? parsePromoDoc(pSnap.data() as Record<string, unknown>) : null;
+  const promoPublished = promo?.platformStatus === "published";
   if (target === "promo") {
-    const pSnap = await promoRef(db, ownerUid, workId).get();
-    if (!pSnap.exists) return null;
-    const promo = parsePromoDoc(pSnap.data() as Record<string, unknown>);
-    if (promo.platformStatus !== "published") return null;
+    if (!promoPublished) return null;
     title = promo.title?.trim() || title;
   }
 
@@ -80,6 +81,7 @@ async function resolvePublishedActivity(
     director: work.director,
     target,
     at,
+    thumbnailUrl: promoPublished ? promo.thumbnailUrl ?? null : null,
   };
 }
 

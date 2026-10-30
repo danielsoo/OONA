@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
@@ -24,7 +25,7 @@ import AccountProfileSettingsPanel from "@/components/account/AccountProfileSett
 import AccountUploadsList from "@/components/account/AccountUploadsList";
 import AccountWorkActivityList from "@/components/account/AccountWorkActivityList";
 import ProfileAvatar from "@/components/profile/ProfileAvatar";
-import styles from "./AccountProfileContent.module.css";
+import styles from "@/components/settings/SettingsPage.module.css";
 import UiText from "@/components/i18n/UiText";
 
 function parseMainTab(raw: string | null): MainTabId {
@@ -172,11 +173,6 @@ export default function AccountProfileContent() {
     void loadActivity();
   }, [loadActivity]);
 
-  const mainTabLabels: Record<MainTabId, string> = {
-    activity: t("accountProfile.tabActivity"),
-    profile: t("accountProfile.tabProfileSettings"),
-  };
-
   const activityTabs: { id: ActivityTabId; labelKey: string; count?: number }[] = [
     { id: "uploads", labelKey: "accountProfile.tabUploads", count: uploadCount },
     { id: "likes", labelKey: "accountProfile.tabLikes", count: likes.length },
@@ -184,11 +180,11 @@ export default function AccountProfileContent() {
   ];
 
   if (loading) {
-    return <p className="text-xiio-muted py-8 text-center">{t("common.loading")}</p>;
+    return <p className={styles.status}>{t("common.loading")}</p>;
   }
 
   if (err || !profile) {
-    return <p className="text-red-400 text-sm">{err ?? t("accountProfile.noProfile")}</p>;
+    return <p className={`${styles.status} ${styles.error}`}>{err ?? t("accountProfile.noProfile")}</p>;
   }
 
   const showBirthDate = Boolean(profile.birthDate?.trim());
@@ -208,20 +204,17 @@ export default function AccountProfileContent() {
         ageNum != null
           ? t("accountProfile.birthDateWithAge", { date: dateStr, age: ageNum })
           : dateStr,
-      stack: true,
     });
   } else if (showAge) {
     heroMetaItems.push({
       label: t("accountProfile.age"),
       value: String(profile.age),
-      stack: true,
     });
   }
   if (showJoined) {
     heroMetaItems.push({
       label: t("accountProfile.joinedAt"),
       value: formatDateTime(profile.createdAt),
-      stack: true,
     });
   }
   if (showGender && profile.gender) {
@@ -238,9 +231,8 @@ export default function AccountProfileContent() {
   }
 
   const navProps = {
-    mainTab,
+    place: mainTab,
     onMainTab: setMainTab,
-    mainTabLabels,
     activityTab,
     onActivityTab: setActivityTab,
     activityTabs,
@@ -253,16 +245,14 @@ export default function AccountProfileContent() {
     if (mainTab === "activity") {
       return (
         <>
-          {activityErr && activityTab !== "uploads" && (
-            <p className="text-sm text-red-400 mb-4">{activityErr}</p>
-          )}
+          {activityErr && activityTab !== "uploads" && <p className={`${styles.error} ${styles.note}`}>{activityErr}</p>}
           {activityTab === "uploads" && <AccountUploadsList />}
           {activityTab === "likes" &&
             (activityLoading ? (
-              <p className="text-sm text-xiio-muted text-center py-8">{t("common.loading")}</p>
+              <p className={styles.status}>{t("common.loading")}</p>
             ) : (
               <>
-                <p className="text-xs text-xiio-muted mb-3">{t("accountProfile.likesNote")}</p>
+                <p className={styles.note}>{t("accountProfile.likesNote")}</p>
                 <AccountWorkActivityList
                   items={likes}
                   emptyMessage={t("accountProfile.likesEmpty")}
@@ -273,7 +263,7 @@ export default function AccountProfileContent() {
             ))}
           {activityTab === "watched" &&
             (activityLoading ? (
-              <p className="text-sm text-xiio-muted text-center py-8">{t("common.loading")}</p>
+              <p className={styles.status}>{t("common.loading")}</p>
             ) : (
               <AccountWorkActivityList
                 items={watched}
@@ -286,45 +276,55 @@ export default function AccountProfileContent() {
         </>
       );
     }
-    if (mainTab === "profile") {
-      return (
-        <AccountProfileSettingsPanel
-          accountProfile={profile}
-          section={profileSection}
-          onHandleClaimed={reloadProfile}
-          onSavedGoPreview={goPreviewSection}
-        />
-      );
-    }
-    return null;
+    return (
+      <AccountProfileSettingsPanel
+        accountProfile={profile}
+        section={profileSection}
+        onHandleClaimed={reloadProfile}
+        onSavedGoPreview={goPreviewSection}
+      />
+    );
   };
 
-  if (mainTab === "profile") {
-    const roleLabel = profile.roleTags?.[0]?.replaceAll("_", " ") || "Creator";
-    return (
-      <div className={styles.profileWorkspace}>
-        <aside className={styles.profileNav}>
-          <AccountProfileNav variant="sidebar" {...navProps} />
-        </aside>
+  const onProfileTab = mainTab === "profile";
+  const roleLabel = profile.roleTags?.[0]?.replaceAll("_", " ") || "Creator";
 
-        <section className={styles.profileEditor}>
-          <div className={styles.mobileNav}><AccountProfileNav variant="mobile" {...navProps} /></div>
-          <header className={styles.profileHeading}>
-            <p><UiText text={"ACCOUNT & SETTINGS"} /></p>
-            <h1><UiText text={"Profile"} /></h1>
-            <span><UiText text={"Shape how collaborators see you."} /></span>
-          </header>
-          <AccountProfileHero
-            profile={profile}
-            email={user?.email ?? null}
-            metaItems={heroMetaItems}
-            onAvatarUpdated={(avatarUrl) => setProfile((prev) => (prev ? { ...prev, avatarUrl } : prev))}
-          />
-          <section className={styles.editorSurface}>{renderMainContent()}</section>
-        </section>
+  return (
+    <div className={`${styles.workspace} ${onProfileTab ? styles.withPreview : ""}`}>
+      <aside className={styles.side}>
+        <AccountProfileNav variant="sidebar" {...navProps} />
+      </aside>
 
-        <aside className={styles.publicPreview}>
-          <div className={styles.previewLabel}><UiText text={"PUBLIC PREVIEW"} />{" "}<span aria-hidden="true">↗</span></div>
+      <section className={styles.main}>
+        <div className={styles.mobileNav}>
+          <AccountProfileNav variant="mobile" {...navProps} />
+        </div>
+        <header className={styles.head}>
+          <p className={styles.eyebrow}><UiText text={"ACCOUNT & SETTINGS"} /></p>
+          <h1 className={styles.title}>{onProfileTab ? <UiText text={"Profile"} /> : t("accountProfile.tabActivity")}</h1>
+          <p className={styles.lede}>
+            {onProfileTab ? <UiText text={"Shape how collaborators see you."} /> : <UiText text={"What you've uploaded, liked and watched."} />}
+          </p>
+        </header>
+        <AccountProfileHero
+          profile={profile}
+          email={user?.email ?? null}
+          metaItems={heroMetaItems}
+          onAvatarUpdated={(avatarUrl) => setProfile((prev) => (prev ? { ...prev, avatarUrl } : prev))}
+        />
+        <div className={styles.below}>{renderMainContent()}</div>
+      </section>
+
+      {onProfileTab ? (
+        <aside className={styles.preview}>
+          <div className={styles.previewLabel}>
+            <UiText text={"PUBLIC PREVIEW"} />
+            {profile.handle ? (
+              <Link href={`/people/${encodeURIComponent(profile.handle)}`} aria-label={t("accountProfile.openPublicProfile")}>↗</Link>
+            ) : (
+              <span aria-hidden="true">↗</span>
+            )}
+          </div>
           <div className={styles.previewBanner} aria-hidden="true" />
           <ProfileAvatar
             displayName={profile.displayName || "?"}
@@ -332,40 +332,13 @@ export default function AccountProfileContent() {
             className={styles.previewAvatar}
             imgClassName="h-full w-full object-cover"
           />
-          <h2>{profile.displayName || "Creator"}</h2>
-          {profile.handle ? <p>@{profile.handle}</p> : null}
+          <h2 className={styles.previewName}>{profile.displayName || "Creator"}</h2>
+          {profile.handle ? <p className={styles.previewHandle}>@{profile.handle}</p> : null}
           <p className={styles.previewMeta}>{roleLabel} <span>·</span> {profile.schoolName || "OONA"}</p>
           <p className={styles.previewBio}>{profile.bio || profile.headline || "Tell collaborators about the stories you want to make."}</p>
           <div className={styles.previewTags}>{(profile.roleTags?.length ? profile.roleTags : ["director", "storytelling"]).slice(0, 3).map((tag) => <span key={tag}>{tag.replaceAll("_", " ")}</span>)}</div>
         </aside>
-      </div>
-    );
-  }
-
-  return (
-    <div className="lg:flex lg:gap-8 lg:items-start">
-      <aside className="hidden lg:block w-56 shrink-0">
-        <AccountProfileNav variant="sidebar" {...navProps} />
-      </aside>
-
-      <div className="min-w-0 flex-1 space-y-6">
-        <div className="lg:hidden">
-          <AccountProfileNav variant="mobile" {...navProps} />
-        </div>
-
-        <AccountProfileHero
-          profile={profile}
-          email={user?.email ?? null}
-          metaItems={heroMetaItems}
-          onAvatarUpdated={(avatarUrl) =>
-            setProfile((prev) => (prev ? { ...prev, avatarUrl } : prev))
-          }
-        />
-
-        <section className="bg-xiio-surface rounded-2xl border border-white/10 p-5 lg:p-6 min-h-[320px]">
-          {renderMainContent()}
-        </section>
-      </div>
+      ) : null}
     </div>
   );
 }

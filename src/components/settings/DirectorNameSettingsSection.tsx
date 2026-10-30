@@ -5,14 +5,12 @@ import { useAuth } from "@/context/AuthContext";
 import { useTranslations } from "@/context/LocaleContext";
 import { formatApiError, formatClientError, readResponseJson } from "@/lib/clientErrors";
 import type { DirectorNameChangeRequest } from "@/types/user";
+import styles from "@/components/settings/SettingsPage.module.css";
 
 type UploaderSettingsResponse = {
   defaultDirectorName: string | null;
   directorNameChangeRequest: DirectorNameChangeRequest | null;
 };
-
-const inputClass =
-  "w-full rounded-xl border border-white/12 bg-white/[0.04] px-4 py-2.5 text-sm text-white placeholder:text-white/30 transition focus:outline-none focus:border-xiio-accent/80 focus:bg-white/[0.06] focus:ring-2 focus:ring-xiio-accent/20";
 
 export default function DirectorNameSettingsSection() {
   const { user } = useAuth();
@@ -107,45 +105,35 @@ export default function DirectorNameSettingsSection() {
   };
 
   return (
-    <section className="rounded-2xl border border-white/10 bg-xiio-surface/90 p-6 md:p-8 shadow-lg shadow-black/25 backdrop-blur-sm">
-      <div className="mx-auto w-full max-w-4xl">
-        <div className="mb-6 border-b border-white/10 pb-4">
-          <h2 className="text-lg font-semibold text-white">{t("settings.directorNameSection")}</h2>
-          <p className="mt-1.5 text-sm text-xiio-muted leading-relaxed">{t("settings.directorNameLockedHint")}</p>
-        </div>
+    <section className={`${styles.section} ${styles.row}`}>
+      <div>
+        <h2 className={styles.sectionTitle}>{t("settings.directorNameSection")}</h2>
+        <p className={styles.sectionHint}>{t("settings.directorNameLockedHint")}</p>
+      </div>
 
-        <div className="mb-5">
-          <p className="text-xs font-medium tracking-wide text-xiio-muted/75 mb-1">
-            {t("settings.directorNameCurrent")}
-          </p>
-          <p className="text-base font-semibold text-white/95">{currentName}</p>
-        </div>
+      <div className={styles.stack}>
+        <p className={styles.readout}>
+          <span>{t("settings.directorNameCurrent")}</span>
+          <strong>{currentName}</strong>
+        </p>
 
         {isPending && (
-          <div className="mb-4 rounded-xl border border-xiio-accent/30 bg-xiio-accent/10 px-4 py-3 text-sm text-white">
+          <div className={styles.notice}>
             {t("settings.directorNamePending")}
-            <p className="text-xs text-xiio-muted mt-1.5">
+            <small>
               {pendingRequest.requestedName}
               {pendingRequest.reason ? ` — ${pendingRequest.reason}` : ""}
-            </p>
+            </small>
           </div>
         )}
 
-        {success && !isPending && (
-          <p className="mb-4 rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-2.5 text-sm text-emerald-300">
-            {t("settings.directorNameSuccess")}
-          </p>
-        )}
+        {success && !isPending && <p className={styles.ok}>{t("settings.directorNameSuccess")}</p>}
 
-        {error && (
-          <div className="mb-4 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-red-400 text-sm whitespace-pre-wrap break-words">
-            {error}
-          </div>
-        )}
+        {error && <p className={styles.error}>{error}</p>}
 
-        <form onSubmit={(e) => void submit(e)} className="space-y-4 pt-1">
-          <div className="max-w-xl">
-            <label className="block text-xs font-medium text-xiio-muted/90 mb-1.5" htmlFor="director-change-name">
+        <form onSubmit={(e) => void submit(e)}>
+          <div className={styles.field}>
+            <label className={styles.label} htmlFor="director-change-name">
               {t("settings.directorNameRequestLabel")}
             </label>
             <input
@@ -154,12 +142,12 @@ export default function DirectorNameSettingsSection() {
               value={requestedName}
               onChange={(e) => setRequestedName(e.target.value)}
               disabled={busy || isPending}
-              className={inputClass}
+              className={styles.input}
               maxLength={120}
             />
           </div>
-          <div className="max-w-3xl">
-            <label className="block text-xs font-medium text-xiio-muted/90 mb-1.5" htmlFor="director-change-reason">
+          <div className={styles.field}>
+            <label className={styles.label} htmlFor="director-change-reason">
               {t("settings.directorNameReasonLabel")}
             </label>
             <textarea
@@ -168,15 +156,15 @@ export default function DirectorNameSettingsSection() {
               onChange={(e) => setReason(e.target.value)}
               disabled={busy || isPending}
               placeholder={t("settings.directorNameReasonPlaceholder")}
-              className={`${inputClass} min-h-[92px] resize-y`}
+              className={styles.input}
               maxLength={500}
             />
           </div>
-          <div className="max-w-3xl pt-2">
+          <div className={styles.actions}>
             <button
               type="submit"
               disabled={busy || isPending || !requestedName.trim()}
-              className="w-full py-2.5 rounded-xl bg-xiio-accent hover:bg-xiio-accent-hover disabled:opacity-40 text-white text-sm font-semibold tracking-[0.01em] transition"
+              className={`${styles.btn} ${styles.primary}`}
             >
               {busy ? t("settings.directorNameSubmitting") : t("settings.directorNameSubmit")}
             </button>

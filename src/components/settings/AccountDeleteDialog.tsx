@@ -9,6 +9,7 @@ import {
 import { PasswordInput } from "@/components/auth/PasswordInput";
 import { useAuth } from "@/context/AuthContext";
 import { useTranslations } from "@/context/LocaleContext";
+import styles from "@/components/settings/SettingsPage.module.css";
 
 type Props = {
   open: boolean;
@@ -53,16 +54,12 @@ function DisclosureSection({
   t: (key: string) => string;
   variant: "removed" | "retained" | "default";
 }) {
-  const titleCls =
-    variant === "retained"
-      ? "text-amber-200/90"
-      : variant === "removed"
-        ? "text-red-300/90"
-        : "text-white/90";
+  const tone =
+    variant === "retained" ? styles.disclosureRetained : variant === "removed" ? styles.disclosureRemoved : "";
   return (
-    <section className="mb-4">
-      <h3 className={`text-sm font-semibold mb-2 ${titleCls}`}>{title}</h3>
-      <ul className="list-disc pl-5 space-y-1.5 text-sm text-xiio-muted leading-relaxed">
+    <section className={`${styles.disclosure} ${tone}`}>
+      <h3>{title}</h3>
+      <ul>
         {items.map((key) => (
           <li key={key}>{t(`settings.deleteAccount.${key}`)}</li>
         ))}
@@ -176,24 +173,16 @@ export default function AccountDeleteDialog({ open, onClose, onSuccess }: Props)
   };
 
   return (
-    <div
-      className="fixed inset-0 z-[100] flex items-center justify-center px-4 bg-black/70"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="account-delete-title"
-    >
-      <div className="w-full max-w-lg rounded-2xl border border-white/10 bg-xiio-surface shadow-xl flex flex-col max-h-[90vh]">
-        <div className="p-6 pb-0 shrink-0">
-          <h2 id="account-delete-title" className="text-lg font-bold text-white mb-2">
+    <div className={styles.overlay} role="dialog" aria-modal="true" aria-labelledby="account-delete-title">
+      <div className={styles.dialog}>
+        <div className={styles.dialogHead}>
+          <h2 id="account-delete-title" className={styles.dialogTitle}>
             {t("settings.deleteAccount.dialogTitle")}
           </h2>
         </div>
 
-        <div className="px-6 py-3 overflow-y-auto max-h-[min(60vh,28rem)] shrink min-h-0">
-          <p className="text-sm text-xiio-muted mb-4 leading-relaxed">
-            {t("settings.deleteAccount.dialogLead")}
-          </p>
-
+        <div className={styles.dialogBody}>
+          <p>{t("settings.deleteAccount.dialogLead")}</p>
           <DisclosureSection
             title={t("settings.deleteAccount.sectionAccount")}
             items={accountItems}
@@ -226,41 +215,41 @@ export default function AccountDeleteDialog({ open, onClose, onSuccess }: Props)
           />
         </div>
 
-        <div className="p-6 pt-4 border-t border-white/10 shrink-0 space-y-4">
-          <label className="flex items-start gap-2.5 cursor-pointer">
+        <div className={`${styles.dialogFoot} ${styles.stack}`}>
+          <label className={styles.check}>
             <input
               type="checkbox"
               checked={agreed}
               onChange={(e) => setAgreed(e.target.checked)}
               disabled={busy}
-              className="mt-1 rounded border-white/20"
             />
-            <span className="text-sm text-white leading-snug">
-              {t("settings.deleteAccount.confirmCheckbox")}
-            </span>
+            <span>{t("settings.deleteAccount.confirmCheckbox")}</span>
           </label>
 
-          <div>
-            <label className="block text-xs text-xiio-muted mb-1.5">
+          <div className={styles.field}>
+            <label className={styles.label} htmlFor="account-delete-phrase">
               {t("settings.deleteAccount.confirmPhraseLabel")}
             </label>
             <input
+              id="account-delete-phrase"
               type="text"
               value={phrase}
               onChange={(e) => setPhrase(e.target.value)}
               placeholder={t("settings.deleteAccount.confirmPhrasePlaceholder")}
               disabled={busy}
               autoComplete="off"
-              className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-red-400/50"
+              className={styles.input}
             />
           </div>
 
           {needsPassword && (
-            <div>
-              <label className="block text-xs text-xiio-muted mb-1.5">
+            <div className={styles.field}>
+              <label className={styles.label} htmlFor="account-delete-password">
                 {t("settings.deleteAccount.passwordLabel")}
               </label>
               <PasswordInput
+                id="account-delete-password"
+                className={`${styles.input} pr-11`}
                 value={password}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
                 autoComplete="current-password"
@@ -269,14 +258,14 @@ export default function AccountDeleteDialog({ open, onClose, onSuccess }: Props)
             </div>
           )}
 
-          {error && <p className="text-sm text-red-400">{error}</p>}
+          {error && <p className={styles.error}>{error}</p>}
 
-          <div className="flex flex-col-reverse sm:flex-row gap-2.5">
+          <div className={styles.actions}>
             <button
               type="button"
               onClick={handleClose}
               disabled={busy}
-              className="flex-1 py-2.5 rounded-lg border border-white/20 text-white hover:bg-white/5 disabled:opacity-50 text-sm font-medium transition"
+              className={styles.btn}
             >
               {t("settings.deleteAccount.cancel")}
             </button>
@@ -284,7 +273,7 @@ export default function AccountDeleteDialog({ open, onClose, onSuccess }: Props)
               type="button"
               disabled={!canSubmit}
               onClick={() => void handleSubmit()}
-              className="flex-1 py-2.5 rounded-lg bg-red-600 hover:bg-red-500 disabled:opacity-40 disabled:pointer-events-none text-white text-sm font-semibold transition"
+              className={`${styles.btn} ${styles.wipe}`}
             >
               {busy ? t("settings.deleteAccount.submitting") : t("settings.deleteAccount.submit")}
             </button>

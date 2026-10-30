@@ -1,0 +1,1319 @@
+/* Settings, Activity and Profile settings (/settings, /account): one place
+   with one side menu, in the same night as the home and the profile pages —
+   night-blue page, serif titles, blue hairlines and glowing pills
+   (CinematicHomePage.module.css, EditorialProfile.module.css,
+   PortfolioShare.module.css). */
+.page {
+  --bg: 7, 17, 27;
+  --pad: clamp(24px, 4.9vw, 76px);
+  --serif: var(--font-serif), "Noto Serif KR", Georgia, serif;
+  --line: rgba(150, 190, 230, 0.14);
+  --line-strong: rgba(179, 206, 230, 0.22);
+  --muted: rgba(196, 214, 236, 0.62);
+  --eyebrow: #9bb9dc;
+  --link: #8fcfff;
+  --glow: rgba(119, 203, 255, 0.86);
+  min-height: calc(100svh - 82px);
+  padding: 44px var(--pad) 96px;
+  background:
+    radial-gradient(ellipse 60% 42% at 86% 0%, rgba(29, 84, 122, 0.14), transparent 70%),
+    rgb(var(--bg));
+  color: #eef3fa;
+  font-size: 14px;
+}
+
+.inner {
+  max-width: 1540px;
+  margin: 0 auto;
+}
+
+.status {
+  padding: 48px 0;
+  color: var(--muted);
+  text-align: center;
+}
+
+.signedOut {
+  display: grid;
+  min-height: calc(100svh - 82px);
+  place-items: center;
+}
+
+/* ---- Side menu | page (| public preview) ---- */
+.workspace {
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr);
+  gap: 56px;
+  align-items: start;
+}
+
+.withPreview {
+  grid-template-columns: 200px minmax(0, 1fr) 340px;
+  gap: 44px;
+}
+
+.side {
+  position: sticky;
+  top: 118px;
+}
+
+.main {
+  min-width: 0;
+}
+
+/* ---- The heading: eyebrow, serif title, one line under it ---- */
+.head {
+  margin-bottom: 34px;
+}
+
+.eyebrow {
+  margin: 0 0 14px;
+  color: var(--eyebrow);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: clamp(44px, 4.4vw, 62px);
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+.lede {
+  margin: 14px 0 0;
+  color: rgba(220, 231, 245, 0.68);
+  font-size: 17px;
+  line-height: 1.5;
+}
+
+/* ---- Side menu (desktop) ---- */
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-top: 6px;
+}
+
+.navItem {
+  position: relative;
+  display: flex;
+  width: 100%;
+  align-items: center;
+  padding: 10px 0 10px 20px;
+  color: rgba(225, 234, 246, 0.62);
+  font-size: 15px;
+  text-align: left;
+  transition: color 150ms ease;
+}
+
+.navItem:hover {
+  color: #fff;
+}
+
+/* The page you are on: lit, with the glowing dot the header's nav uses. */
+.navOn {
+  color: #fff;
+}
+
+.navOn::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 2px;
+  width: 7px;
+  height: 7px;
+  transform: translateY(-50%);
+  border-radius: 50%;
+  background: #bcecff;
+  box-shadow: 0 0 12px #64c9ff;
+}
+
+.navSub {
+  display: flex;
+  flex-direction: column;
+  margin: 0 0 10px 23px;
+  border-left: 1px solid var(--line);
+}
+
+.subItem {
+  position: relative;
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 0 8px 16px;
+  color: var(--muted);
+  font-size: 13.5px;
+  text-align: left;
+  transition: color 150ms ease;
+}
+
+.subItem:hover {
+  color: #fff;
+}
+
+.subOn {
+  color: #fff;
+}
+
+.subOn::before {
+  content: "";
+  position: absolute;
+  top: 5px;
+  bottom: 5px;
+  left: -1px;
+  width: 1px;
+  background: linear-gradient(180deg, transparent, #6ccaff, transparent);
+  box-shadow: 0 0 8px rgba(100, 201, 255, 0.6);
+}
+
+.count {
+  color: rgba(176, 200, 228, 0.6);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.navItem:focus-visible,
+.subItem:focus-visible,
+.tab:focus-visible,
+.chip:focus-visible {
+  outline: 2px solid #9fdcff;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ---- Side menu as tabs (phones and narrow windows) ---- */
+.mobileNav {
+  display: none;
+}
+
+/* The rule is painted inside the strip, not drawn as its border, so the
+   dot that sits on it stays inside the area the sideways scroll clips. */
+.tabs {
+  display: flex;
+  gap: 26px;
+  padding: 4px 4px 4px;
+  overflow-x: auto;
+  background: linear-gradient(rgba(140, 174, 204, 0.28), rgba(140, 174, 204, 0.28)) left bottom 4px / 100% 1px no-repeat;
+  scrollbar-width: none;
+}
+
+.tabs::-webkit-scrollbar,
+.chips::-webkit-scrollbar {
+  display: none;
+}
+
+.tab {
+  position: relative;
+  flex: none;
+  padding: 0 2px 12px;
+  color: rgba(225, 234, 246, 0.66);
+  font-size: 15px;
+  white-space: nowrap;
+}
+
+.tabOn {
+  color: #fff;
+}
+
+.tabOn::before {
+  content: "";
+  position: absolute;
+  bottom: -3px;
+  left: 50%;
+  width: 7px;
+  height: 7px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: #bcecff;
+  box-shadow: 0 0 12px #64c9ff;
+}
+
+.tabOn::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 88px;
+  height: 1px;
+  transform: translateX(-50%);
+  background: linear-gradient(90deg, transparent, #6ccaff, transparent);
+}
+
+.chips {
+  display: flex;
+  gap: 8px;
+  margin: 12px -4px 0;
+  padding: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.chip {
+  display: inline-flex;
+  height: 34px;
+  flex: none;
+  align-items: center;
+  gap: 7px;
+  padding: 0 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: rgba(4, 17, 28, 0.36);
+  color: rgba(240, 246, 253, 0.84);
+  font-size: 13px;
+  white-space: nowrap;
+  transition: background 150ms ease, border-color 150ms ease, color 150ms ease;
+}
+
+.chip:hover {
+  background: rgba(49, 119, 168, 0.2);
+  color: #fff;
+}
+
+.chipOn {
+  border-color: var(--glow);
+  background: rgba(49, 119, 168, 0.24);
+  color: #fff;
+  box-shadow: 0 0 16px rgba(61, 163, 232, 0.18);
+}
+
+/* ---- Sections: a hairline between, a serif title, a hint ---- */
+.section {
+  padding: 32px 0;
+  border-top: 1px solid var(--line);
+}
+
+.section:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+/* Title and hint on the left, what you change on the right. */
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.3fr);
+  gap: 20px 56px;
+  align-items: start;
+}
+
+.sectionTitle {
+  margin: 0;
+  color: #f3f5fa;
+  font-family: var(--serif);
+  font-size: 26px;
+  font-weight: 400;
+  line-height: 1.15;
+}
+
+.sectionHint {
+  max-width: 34em;
+  margin: 8px 0 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.sectionHead {
+  margin-bottom: 22px;
+}
+
+.stack > * + * {
+  margin-top: 18px;
+}
+
+/* A value you read rather than change: "Current name  Lena Brandt". */
+.readout {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.readout span {
+  color: var(--eyebrow);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.readout strong {
+  color: #f3f5fa;
+  font-family: var(--serif);
+  font-size: 20px;
+  font-weight: 400;
+}
+
+/* ---- Fields ---- */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.field + .field {
+  margin-top: 18px;
+}
+
+.label {
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+}
+
+.input {
+  width: 100%;
+  min-height: 46px;
+  padding: 0 16px;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  background: rgba(4, 17, 28, 0.5);
+  color: #fff;
+  font: inherit;
+  outline: none;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+textarea.input {
+  min-height: 104px;
+  padding: 12px 16px;
+  line-height: 1.55;
+  resize: vertical;
+}
+
+.input::placeholder {
+  color: rgba(176, 200, 228, 0.42);
+}
+
+.input:focus {
+  border-color: rgba(119, 203, 255, 0.8);
+  box-shadow: 0 0 0 3px rgba(61, 163, 232, 0.16);
+}
+
+.input:disabled {
+  opacity: 0.5;
+}
+
+.inputError {
+  border-color: rgba(255, 140, 140, 0.6);
+}
+
+.help {
+  margin: 0;
+  color: rgba(176, 200, 228, 0.56);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.fieldError {
+  margin: 0;
+  color: #ff9d9d;
+  font-size: 12px;
+}
+
+.check {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  color: #eef3fa;
+  line-height: 1.5;
+  cursor: pointer;
+}
+
+.check input {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  margin: 2px 0 0;
+  accent-color: #5fbfff;
+  cursor: inherit;
+}
+
+/* ---- Choices that light up when picked (language, time zone) ---- */
+.choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.choice {
+  display: inline-flex;
+  height: 42px;
+  align-items: center;
+  padding: 0 20px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: rgba(4, 17, 28, 0.36);
+  color: rgba(240, 246, 253, 0.8);
+  font-size: 13.5px;
+  transition: background 150ms ease, border-color 150ms ease, color 150ms ease, box-shadow 150ms ease;
+}
+
+.choice:hover {
+  background: rgba(49, 119, 168, 0.2);
+  color: #fff;
+}
+
+.choiceOn {
+  border-color: var(--glow);
+  background: rgba(49, 119, 168, 0.24);
+  color: #fff;
+  box-shadow: 0 0 16px rgba(61, 163, 232, 0.18);
+}
+
+/* ---- Pills ---- */
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.flush {
+  margin-top: 0;
+  gap: 14px 24px;
+}
+
+.btn {
+  display: inline-flex;
+  height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 22px;
+  border: 1px solid rgba(179, 206, 230, 0.24);
+  border-radius: 999px;
+  background: rgba(4, 17, 28, 0.36);
+  color: rgba(240, 246, 253, 0.86);
+  font-size: 13px;
+  white-space: nowrap;
+  transition: transform 180ms ease, background 180ms ease, box-shadow 180ms ease, color 180ms ease;
+}
+
+.btn:hover:not(:disabled):not([aria-disabled="true"]) {
+  transform: translateY(-2px);
+  background: rgba(49, 119, 168, 0.24);
+  color: #fff;
+}
+
+.btn:disabled,
+.btn[aria-disabled="true"] {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.primary {
+  border-color: var(--glow);
+  color: #fff;
+  box-shadow: 0 0 24px rgba(61, 163, 232, 0.18), inset 0 0 18px rgba(83, 171, 233, 0.1);
+}
+
+.danger {
+  border-color: rgba(255, 140, 140, 0.4);
+  color: #ffb4b4;
+}
+
+.btn.danger:hover:not(:disabled) {
+  background: rgba(160, 40, 40, 0.24);
+  color: #fff;
+}
+
+.small {
+  height: 34px;
+  padding: 0 15px;
+  font-size: 12.5px;
+}
+
+.btn:focus-visible,
+.choice:focus-visible,
+.textLink:focus-visible,
+.avatarButton:focus-visible {
+  outline: 2px solid #9fdcff;
+  outline-offset: 2px;
+}
+
+.textLink {
+  color: var(--link);
+  transition: color 150ms ease;
+}
+
+.textLink:hover {
+  color: #fff;
+}
+
+.quiet {
+  color: rgba(176, 200, 228, 0.56);
+  font-size: 12.5px;
+}
+
+.quiet button {
+  color: rgba(214, 228, 244, 0.78);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.quiet button:hover {
+  color: #ffb4b4;
+}
+
+/* ---- Notes after you act ---- */
+.notice {
+  padding: 12px 14px;
+  border: 1px solid rgba(119, 203, 255, 0.4);
+  border-radius: 8px;
+  background: rgba(30, 90, 140, 0.14);
+  color: #eef3fa;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.notice small {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.ok {
+  margin: 0;
+  color: #9fe3c0;
+  font-size: 13px;
+}
+
+.error {
+  margin: 0;
+  color: #ff9d9d;
+  font-size: 13px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.warn {
+  margin: 0;
+  color: #f5d38a;
+  font-size: 13px;
+}
+
+/* ---- Who you are: avatar, name, badges, the facts on the right ---- */
+.identity {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 28px;
+  align-items: center;
+  padding-bottom: 32px;
+  border-bottom: 1px solid var(--line);
+}
+
+.avatarButton {
+  position: relative;
+  display: block;
+  border-radius: 50%;
+}
+
+.avatar {
+  display: flex;
+  width: 104px;
+  height: 104px;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 1px solid #8bdcff;
+  border-radius: 50%;
+  background: #0b2234;
+  color: #fff;
+  font-size: 30px;
+  box-shadow: 0 0 30px rgba(61, 163, 232, 0.16);
+  transition: box-shadow 150ms ease;
+}
+
+.avatarButton:hover .avatar,
+.avatarDrag .avatar {
+  box-shadow: 0 0 0 3px rgba(119, 203, 255, 0.3), 0 0 30px rgba(61, 163, 232, 0.24);
+}
+
+.avatarEdit {
+  position: absolute;
+  right: -2px;
+  bottom: 4px;
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border: 1px solid rgba(179, 206, 230, 0.32);
+  border-radius: 50%;
+  background: rgba(4, 15, 24, 0.94);
+  color: #dff3ff;
+}
+
+.avatarEdit svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.who {
+  min-width: 0;
+}
+
+.name {
+  margin: 0;
+  overflow: hidden;
+  color: #f3f5fa;
+  font-family: var(--serif);
+  font-size: 36px;
+  font-weight: 400;
+  line-height: 1.1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.handleLine {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin-top: 6px;
+  font-size: 13.5px;
+}
+
+.handleLine span {
+  overflow: hidden;
+  color: var(--muted);
+  text-overflow: ellipsis;
+}
+
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 14px;
+}
+
+.badge {
+  display: inline-flex;
+  min-height: 24px;
+  align-items: center;
+  padding: 2px 10px;
+  border: 1px solid rgba(179, 206, 230, 0.22);
+  border-radius: 999px;
+  color: rgba(224, 234, 246, 0.74);
+  font-size: 11.5px;
+}
+
+.badgeOn {
+  border-color: rgba(119, 203, 255, 0.5);
+  color: #bfe6ff;
+}
+
+.badgeWarn {
+  border-color: rgba(245, 200, 120, 0.45);
+  color: #f5d38a;
+}
+
+.identity .actions {
+  margin-top: 18px;
+}
+
+.facts {
+  display: grid;
+  min-width: 190px;
+  gap: 14px;
+  margin: 0;
+  padding-left: 28px;
+  border-left: 1px solid var(--line);
+}
+
+.facts dt {
+  color: var(--eyebrow);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.facts dd {
+  margin: 4px 0 0;
+  color: #eef3fa;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.avatarNote {
+  margin-top: 10px;
+}
+
+.below {
+  padding-top: 28px;
+}
+
+/* ---- Lists of works (uploads, likes, watched) ---- */
+/* The rule above the first row is the one under "who you are". */
+.list {
+  margin: -14px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: grid;
+  grid-template-columns: 128px minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: center;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.note + .list {
+  margin-top: 0;
+}
+
+.thumb {
+  position: relative;
+  display: flex;
+  aspect-ratio: 16 / 9;
+  align-items: flex-end;
+  overflow: hidden;
+  padding: 7px;
+  border: 1px solid rgba(119, 174, 216, 0.2);
+  border-radius: 4px;
+  background:
+    radial-gradient(ellipse 90% 70% at 70% 20%, rgba(56, 120, 178, 0.32), transparent 70%),
+    linear-gradient(160deg, #0d2233, #050d16);
+}
+
+.thumb img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(0.85) brightness(0.88);
+}
+
+.thumb span {
+  display: -webkit-box;
+  overflow: hidden;
+  color: rgba(234, 242, 251, 0.78);
+  font-family: var(--serif);
+  font-size: 11px;
+  line-height: 1.2;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.itemText {
+  min-width: 0;
+}
+
+.itemTitle {
+  display: block;
+  overflow: hidden;
+  color: #f3f5fa;
+  font-family: var(--serif);
+  font-size: 19px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.itemMeta {
+  display: block;
+  margin-top: 3px;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.note {
+  margin: 0 0 14px;
+  color: rgba(176, 200, 228, 0.56);
+  font-size: 12.5px;
+}
+
+.empty {
+  padding: 36px 24px;
+  border: 1px dashed rgba(150, 190, 230, 0.24);
+  border-radius: 8px;
+  text-align: center;
+}
+
+.empty p {
+  margin: 0 0 18px;
+  color: rgba(214, 228, 244, 0.78);
+  line-height: 1.6;
+}
+
+/* ---- The works on your public profile ---- */
+.worksTitle {
+  margin: 0 0 16px;
+  color: #f3f5fa;
+  font-family: var(--serif);
+  font-size: 24px;
+  font-weight: 400;
+}
+
+/* ---- How others see you ---- */
+.card {
+  padding: 28px;
+  border: 1px solid rgba(128, 190, 231, 0.3);
+  border-radius: 12px;
+  background: rgba(3, 15, 24, 0.6);
+}
+
+.cardTop {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+}
+
+.cardAvatar {
+  display: flex;
+  width: 96px;
+  height: 96px;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 1px solid #8bdcff;
+  border-radius: 50%;
+  background: #0b2234;
+  color: #fff;
+  font-size: 26px;
+}
+
+.cardName {
+  margin: 0;
+  color: #f3f5fa;
+  font-family: var(--serif);
+  font-size: 32px;
+  font-weight: 400;
+  line-height: 1.1;
+}
+
+.cardHandle {
+  margin: 4px 0 0;
+  color: var(--link);
+  font-size: 13px;
+}
+
+.cardHeadline {
+  margin: 10px 0 0;
+  color: rgba(234, 242, 251, 0.86);
+  font-size: 15px;
+}
+
+.cardOpen {
+  margin: 8px 0 0;
+  color: #9fe3c0;
+  font-size: 13px;
+}
+
+.cardCounts {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.cardBio {
+  margin: 24px 0 0;
+  padding-top: 22px;
+  border-top: 1px solid var(--line);
+  color: rgba(237, 243, 250, 0.82);
+  font-family: var(--serif);
+  font-size: 16px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+/* ---- Public preview, beside the profile editor ---- */
+.preview {
+  position: sticky;
+  top: 118px;
+  padding: 20px;
+  border: 1px solid rgba(128, 190, 231, 0.38);
+  border-radius: 12px;
+  background: rgba(3, 15, 24, 0.74);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.24);
+}
+
+.previewLabel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #a9bada;
+  font-size: 10px;
+  letter-spacing: 0.26em;
+}
+
+.previewLabel a {
+  color: inherit;
+  transition: color 150ms ease;
+}
+
+.previewLabel a:hover {
+  color: #fff;
+}
+
+.previewBanner {
+  height: 170px;
+  margin-top: 18px;
+  border: 1px solid rgba(126, 186, 225, 0.25);
+  border-radius: 8px;
+  background: url("/images/home/home_portal_night_photo.jpg") 52% 48% / cover no-repeat;
+  filter: saturate(0.72) brightness(0.8);
+}
+
+.previewAvatar {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  width: 112px;
+  height: 112px;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  margin: -46px 0 0 16px;
+  border: 1px solid #8bdcff;
+  border-radius: 50%;
+  background: #0b2234;
+  color: #fff;
+  font-size: 26px;
+}
+
+.previewName {
+  margin: 14px 16px 0;
+  font-family: var(--serif);
+  font-size: 34px;
+  font-weight: 400;
+}
+
+.previewHandle {
+  margin: 0 16px;
+  color: #9eb0c6;
+  font-size: 13px;
+}
+
+.previewMeta {
+  margin: 7px 16px 0;
+  color: #c1ccdc;
+  font-size: 13px;
+}
+
+.previewMeta span {
+  margin: 0 5px;
+}
+
+.previewBio {
+  margin: 22px 16px 0;
+  color: rgba(237, 243, 250, 0.8);
+  font-family: var(--serif);
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.previewTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin: 19px 16px 0;
+}
+
+.previewTags span {
+  padding: 6px 10px;
+  border: 1px solid rgba(132, 188, 226, 0.3);
+  border-radius: 999px;
+  color: rgba(224, 234, 246, 0.72);
+  font-size: 10px;
+  text-transform: capitalize;
+}
+
+/* ---- Leaving OONA: a dialog over the page ---- */
+.overlay {
+  position: fixed;
+  z-index: 100;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(1, 5, 10, 0.66);
+  backdrop-filter: blur(6px);
+}
+
+.dialog {
+  display: flex;
+  width: min(580px, 100%);
+  max-height: min(90svh, 860px);
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid rgba(119, 174, 216, 0.26);
+  border-radius: 10px;
+  background:
+    radial-gradient(ellipse 80% 60% at 100% 0%, rgba(48, 116, 178, 0.16), transparent 70%),
+    #07111b;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+  color: #eef3fa;
+  font-size: 14px;
+}
+
+.dialogHead {
+  padding: 30px 30px 0;
+}
+
+.dialogTitle {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: 30px;
+  font-weight: 400;
+}
+
+.dialogBody {
+  min-height: 0;
+  padding: 14px 30px 8px;
+  overflow-y: auto;
+}
+
+.dialogBody > p {
+  margin: 0 0 20px;
+  color: rgba(214, 228, 244, 0.78);
+  line-height: 1.6;
+}
+
+.disclosure + .disclosure {
+  margin-top: 18px;
+}
+
+.disclosure h3 {
+  margin: 0 0 8px;
+  color: var(--eyebrow);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.disclosure ul {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--muted);
+  line-height: 1.6;
+  list-style: disc;
+}
+
+.disclosure li::marker {
+  color: rgba(150, 190, 230, 0.5);
+}
+
+.disclosure li + li {
+  margin-top: 4px;
+}
+
+.disclosureRemoved h3 {
+  color: #ffb4b4;
+}
+
+.disclosureRetained h3 {
+  color: #f5d38a;
+}
+
+.dialogFoot {
+  padding: 20px 30px 26px;
+  border-top: 1px solid var(--line);
+}
+
+.dialogFoot .actions > * {
+  flex: 1 1 0;
+}
+
+.wipe {
+  border-color: rgba(255, 120, 120, 0.7);
+  background: rgba(150, 30, 30, 0.3);
+  color: #fff;
+}
+
+.btn.wipe:hover:not(:disabled) {
+  background: rgba(190, 40, 40, 0.45);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn,
+  .choice,
+  .chip {
+    transition: none;
+  }
+}
+
+@media (max-width: 1180px) {
+  .withPreview {
+    grid-template-columns: 190px minmax(0, 1fr);
+  }
+
+  .preview {
+    position: static;
+    grid-column: 2;
+  }
+}
+
+@media (max-width: 1100px) {
+  .identity {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .facts {
+    grid-column: 1 / -1;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    padding: 20px 0 0;
+    border-top: 1px solid var(--line);
+    border-left: 0;
+  }
+}
+
+/* The side menu becomes tabs across the top. */
+@media (max-width: 900px) {
+  .workspace,
+  .withPreview {
+    display: block;
+  }
+
+  .side {
+    display: none;
+  }
+
+  .mobileNav {
+    display: block;
+    margin-bottom: 30px;
+  }
+
+  .preview {
+    margin-top: 36px;
+  }
+
+  .row {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .page {
+    --pad: 20px;
+    padding-top: 26px;
+    padding-bottom: calc(110px + env(safe-area-inset-bottom));
+  }
+
+  .head {
+    margin-bottom: 26px;
+  }
+
+  .lede {
+    font-size: 15px;
+  }
+
+  .section {
+    padding: 26px 0;
+  }
+
+  .identity {
+    gap: 18px;
+    align-items: start;
+  }
+
+  .avatar {
+    width: 80px;
+    height: 80px;
+    font-size: 24px;
+  }
+
+  .name {
+    font-size: 28px;
+    white-space: normal;
+  }
+
+  .item {
+    grid-template-columns: 96px minmax(0, 1fr);
+    gap: 14px;
+  }
+
+  .item > :last-child {
+    grid-column: 2;
+    justify-self: start;
+  }
+
+  .itemTitle {
+    font-size: 17px;
+  }
+
+  .card {
+    padding: 22px 18px;
+  }
+
+  .cardTop {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .cardAvatar {
+    width: 80px;
+    height: 80px;
+  }
+
+  .cardName {
+    font-size: 28px;
+  }
+
+  .preview {
+    padding: 16px;
+  }
+
+  .previewBanner {
+    height: 120px;
+  }
+
+  .previewAvatar {
+    width: 88px;
+    height: 88px;
+    margin-top: -38px;
+  }
+
+  .previewName {
+    font-size: 28px;
+  }
+
+  .actions > .btn {
+    flex: 1 1 auto;
+  }
+
+  .overlay {
+    align-items: end;
+    padding: 0;
+  }
+
+  .dialog {
+    width: 100%;
+    max-height: 92svh;
+    border-right: 0;
+    border-bottom: 0;
+    border-left: 0;
+    border-radius: 14px 14px 0 0;
+  }
+
+  .dialogHead {
+    padding: 26px 20px 0;
+  }
+
+  .dialogBody {
+    padding: 12px 20px 8px;
+  }
+
+  .dialogFoot {
+    padding: 18px 20px calc(22px + env(safe-area-inset-bottom));
+  }
+}
