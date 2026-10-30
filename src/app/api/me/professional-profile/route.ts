@@ -8,16 +8,7 @@ import { getDbOrNull } from "@/lib/server/works";
 import { parseProfileLink } from "@/lib/profileLink";
 import { parseSocietyBannerBackgroundId } from "@/lib/societyBannerBackground";
 import { parseUserProfileDoc } from "@/lib/userAccess";
-
-function parseAvatarUrl(value: unknown, uid: string): string | null | undefined {
-  if (value === null) return null;
-  if (typeof value !== "string") return undefined;
-  const trimmed = value.trim().slice(0, 2048);
-  if (!trimmed) return null;
-  if (!trimmed.startsWith("https://")) return undefined;
-  if (!trimmed.includes(`/users/${uid}/profile/`)) return undefined;
-  return trimmed;
-}
+import { parseAvatarUrlInput as parseAvatarUrl } from "@/lib/avatarPresets";
 
 export async function GET(request: Request) {
   const auth = await requireUser(request);
