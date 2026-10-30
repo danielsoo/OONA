@@ -51,6 +51,49 @@ export function isAvatarPreset(value: string): boolean {
   return PRESET_SRCS.has(value);
 }
 
+/** Where an uploaded avatar may be served from, and nowhere else. */
+const STORAGE_HOSTS = new Set(["firebasestorage.googleapis.com", "storage.googleapis.com"]);
+
+/**
+ * Whether a URL is a file this person uploaded into their own storage folder.
+ *
+ * getDownloadURL() percent-encodes the object path, so a real avatar arrives
+ * as /v0/b/<bucket>/o/users%2F<uid>%2Fprofile%2Favatar.jpg — the slashes are
+ * %2F. Matching the literal "/users/<uid>/profile/" against that never hit,
+ * which is why saving an uploaded photo failed while the file itself went up
+ * fine. The object path is pulled out and decoded instead.
+ *
+ * The host is checked too: a bare substring match would have taken
+ * https://anywhere.example/users/<uid>/profile/a.jpg just as happily.
+ */
+function isOwnUpload(value: string, uid: string): boolean {
+  let url: URL;
+  try {
+    url = new URL(value);
+  } catch {
+    return false;
+  }
+  if (url.protocol !== "https:") return false;
+  const host = url.hostname.toLowerCase();
+  if (!STORAGE_HOSTS.has(host) && !host.endsWith(".firebasestorage.app")) return false;
+
+  // /v0/b/<bucket>/o/<encoded path>, or storage.googleapis.com/<bucket>/<path>
+  const marker = "/o/";
+  const at = url.pathname.indexOf(marker);
+  const raw =
+    url.pathname.startsWith("/v0/b/") && at !== -1
+      ? url.pathname.slice(at + marker.length)
+      : url.pathname.replace(/^\/[^/]*\/?/, "");
+  if (!raw) return false;
+  let objectPath: string;
+  try {
+    objectPath = decodeURIComponent(raw);
+  } catch {
+    return false;
+  }
+  return objectPath.startsWith(`users/${uid}/profile/`);
+}
+
 /**
  * What /api/me/professional-profile will store for an avatar: one of the
  * presets, or a file this person uploaded into their own storage folder.
@@ -66,7 +109,6 @@ export function parseAvatarUrlInput(value: unknown, uid: string): string | null 
   const trimmed = value.trim().slice(0, 2048);
   if (!trimmed) return null;
   if (isAvatarPreset(trimmed)) return trimmed;
-  if (!trimmed.startsWith("https://")) return undefined;
-  if (!trimmed.includes(`/users/${uid}/profile/`)) return undefined;
+  if (!isOwnUpload(trimmed, uid)) return undefined;
   return trimmed;
 }
