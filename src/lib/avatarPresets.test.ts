@@ -5,6 +5,7 @@ import {
   AVATAR_PRESET_GROUPS,
   isAvatarPreset,
   parseAvatarUrlInput,
+  parseStoredAvatarUrl,
 } from "./avatarPresets.ts";
 
 const UID = "abC123xyz";
@@ -87,5 +88,42 @@ describe("parseAvatarUrlInput", () => {
 
   it("does not let a preset-looking suffix smuggle another address in", () => {
     assert.equal(parseAvatarUrlInput("https://evil.test/images/avatars/film-reel.webp", UID), undefined);
+  });
+});
+
+describe("parseStoredAvatarUrl", () => {
+  // The whole point: a preset is saved as a path, so a read that only took
+  // https threw it away and the picture reverted on the next page load.
+  it("gives back every preset it was saved as", () => {
+    for (const preset of AVATAR_PRESETS) {
+      assert.equal(parseStoredAvatarUrl(preset.src), preset.src, preset.id);
+    }
+  });
+
+  it("round-trips what the write side stored", () => {
+    for (const stored of [...AVATAR_PRESETS.map((p) => p.src), ownUpload]) {
+      assert.equal(parseStoredAvatarUrl(parseAvatarUrlInput(stored, UID)), stored);
+    }
+  });
+
+  it("gives back an uploaded photo", () => {
+    assert.equal(parseStoredAvatarUrl(ownUpload), ownUpload);
+    assert.equal(parseStoredAvatarUrl(`  ${ownUpload}  `), ownUpload);
+  });
+
+  it("reads a cleared picture as cleared, and a missing one as unset", () => {
+    assert.equal(parseStoredAvatarUrl(null), null);
+    assert.equal(parseStoredAvatarUrl(undefined), undefined);
+    assert.equal(parseStoredAvatarUrl(""), undefined);
+    assert.equal(parseStoredAvatarUrl("   "), undefined);
+  });
+
+  it("still refuses anything that is neither a preset nor an https URL", () => {
+    assert.equal(parseStoredAvatarUrl("/images/home/featured.webp"), undefined);
+    assert.equal(parseStoredAvatarUrl("/images/avatars/not-a-preset.webp"), undefined);
+    assert.equal(parseStoredAvatarUrl("http://example.com/a.png"), undefined);
+    assert.equal(parseStoredAvatarUrl("javascript:alert(1)"), undefined);
+    assert.equal(parseStoredAvatarUrl("data:image/png;base64,AAAA"), undefined);
+    assert.equal(parseStoredAvatarUrl(42), undefined);
   });
 });

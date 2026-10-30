@@ -1,4 +1,5 @@
 import type { Locale } from "@/i18n";
+import { parseStoredAvatarUrl } from "@/lib/avatarPresets";
 import { parseProfileLink } from "@/lib/profileLink";
 import { parseSocietyBannerBackgroundId } from "@/lib/societyBannerBackground";
 import { resolveRoleTags } from "@/lib/roleTags";
@@ -94,12 +95,7 @@ export function parseUserProfileDoc(data: Record<string, unknown>): UserProfileD
     directorNameChangeRequest: parseProfileChangeRequest(data.directorNameChangeRequest),
     displayNameChangeRequest: parseProfileChangeRequest(data.displayNameChangeRequest),
     handleChangeRequest: parseProfileChangeRequest(data.handleChangeRequest),
-    avatarUrl:
-      typeof data.avatarUrl === "string" && data.avatarUrl.trim().startsWith("https://")
-        ? data.avatarUrl.trim().slice(0, 2048)
-        : data.avatarUrl === null
-          ? null
-          : undefined,
+    avatarUrl: parseStoredAvatarUrl(data.avatarUrl),
     handle: data.handle ? String(data.handle).trim().toLowerCase() : undefined,
     headline: data.headline ? String(data.headline).trim().slice(0, 200) : undefined,
     bio: data.bio ? String(data.bio).trim().slice(0, 2000) : undefined,

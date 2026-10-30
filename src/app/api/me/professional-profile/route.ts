@@ -137,6 +137,12 @@ export async function PATCH(request: Request) {
       ? Object.fromEntries(Object.entries(updates).filter(([k]) => k !== "updatedAt"))
       : undefined;
 
+  // claimHandle writes the rest of the profile in the same transaction, so the
+  // plain merge below only runs when it did not. Sending the handle one already
+  // has is not a claim and used to fall between the two: the request answered
+  // 200 and nothing was written.
+  let written = false;
+
   if (body.handle !== undefined && body.handle.trim()) {
     const nextHandle = normalizeHandle(body.handle);
     const currentHandle = existingProfile?.handle?.trim() ?? "";
@@ -156,8 +162,11 @@ export async function PATCH(request: Request) {
             : "handle은 3~30자의 영문 소문자, 숫자, 밑줄(_), 마침표(.)만 사용할 수 있습니다. 앞뒤·연속 마침표는 불가합니다.";
         return jsonError(result.code, msg, result.code === "handle_taken" ? 409 : 400);
       }
+      written = true;
     }
-  } else if (profileMerge && Object.keys(profileMerge).length > 0) {
+  }
+
+  if (!written && profileMerge && Object.keys(profileMerge).length > 0) {
     await db.collection("users").doc(uid).set(updates, { merge: true });
   }
 
