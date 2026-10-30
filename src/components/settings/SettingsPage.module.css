@@ -604,7 +604,7 @@ textarea.input {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   gap: 28px;
-  align-items: center;
+  align-items: start;
   padding-bottom: 32px;
   border-bottom: 1px solid var(--line);
 }
@@ -748,6 +748,10 @@ textarea.input {
 
 .avatarNote {
   margin-top: 10px;
+}
+
+.presets {
+  margin-top: 22px;
 }
 
 .below {
