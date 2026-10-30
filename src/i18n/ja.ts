@@ -376,7 +376,7 @@ export const jaMessages: Record<string, string> = {
   "accountProfile.sections.about": "基本情報",
   "accountProfile.sections.displayName": "表示名",
   "accountProfile.sections.handle": "ユーザー名",
-  "accountProfile.sections.discover": "公開設定",
+  "accountProfile.sections.public": "公開プロフィール",
   "accountProfile.sections.portfolio": "提出用リンク",
   "accountProfile.sections.preview": "公開ページ",
   "profiles.title": "どなたが視聴しますか？",

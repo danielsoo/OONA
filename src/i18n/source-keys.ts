@@ -588,7 +588,6 @@ export const sourceKeys: Record<string, string> = {
   "view on public profile page": "accountProfile.openPublicProfile",
   "set your public handle (@id) first. you can customize your profile after saving.": "accountProfile.profileNoHandle",
   "handle": "accountProfile.sections.handle",
-  "visibility": "accountProfile.sections.discover",
   "submission links": "accountProfile.sections.portfolio",
   "who's watching?": "profiles.title",
   "each profile has its own recommendations and watch history": "profiles.subtitle",

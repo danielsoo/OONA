@@ -95,7 +95,7 @@ export default function AccountProfileContent() {
   };
 
   const goPreviewSection = () => {
-    setProfileSection("preview");
+    setProfileSection("public");
   };
 
   useEffect(() => {

@@ -49,6 +49,11 @@ for(const file of walk('src').filter(f=>f.endsWith('.tsx'))) {
   visit(root);
 }
 for(const source of missing)errors.push('Untranslated UI: '+source);
+// A sourceKeys phrase whose key has since been removed still satisfies the
+// walk above, so the next UiText using it would render the key itself.
+for(const [phrase,key] of Object.entries(sourceKeys)) {
+  if(messages.en[key]===undefined)errors.push('sourceKeys "'+phrase+'" points at a key that no longer exists: '+key);
+}
 // The avatar presets are named through copy(variable), which the walk above
 // cannot see, so their labels are checked against the list itself.
 const {AVATAR_PRESET_GROUPS}=load('src/lib/avatarPresets.ts');

@@ -38,9 +38,8 @@ const PLACES: { id: SettingsPlace; labelKey: string; href: string }[] = [
 const SECTION_LABEL_KEYS: Record<ProfileSectionId, string> = {
   about: "accountProfile.sections.about",
   handle: "accountProfile.sections.handle",
-  discover: "accountProfile.sections.discover",
+  public: "accountProfile.sections.public",
   portfolio: "accountProfile.sections.portfolio",
-  preview: "accountProfile.sections.preview",
 };
 
 type SubLink = { id: string; label: string; count?: number; on: boolean; select: () => void };
