@@ -2812,4 +2812,60 @@ export const uiMessages: Record<string, readonly [string, string]> = {
     "영화, 시리즈, 예능",
     "映画、シリーズ、バラエティ"
   ],
+  "or pick one of ours": [
+    "아니면 준비된 것 중에서 고르기",
+    "または用意されたものから選ぶ"
+  ],
+  "on set": [
+    "촬영장",
+    "撮影現場"
+  ],
+  "under the sea": [
+    "바닷속",
+    "海のなか"
+  ],
+  "director's chair": [
+    "감독 의자",
+    "ディレクターズチェア"
+  ],
+  "film camera": [
+    "필름 카메라",
+    "フィルムカメラ"
+  ],
+  "clapperboard": [
+    "슬레이트",
+    "カチンコ"
+  ],
+  "film reel": [
+    "필름 릴",
+    "フィルムリール"
+  ],
+  "studio light": [
+    "조명",
+    "スタジオライト"
+  ],
+  "popcorn": [
+    "팝콘",
+    "ポップコーン"
+  ],
+  "whale": [
+    "고래",
+    "クジラ"
+  ],
+  "wave": [
+    "파도",
+    "波"
+  ],
+  "jellyfish": [
+    "해파리",
+    "クラゲ"
+  ],
+  "beluga": [
+    "흰고래",
+    "シロイルカ"
+  ],
+  "coral": [
+    "산호",
+    "サンゴ"
+  ],
 };

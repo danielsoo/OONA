@@ -38,7 +38,10 @@ for(const file of walk('src').filter(f=>f.endsWith('.tsx'))) {
     if(ts.isCallExpression(node)&&/^(copy|_copy)$/.test(node.expression.getText(root))&&ts.isStringLiteral(node.arguments[0]))check(node.arguments[0].text);
     if(ts.isJsxSelfClosingElement(node)&&node.tagName.getText(root)==='UiText') {
       const attr=node.attributes.properties.find(p=>p.name?.getText(root)==='text');
-      const expr=attr?.initializer?.expression;
+      const init=attr?.initializer;
+      // text="..." as well as text={"..."}: only the braced form used to be read,
+      // so plain attributes went unchecked.
+      const expr=init&&ts.isStringLiteral(init)?init:init?.expression;
       if(expr&&ts.isStringLiteral(expr))check(expr.text);
     }
     ts.forEachChild(node,visit);
@@ -46,6 +49,16 @@ for(const file of walk('src').filter(f=>f.endsWith('.tsx'))) {
   visit(root);
 }
 for(const source of missing)errors.push('Untranslated UI: '+source);
+// The avatar presets are named through copy(variable), which the walk above
+// cannot see, so their labels are checked against the list itself.
+const {AVATAR_PRESET_GROUPS}=load('src/lib/avatarPresets.ts');
+for(const group of AVATAR_PRESET_GROUPS) {
+  if(!uiMessages[group.label.toLowerCase()])errors.push('Untranslated avatar group: '+group.label);
+  for(const preset of group.presets) {
+    if(!uiMessages[preset.label.toLowerCase()])errors.push('Untranslated avatar preset: '+preset.label);
+    if(!fs.existsSync(path.join('public',preset.src)))errors.push('Missing avatar file: '+preset.src);
+  }
+}
 assert.equal(isLocale('ja'),true);assert.equal(isLocale('fr'),false);
 assert.equal(translate('ja','nonexistent.key'),'nonexistent.key');
 assert.equal(translateUi('ja','{count} works',{count:3}),'3作品');

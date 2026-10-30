@@ -6,6 +6,7 @@ import ProfileAvatar from "@/components/profile/ProfileAvatar";
 import { useAuth } from "@/context/AuthContext";
 import { useTranslations } from "@/context/LocaleContext";
 import { uploadUserProfileAvatar } from "@/lib/userAvatar";
+import AvatarPresetPicker from "@/components/profile/AvatarPresetPicker";
 import { formatApiError, formatClientError, readResponseJson } from "@/lib/clientErrors";
 import type { UserProfileDoc } from "@/types/user";
 import type { PlatformPurpose } from "@/types/user";
@@ -119,6 +120,24 @@ export default function AccountProfileHero({
     }
   };
 
+  // A preset is already on the site, so there is nothing to upload.
+  const pickAvatarPreset = async (src: string) => {
+    if (!user || src === profile.avatarUrl) return;
+    setAvatarBusy(true);
+    setAvatarErr(null);
+    setAvatarMsg(null);
+    try {
+      const ok = await patchAvatarUrl(src);
+      if (!ok) return;
+      onAvatarUpdated?.(src);
+      setAvatarMsg(t("profile.photo.photoUpdated"));
+    } catch (e) {
+      setAvatarErr(formatClientError(t, e, { titleKey: "profile.photo.uploadFailed" }));
+    } finally {
+      setAvatarBusy(false);
+    }
+  };
+
   const onAvatarDrop = (e: DragEvent<HTMLButtonElement>) => {
     e.preventDefault();
     setDragOver(false);
@@ -222,6 +241,15 @@ export default function AccountProfileHero({
                 </Link>
               )}
             </div>
+            {canEditAvatar && (
+              <div className="mt-4">
+                <AvatarPresetPicker
+                  current={profile.avatarUrl}
+                  disabled={avatarBusy}
+                  onPick={(src) => void pickAvatarPreset(src)}
+                />
+              </div>
+            )}
             {avatarErr && <p className="text-red-400 text-xs mt-3">{avatarErr}</p>}
             {avatarMsg && <p className="text-emerald-400 text-xs mt-3">{avatarMsg}</p>}
           </div>

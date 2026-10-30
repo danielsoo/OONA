@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useTranslations } from "@/context/LocaleContext";
 import ProfileAvatar from "@/components/profile/ProfileAvatar";
+import AvatarPresetPicker from "@/components/profile/AvatarPresetPicker";
 import { uploadUserProfileAvatar } from "@/lib/userAvatar";
 import { formatApiError, formatClientError, readResponseJson } from "@/lib/clientErrors";
 
@@ -77,6 +78,25 @@ export default function ProfilePhotoEditor({ displayName, avatarUrl, onUpdated }
     }
   };
 
+  // A preset is already on the site, so there is nothing to upload: it only
+  // has to be saved.
+  const pickPreset = async (src: string) => {
+    if (!user || src === preview) return;
+    setBusy(true);
+    setErr(null);
+    setMsg(null);
+    try {
+      const ok = await patchAvatarUrl(src);
+      if (!ok) return;
+      syncPreview(src);
+      setMsg(t("profile.photo.photoUpdated"));
+    } catch (e) {
+      setErr(formatClientError(t, e, { titleKey: "profile.photo.uploadFailed" }));
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const removePhoto = async () => {
     if (!user || !preview) return;
     setBusy(true);
@@ -130,6 +150,7 @@ export default function ProfilePhotoEditor({ displayName, avatarUrl, onUpdated }
             </button>
           )}
         </div>
+        <AvatarPresetPicker current={preview} disabled={busy} onPick={(src) => void pickPreset(src)} />
         {err && <p className="text-red-400 text-sm">{err}</p>}
         {msg && <p className="text-emerald-400 text-sm">{msg}</p>}
       </div>
