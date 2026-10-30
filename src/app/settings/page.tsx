@@ -80,86 +80,101 @@ export default function SettingsPage() {
             <p className={styles.lede}>{t("settings.pageLead")}</p>
           </header>
 
-          {accountProfile && (
-            <section className={`${styles.section} ${styles.row}`}>
-              <div>
-                <h2 className={styles.sectionTitle}>{t("settings.accountSection")}</h2>
-              </div>
-              <div className={styles.cardTop}>
-                <ProfileAvatar
-                  displayName={accountProfile.displayName || "?"}
-                  avatarUrl={accountProfile.avatarUrl}
-                  className={styles.cardAvatar}
-                  imgClassName="h-full w-full object-cover"
-                />
-                <div className={styles.who}>
-                  <p className={styles.cardName}>{accountProfile.displayName || "—"}</p>
-                  {accountProfile.handle ? <p className={styles.cardHandle}>@{accountProfile.handle}</p> : null}
-                  <div className={styles.actions}>
-                    <Link href="/account" className={`${styles.btn} ${styles.small}`}>
-                      {t("settings.viewAccountProfile")}
-                    </Link>
+          {/* Who you are: the profile others see, and the name on your credits. */}
+          <div className={styles.group}>
+            <p className={styles.groupTitle}><UiText text="Who you are" /></p>
+
+            {accountProfile && (
+              <section className={`${styles.section} ${styles.row}`}>
+                <div>
+                  <h2 className={styles.sectionTitle}>{t("settings.accountSection")}</h2>
+                </div>
+                <div className={styles.cardTop}>
+                  <ProfileAvatar
+                    displayName={accountProfile.displayName || "?"}
+                    avatarUrl={accountProfile.avatarUrl}
+                    className={styles.cardAvatar}
+                    imgClassName="h-full w-full object-cover"
+                  />
+                  <div className={styles.who}>
+                    <p className={styles.cardName}>{accountProfile.displayName || "—"}</p>
+                    {accountProfile.handle ? <p className={styles.cardHandle}>@{accountProfile.handle}</p> : null}
+                    <div className={styles.actions}>
+                      <Link href="/account" className={`${styles.btn} ${styles.small}`}>
+                        {t("settings.viewAccountProfile")}
+                      </Link>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </section>
-          )}
+              </section>
+            )}
 
-          <section className={`${styles.section} ${styles.row}`}>
-            <div>
-              <h2 className={styles.sectionTitle}>{t("settings.language")}</h2>
-              <p className={styles.sectionHint}>{t("settings.languageHint")}</p>
-            </div>
-            <div className={styles.choices}>
-              {LOCALES.map(({ code, label }) => (
-                <button
-                  key={code}
-                  type="button"
-                  aria-pressed={locale === code}
-                  onClick={() => setLocale(code as Locale)}
-                  className={`${styles.choice} ${locale === code ? styles.choiceOn : ""}`}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          </section>
+            <DirectorNameSettingsSection />
+          </div>
 
-          {adminChecked && isAdmin && (
+          {/* How the site behaves for you. */}
+          <div className={styles.group}>
+            <p className={styles.groupTitle}><UiText text="Preferences" /></p>
+
             <section className={`${styles.section} ${styles.row}`}>
               <div>
-                <h2 className={styles.sectionTitle}>{t("settings.timezone")}</h2>
-                <p className={styles.sectionHint}>{t("settings.timezoneHint")}</p>
+                <h2 className={styles.sectionTitle}>{t("settings.language")}</h2>
+                <p className={styles.sectionHint}>{t("settings.languageHint")}</p>
               </div>
               <div className={styles.choices}>
-                {TIMEZONE_OPTIONS.map(({ id, labelKey }) => (
+                {LOCALES.map(({ code, label }) => (
                   <button
-                    key={id}
+                    key={code}
                     type="button"
-                    aria-pressed={timezone === id}
-                    onClick={() => setTimezone(id)}
-                    className={`${styles.choice} ${timezone === id ? styles.choiceOn : ""}`}
+                    aria-pressed={locale === code}
+                    onClick={() => setLocale(code as Locale)}
+                    className={`${styles.choice} ${locale === code ? styles.choiceOn : ""}`}
                   >
-                    {t(labelKey)}
+                    {label}
                   </button>
                 ))}
               </div>
             </section>
-          )}
 
-          <DirectorNameSettingsSection />
+            {adminChecked && isAdmin && (
+              <section className={`${styles.section} ${styles.row}`}>
+                <div>
+                  <h2 className={styles.sectionTitle}>{t("settings.timezone")}</h2>
+                  <p className={styles.sectionHint}>{t("settings.timezoneHint")}</p>
+                </div>
+                <div className={styles.choices}>
+                  {TIMEZONE_OPTIONS.map(({ id, labelKey }) => (
+                    <button
+                      key={id}
+                      type="button"
+                      aria-pressed={timezone === id}
+                      onClick={() => setTimezone(id)}
+                      className={`${styles.choice} ${timezone === id ? styles.choiceOn : ""}`}
+                    >
+                      {t(labelKey)}
+                    </button>
+                  ))}
+                </div>
+              </section>
+            )}
+          </div>
 
-          <section className={`${styles.section} ${styles.actions} ${styles.flush}`}>
-            <button type="button" onClick={() => void handleLogout()} className={`${styles.btn} ${styles.danger}`}>
-              {t("settings.logout")}
-            </button>
-            <p className={styles.quiet}>
-              {t("settings.deleteAccount.hint")}{" "}
-              <button type="button" onClick={() => setDeleteOpen(true)}>
-                {t("settings.deleteAccount.link")}
+          {/* Leaving: signing out of this device, and closing the account. */}
+          <div className={styles.group}>
+            <p className={styles.groupTitle}><UiText text="Signing out and leaving" /></p>
+
+            <section className={`${styles.section} ${styles.actions} ${styles.flush}`}>
+              <button type="button" onClick={() => void handleLogout()} className={`${styles.btn} ${styles.danger}`}>
+                {t("settings.logout")}
               </button>
-            </p>
-          </section>
+              <p className={styles.quiet}>
+                {t("settings.deleteAccount.hint")}{" "}
+                <button type="button" onClick={() => setDeleteOpen(true)}>
+                  {t("settings.deleteAccount.link")}
+                </button>
+              </p>
+            </section>
+          </div>
         </div>
       </div>
 
