@@ -9,8 +9,32 @@ import styles from "./EditorialProfile.module.css";
 export type ConstellationPerson = { uid: string; name: string; role: string; href: string | null };
 export type ConstellationWork = { key: string; title: string; role: string; watchPath: string; people: ConstellationPerson[] };
 
-const WORKS_MAX = 6;
+/**
+ * As many works as the profile API sends collaborators for
+ * (COLLABORATOR_WORKS in /api/people/[handle]), so the sky shows everything
+ * it has people for rather than the first handful.
+ */
+const WORKS_MAX = 12;
+
+/**
+ * Past this many branches there is no room for both the works and the people
+ * they were made with: the works take the whole sky, out on two rings so
+ * neighbouring titles are never side by side, and each one's "+N" says how
+ * many people are on it. Up to here nothing changes.
+ */
+const STAGGER_FROM = 7;
+/** Where a work sits: one ring, or alternating rings once it is crowded. */
+const RING = 19;
+const RING_NEAR = 25;
+const RING_FAR = 37;
+/** Where that work's people sit, while there are still people to show. */
+const PEOPLE_RING = 38;
 const PER_WORK = 4;
+
+/** People per work, up to the point where there is no room for them. */
+function peoplePerWork(n: number): number {
+  return n < STAGGER_FROM ? PER_WORK : 0;
+}
 
 type Spot = { x: number; y: number };
 const at = (angle: number, r: number): Spot => ({ x: 50 + Math.cos(angle) * r, y: 50 + Math.sin(angle) * r });
@@ -30,11 +54,13 @@ export default function ProfileConstellation({ name, seed, avatarUrl, works, peo
   const shown = works.slice(0, WORKS_MAX);
   const n = shown.length;
   const turn = ((hashString(seed) % 360) * Math.PI) / 180;
+  const stagger = n >= STAGGER_FROM;
+  const perWork = peoplePerWork(n);
 
   // People, a few per work and each only once, taken in turns so every work gets some.
   const placed = new Map<string, number>();
   const tips: ConstellationPerson[][] = shown.map(() => []);
-  for (let round = 0; round < PER_WORK && placed.size < peopleMax; round += 1) {
+  for (let round = 0; round < perWork && placed.size < peopleMax; round += 1) {
     shown.forEach((work, wi) => {
       if (placed.size >= peopleMax) return;
       const next = work.people.find((p) => !placed.has(p.uid));
@@ -45,7 +71,13 @@ export default function ProfileConstellation({ name, seed, avatarUrl, works, peo
     });
   }
 
-  const knots = shown.map((_, wi) => ({ angle: turn + (wi / Math.max(1, n)) * Math.PI * 2, ...at(turn + (wi / Math.max(1, n)) * Math.PI * 2, 19) }));
+  // Crowded, the branches alternate short and long: neighbouring titles then
+  // sit at different distances instead of running into each other.
+  const ringOf = (wi: number) => (!stagger ? RING : wi % 2 === 0 ? RING_NEAR : RING_FAR);
+  const knots = shown.map((_, wi) => {
+    const angle = turn + (wi / Math.max(1, n)) * Math.PI * 2;
+    return { angle, ring: ringOf(wi), ...at(angle, ringOf(wi)) };
+  });
   // Each work's people fan out round its branch, leaving its sides clear for its title.
   const span = n > 1 ? Math.min(((Math.PI * 2) / n) * 0.62, Math.PI * 0.55) : Math.PI * 1.1;
   const spots = new Map<string, Spot & { angle: number; wi: number }>();
@@ -53,7 +85,7 @@ export default function ProfileConstellation({ name, seed, avatarUrl, works, peo
     const step = Math.min(span / Math.max(1, people.length), 0.5);
     people.forEach((p, j) => {
       const angle = knots[wi]!.angle + (j - (people.length - 1) / 2) * step;
-      spots.set(p.uid, { ...at(angle, 38), angle, wi });
+      spots.set(p.uid, { ...at(angle, PEOPLE_RING), angle, wi });
     });
   });
   // Someone also on another of these works: a faint line from that work too.
@@ -101,7 +133,7 @@ export default function ProfileConstellation({ name, seed, avatarUrl, works, peo
           <Link
             key={work.key}
             href={work.watchPath}
-            className={`${styles.workKnot} ${styles[`knot_${anchor}`]}`}
+            className={`${styles.workKnot} ${styles[`knot_${anchor}`]} ${stagger ? styles.knotTight : ""}`}
             style={{ left: `${k.x + px * flip * 2.5}%`, top: `${k.y + py * flip * 2.5}%`, ["--i" as string]: wi }}
             onMouseEnter={() => setLit(`w${wi}`)}
             onMouseLeave={() => setLit((v) => (v === `w${wi}` ? null : v))}
