@@ -216,12 +216,7 @@ export default function AccountProfileSettingsPanel({
             {/* Nothing was saved in the demo, so DemoSaveNote above speaks instead. */}
             {savedBanner && !demo && <p className={styles.notice}>{t("profile.tabs.savedGoPreview")}</p>}
             {/* The same preview as the aside, so the two never disagree. */}
-            <PublicProfilePreview
-              profile={data.profile}
-              stats={data.stats}
-              showLabel={false}
-              className={styles.previewFlat}
-            />
+            <PublicProfilePreview data={data} demo={demo} showLabel={false} className={styles.previewFlat} />
           </section>
           {renderWorks(data.directed, t("network.people.directed"))}
           {renderWorks(data.credited, t("network.people.credited"))}

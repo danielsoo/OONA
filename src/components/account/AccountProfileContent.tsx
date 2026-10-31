@@ -23,7 +23,6 @@ import AccountProfileNav, {
 } from "@/components/account/AccountProfileNav";
 import AccountProfileSettingsPanel from "@/components/account/AccountProfileSettingsPanel";
 import DemoSaveNote from "@/components/demo/DemoSaveNote";
-import PublicProfilePreview from "@/components/profile/PublicProfilePreview";
 import AccountUploadsList from "@/components/account/AccountUploadsList";
 import AccountWorkActivityList from "@/components/account/AccountWorkActivityList";
 import styles from "@/components/settings/SettingsPage.module.css";
@@ -293,7 +292,7 @@ export default function AccountProfileContent() {
   const onProfileTab = mainTab === "profile";
 
   return (
-    <div className={`${styles.workspace} ${onProfileTab ? styles.withPreview : ""}`}>
+    <div className={styles.workspace}>
       <aside className={styles.side}>
         <AccountProfileNav variant="sidebar" {...navProps} />
       </aside>
@@ -318,11 +317,6 @@ export default function AccountProfileContent() {
         <div className={styles.below}>{renderMainContent()}</div>
       </section>
 
-      {onProfileTab ? (
-        <aside>
-          <PublicProfilePreview profile={profile} />
-        </aside>
-      ) : null}
     </div>
   );
 }

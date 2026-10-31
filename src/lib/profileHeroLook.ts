@@ -25,3 +25,52 @@ export function profileRoleLine(
 ): string {
   return [headline?.trim(), schoolName?.trim()].filter(Boolean).join(" · ");
 }
+
+type ConstellationSource = {
+  workId: string;
+  ownerUid: string;
+  title: string;
+  role: string;
+  watchPath: string;
+  collaborators?: {
+    uid: string;
+    displayName: string;
+    role: string;
+    characterName?: string;
+    profileHref: string | null;
+  }[];
+};
+
+/**
+ * Their star's branches: their own works first, then the ones they are
+ * credited on, each once, with the people they made them with.
+ *
+ * The profile page and its preview both draw this, so it is built here
+ * rather than twice.
+ */
+export function buildProfileConstellation(
+  directed: ConstellationSource[],
+  credited: ConstellationSource[],
+  roleLabel: (role: string) => string
+) {
+  const seen = new Set<string>();
+  return [...directed, ...credited].flatMap((work) => {
+    const key = `${work.ownerUid}:${work.workId}`;
+    if (seen.has(key)) return [];
+    seen.add(key);
+    return [
+      {
+        key,
+        title: work.title,
+        role: roleLabel(work.role),
+        watchPath: work.watchPath,
+        people: (work.collaborators ?? []).map((c) => ({
+          uid: c.uid,
+          name: c.displayName,
+          role: c.characterName ?? roleLabel(c.role),
+          href: c.profileHref,
+        })),
+      },
+    ];
+  });
+}
