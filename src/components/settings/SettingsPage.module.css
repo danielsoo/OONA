@@ -1008,40 +1008,75 @@ textarea.input {
   box-shadow: none;
 }
 
-.previewFlat .previewName,
-.previewFlat .previewHandle,
-.previewFlat .previewMeta,
-.previewFlat .previewBio,
-.previewFlat .previewBadges,
-.previewFlat .previewLink,
-.previewFlat .previewStats {
-  margin-left: 0;
-  margin-right: 0;
-}
-
-.previewFlat .previewAvatar {
-  margin-left: 0;
+.previewFlat .previewStage {
+  margin-top: 0;
 }
 
 
-/* No backdrop to hang off any more: the picture starts the preview. */
+/* The miniature page: the sky behind it, their profile set on top, so the
+   preview shows what goes up rather than listing the fields back. */
+.previewStage {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  margin-top: 16px;
+  padding: 20px 18px 22px;
+  border: 1px solid rgba(126, 186, 225, 0.25);
+  border-radius: 10px;
+  background: #050a12;
+}
+
+.previewSky {
+  z-index: -2;
+}
+
+/* The real hero is legible because its sky is near-black at the left; this
+   crop is smaller, so the text gets its own scrim. */
+.previewStage::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: linear-gradient(
+    102deg,
+    rgba(3, 7, 14, 0.9) 0%,
+    rgba(3, 7, 14, 0.78) 48%,
+    rgba(3, 7, 14, 0.52) 100%
+  );
+}
+
+.previewTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.previewEyebrow {
+  margin: 2px 0 0;
+  color: rgba(214, 230, 248, 0.72);
+  font-size: 9px;
+  letter-spacing: 0.26em;
+}
+
 .previewAvatar {
   display: flex;
-  width: 92px;
-  height: 92px;
+  width: 62px;
+  height: 62px;
+  flex: none;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  margin: 20px 0 0 16px;
-  border: 1px solid #8bdcff;
+  border: 1px solid rgba(139, 220, 255, 0.85);
   border-radius: 50%;
   background: #0b2234;
+  box-shadow: 0 0 24px rgba(109, 196, 255, 0.35);
   color: #fff;
-  font-size: 24px;
+  font-size: 18px;
 }
 
 .previewName {
-  margin: 14px 16px 0;
+  margin: 18px 0 0;
   font-family: var(--serif);
   font-size: 34px;
   font-weight: 400;
@@ -1058,7 +1093,7 @@ textarea.input {
   flex-wrap: wrap;
   align-items: center;
   gap: 2px 10px;
-  margin: 6px 16px 0;
+  margin: 8px 0 0;
   color: #9eb0c6;
   font-size: 13px;
 }
@@ -1070,18 +1105,8 @@ textarea.input {
 /* The real hero separates these with a dot; this column is narrow enough
    that they wrap, where a leading dot would read as a bullet. */
 
-.previewMeta {
-  margin: 7px 16px 0;
-  color: #c1ccdc;
-  font-size: 13px;
-}
-
-.previewMeta span {
-  margin: 0 5px;
-}
-
 .previewBio {
-  margin: 22px 16px 0;
+  margin: 18px 0 0;
   color: rgba(237, 243, 250, 0.8);
   font-family: var(--serif);
   font-size: 15px;
@@ -1098,7 +1123,7 @@ textarea.input {
   display: flex;
   flex-wrap: wrap;
   gap: 7px;
-  margin: 19px 16px 0;
+  margin: 18px 0 0;
 }
 
 /* The lit dot and small caps the real hero uses, not a pill. */
@@ -1122,26 +1147,29 @@ textarea.input {
 }
 
 .previewLink {
-  margin: 12px 16px 0;
+  margin: 12px 0 0;
   color: #8bd3f5;
   font-size: 12px;
 }
 
 .previewStats {
   display: flex;
-  gap: 22px;
-  margin: 20px 16px 0;
+  flex-wrap: wrap;
+  gap: 10px 20px;
+  margin: 22px 0 0;
   padding-top: 16px;
-  border-top: 1px solid var(--line);
+  border-top: 1px solid rgba(159, 192, 224, 0.2);
 }
 
+/* Small caps, as the real hero sets these labels. */
 .previewStats span {
   display: flex;
   flex-direction: column;
   gap: 3px;
   color: rgba(176, 200, 228, 0.56);
   font-size: 10px;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
 }
 
 .previewStats b {
@@ -1150,6 +1178,7 @@ textarea.input {
   font-size: 20px;
   font-weight: 400;
   letter-spacing: 0;
+  text-transform: none;
 }
 
 /* ---- Leaving OONA: a dialog over the page ---- */
@@ -1455,8 +1484,8 @@ textarea.input {
   }
 
   .previewAvatar {
-    width: 80px;
-    height: 80px;
+    width: 54px;
+    height: 54px;
   }
 
   .previewName {

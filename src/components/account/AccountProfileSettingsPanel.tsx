@@ -218,6 +218,7 @@ export default function AccountProfileSettingsPanel({
             {/* The same preview as the aside, so the two never disagree. */}
             <PublicProfilePreview
               profile={data.profile}
+              stats={data.stats}
               showLabel={false}
               className={styles.previewFlat}
             />

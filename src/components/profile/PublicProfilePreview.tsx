@@ -1,11 +1,12 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import UiText, { useUiCopy } from "@/components/i18n/UiText";
 import ProfileAvatar from "@/components/profile/ProfileAvatar";
 import { useTranslations } from "@/context/LocaleContext";
 import { formatCompactStat } from "@/lib/formatStat";
-import { displayLines, profileRoleLine } from "@/lib/profileHeroLook";
+import { displayLines, profileRoleLine, PROFILE_SKY, PROFILE_SKY_POSITION } from "@/lib/profileHeroLook";
 import styles from "@/components/settings/SettingsPage.module.css";
 
 export type PublicProfilePreviewData = {
@@ -23,29 +24,29 @@ export type PublicProfilePreviewData = {
 
 type Props = {
   profile: PublicProfilePreviewData;
+  /** Works and views, where the screen has already loaded them. */
+  stats?: { stories: number; totalViews: number } | null;
   /** Off where the section around it already says what this is. */
   showLabel?: boolean;
   className?: string;
 };
 
 /**
- * How the person reads on /people/<handle>, small enough to sit beside the
- * editor.
+ * /people/<handle> in miniature: what the profile becomes once it is up.
  *
- * Only what is theirs: their picture, their name set the way the real page
- * sets it, "@handle · headline · school", their bio, their badge, their
- * counts. The night sky behind the real page is the same for everyone, so
- * showing it here would spend the preview on the one thing editing cannot
- * change.
+ * The night sky, the eyebrow, the name set over two lines and the row of
+ * counts are the page their profile lands on, so they belong here — the
+ * preview is for seeing the thing whole, not for listing the fields back.
+ * What it draws is the visitor's view: no Edit profile, no upload buttons.
  *
- * What the fields mean still comes from SocietyPublicProfileHero, through
- * lib/profileHeroLook. The preview this replaced made its own up: the first
- * role tag where the headline belongs, a school of "OONA" for people with
- * none, and, for an empty profile, a bio and the tags "director" and
- * "storytelling" that the person had never chosen. Empty fields are now said
- * to be empty rather than filled with something the visitor will not see.
+ * Which field goes where comes from SocietyPublicProfileHero through
+ * lib/profileHeroLook, so the two cannot drift. The preview this replaced had
+ * drifted all the way: a different photo behind it, the first role tag where
+ * the headline belongs, a school of "OONA" for people with none, and, for an
+ * empty profile, a made-up bio and the tags "director" and "storytelling"
+ * that the person had never chosen. Empty fields now say they are empty.
  */
-export default function PublicProfilePreview({ profile, showLabel = true, className }: Props) {
+export default function PublicProfilePreview({ profile, stats, showLabel = true, className }: Props) {
   const { t } = useTranslations();
   const copy = useUiCopy();
   const name = profile.displayName?.trim() || profile.handle?.trim() || "";
@@ -68,55 +69,83 @@ export default function PublicProfilePreview({ profile, showLabel = true, classN
         )}
       </div>
 
-      <ProfileAvatar
-        displayName={name || "?"}
-        avatarUrl={profile.avatarUrl}
-        className={styles.previewAvatar}
-        imgClassName="h-full w-full object-cover"
-      />
+      <div className={styles.previewStage}>
+        <Image
+          className={styles.previewSky}
+          src={PROFILE_SKY}
+          alt=""
+          fill
+          unoptimized
+          sizes="(max-width: 900px) 100vw, 360px"
+          style={{ objectFit: "cover", objectPosition: PROFILE_SKY_POSITION }}
+        />
 
-      <h2 className={styles.previewName}>
-        {name ? displayLines(name).map((line) => <span key={line}>{line}</span>) : <span>—</span>}
-      </h2>
-      {/* One line, the way the real hero sets it: @handle · headline · school. */}
-      <p className={styles.previewHandle}>
-        {profile.handle ? <span>@{profile.handle}</span> : null}
-        {role ? (
-          <span className={styles.previewRole}>{role}</span>
+        <div className={styles.previewTop}>
+          <p className={styles.previewEyebrow}><UiText text={"OONA SOCIETY"} /></p>
+          {/* Their picture is the star the real page builds its constellation on. */}
+          <ProfileAvatar
+            displayName={name || "?"}
+            avatarUrl={profile.avatarUrl}
+            className={styles.previewAvatar}
+            imgClassName="h-full w-full object-cover"
+          />
+        </div>
+
+        <h2 className={styles.previewName}>
+          {name ? displayLines(name).map((line) => <span key={line}>{line}</span>) : <span>—</span>}
+        </h2>
+
+        <p className={styles.previewHandle}>
+          {profile.handle ? <span>@{profile.handle}</span> : null}
+          {role ? (
+            <span className={styles.previewRole}>{role}</span>
+          ) : (
+            <span className={`${styles.previewRole} ${styles.previewEmpty}`}>
+              <UiText text={"No headline yet"} />
+            </span>
+          )}
+        </p>
+
+        {bio ? (
+          <p className={styles.previewBio}>{bio}</p>
         ) : (
-          <span className={`${styles.previewRole} ${styles.previewEmpty}`}>
-            <UiText text={"No headline yet"} />
-          </span>
+          <p className={`${styles.previewBio} ${styles.previewEmpty}`}>
+            <UiText text={"No bio yet"} />
+          </p>
         )}
-      </p>
 
-      {bio ? (
-        <p className={styles.previewBio}>{bio}</p>
-      ) : (
-        <p className={`${styles.previewBio} ${styles.previewEmpty}`}>
-          <UiText text={"No bio yet"} />
-        </p>
-      )}
+        {profile.openToCollaborate ? (
+          <p className={styles.previewBadges}>
+            <span><UiText text={"Open to work"} /></span>
+          </p>
+        ) : null}
 
-      {profile.openToCollaborate ? (
-        <p className={styles.previewBadges}>
-          <span><UiText text={"Open to work"} /></span>
-        </p>
-      ) : null}
+        {profile.profileLink ? (
+          <p className={styles.previewLink}><UiText text={"External portfolio ↗"} /></p>
+        ) : null}
 
-      {profile.profileLink ? (
-        <p className={styles.previewLink}><UiText text={"External portfolio ↗"} /></p>
-      ) : null}
-
-      <div className={styles.previewStats}>
-        <span>
-          <b>{formatCompactStat(profile.followerCount ?? 0)}</b>
-          {copy("Followers")}
-        </span>
-        <span>
-          <b>{formatCompactStat(profile.followingCount ?? 0)}</b>
-          {copy("Following")}
-        </span>
+        <div className={styles.previewStats}>
+          {stats ? (
+            <span>
+              <b>{formatCompactStat(stats.stories)}</b>
+              {copy("Works")}
+            </span>
+          ) : null}
+          <span>
+            <b>{formatCompactStat(profile.followerCount ?? 0)}</b>
+            {copy("Followers")}
+          </span>
+          <span>
+            <b>{formatCompactStat(profile.followingCount ?? 0)}</b>
+            {copy("Following")}
+          </span>
+          {stats ? (
+            <span>
+              <b>{formatCompactStat(stats.totalViews)}</b>
+              {copy("Views")}
+            </span>
+          ) : null}
+        </div>
       </div>
     </div>
   );
