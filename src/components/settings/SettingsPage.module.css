@@ -1023,44 +1023,21 @@ textarea.input {
   margin-left: 0;
 }
 
-/* The same sky /people/<handle> opens on, so the preview is not a
-   different picture of a different page. */
-.previewSky {
-  position: relative;
-  height: 170px;
-  margin-top: 18px;
-  overflow: hidden;
-  border: 1px solid rgba(126, 186, 225, 0.25);
-  border-radius: 8px;
-  background: #050a12;
-}
 
-.previewEyebrow {
-  position: absolute;
-  z-index: 1;
-  left: 16px;
-  top: 14px;
-  margin: 0;
-  color: rgba(214, 230, 248, 0.72);
-  font-size: 9px;
-  letter-spacing: 0.26em;
-}
-
+/* No backdrop to hang off any more: the picture starts the preview. */
 .previewAvatar {
-  position: relative;
-  z-index: 2;
   display: flex;
-  width: 112px;
-  height: 112px;
+  width: 92px;
+  height: 92px;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  margin: -46px 0 0 16px;
+  margin: 20px 0 0 16px;
   border: 1px solid #8bdcff;
   border-radius: 50%;
   background: #0b2234;
   color: #fff;
-  font-size: 26px;
+  font-size: 24px;
 }
 
 .previewName {
@@ -1477,14 +1454,9 @@ textarea.input {
     padding: 16px;
   }
 
-  .previewSky {
-    height: 120px;
-  }
-
   .previewAvatar {
-    width: 88px;
-    height: 88px;
-    margin-top: -38px;
+    width: 80px;
+    height: 80px;
   }
 
   .previewName {

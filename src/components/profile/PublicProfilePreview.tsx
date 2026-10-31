@@ -1,12 +1,11 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import UiText, { useUiCopy } from "@/components/i18n/UiText";
 import ProfileAvatar from "@/components/profile/ProfileAvatar";
 import { useTranslations } from "@/context/LocaleContext";
 import { formatCompactStat } from "@/lib/formatStat";
-import { displayLines, profileRoleLine, PROFILE_SKY, PROFILE_SKY_POSITION } from "@/lib/profileHeroLook";
+import { displayLines, profileRoleLine } from "@/lib/profileHeroLook";
 import styles from "@/components/settings/SettingsPage.module.css";
 
 export type PublicProfilePreviewData = {
@@ -30,18 +29,21 @@ type Props = {
 };
 
 /**
- * What /people/<handle> shows, small enough to sit beside the editor.
+ * How the person reads on /people/<handle>, small enough to sit beside the
+ * editor.
  *
- * It is built from the same pieces as SocietyPublicProfileHero — the Society
- * sky, the name over two lines, "@handle · headline · school", the bio and
- * the badge — so what is on the left is what visitors get. The preview it
- * replaced invented all of that: a different photo for the backdrop, the
- * first role tag where the headline belongs, a school of "OONA" for people
- * with none, and, for an empty profile, a made-up bio and the tags
- * "director" and "storytelling" that the person had never chosen.
+ * Only what is theirs: their picture, their name set the way the real page
+ * sets it, "@handle · headline · school", their bio, their badge, their
+ * counts. The night sky behind the real page is the same for everyone, so
+ * showing it here would spend the preview on the one thing editing cannot
+ * change.
  *
- * Empty fields are said to be empty rather than filled in with something the
- * visitor will not see.
+ * What the fields mean still comes from SocietyPublicProfileHero, through
+ * lib/profileHeroLook. The preview this replaced made its own up: the first
+ * role tag where the headline belongs, a school of "OONA" for people with
+ * none, and, for an empty profile, a bio and the tags "director" and
+ * "storytelling" that the person had never chosen. Empty fields are now said
+ * to be empty rather than filled with something the visitor will not see.
  */
 export default function PublicProfilePreview({ profile, showLabel = true, className }: Props) {
   const { t } = useTranslations();
@@ -64,18 +66,6 @@ export default function PublicProfilePreview({ profile, showLabel = true, classN
         ) : (
           <span aria-hidden="true">↗</span>
         )}
-      </div>
-
-      <div className={styles.previewSky}>
-        <Image
-          src={PROFILE_SKY}
-          alt=""
-          fill
-          unoptimized
-          sizes="(max-width: 900px) 100vw, 340px"
-          style={{ objectFit: "cover", objectPosition: PROFILE_SKY_POSITION }}
-        />
-        <p className={styles.previewEyebrow}><UiText text={"OONA SOCIETY"} /></p>
       </div>
 
       <ProfileAvatar
