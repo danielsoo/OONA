@@ -25,7 +25,6 @@ import AccountProfileSettingsPanel from "@/components/account/AccountProfileSett
 import DemoSaveNote from "@/components/demo/DemoSaveNote";
 import AccountUploadsList from "@/components/account/AccountUploadsList";
 import AccountWorkActivityList from "@/components/account/AccountWorkActivityList";
-import ProfileAvatar from "@/components/profile/ProfileAvatar";
 import styles from "@/components/settings/SettingsPage.module.css";
 import UiText from "@/components/i18n/UiText";
 
@@ -291,10 +290,9 @@ export default function AccountProfileContent() {
   };
 
   const onProfileTab = mainTab === "profile";
-  const roleLabel = profile.roleTags?.[0]?.replaceAll("_", " ") || "Creator";
 
   return (
-    <div className={`${styles.workspace} ${onProfileTab ? styles.withPreview : ""}`}>
+    <div className={styles.workspace}>
       <aside className={styles.side}>
         <AccountProfileNav variant="sidebar" {...navProps} />
       </aside>
@@ -319,30 +317,6 @@ export default function AccountProfileContent() {
         <div className={styles.below}>{renderMainContent()}</div>
       </section>
 
-      {onProfileTab ? (
-        <aside className={styles.preview}>
-          <div className={styles.previewLabel}>
-            <UiText text={"PUBLIC PREVIEW"} />
-            {profile.handle ? (
-              <Link href={`/people/${encodeURIComponent(profile.handle)}`} aria-label={t("accountProfile.openPublicProfile")}>↗</Link>
-            ) : (
-              <span aria-hidden="true">↗</span>
-            )}
-          </div>
-          <div className={styles.previewBanner} aria-hidden="true" />
-          <ProfileAvatar
-            displayName={profile.displayName || "?"}
-            avatarUrl={profile.avatarUrl}
-            className={styles.previewAvatar}
-            imgClassName="h-full w-full object-cover"
-          />
-          <h2 className={styles.previewName}>{profile.displayName || "Creator"}</h2>
-          {profile.handle ? <p className={styles.previewHandle}>@{profile.handle}</p> : null}
-          <p className={styles.previewMeta}>{roleLabel} <span>·</span> {profile.schoolName || "OONA"}</p>
-          <p className={styles.previewBio}>{profile.bio || profile.headline || "Tell collaborators about the stories you want to make."}</p>
-          <div className={styles.previewTags}>{(profile.roleTags?.length ? profile.roleTags : ["director", "storytelling"]).slice(0, 3).map((tag) => <span key={tag}>{tag.replaceAll("_", " ")}</span>)}</div>
-        </aside>
-      ) : null}
     </div>
   );
 }

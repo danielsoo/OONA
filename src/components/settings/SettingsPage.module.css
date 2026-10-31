@@ -998,77 +998,43 @@ textarea.input {
   color: #fff;
 }
 
-.previewBanner {
-  height: 170px;
-  margin-top: 18px;
-  border: 1px solid rgba(126, 186, 225, 0.25);
-  border-radius: 8px;
-  background: url("/images/home/home_portal_night_photo.jpg") 52% 48% / cover no-repeat;
-  filter: saturate(0.72) brightness(0.8);
+/* Inside a section that already has its own frame, the preview drops its
+   own box and stops sticking. */
+.previewFlat {
+  position: static;
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
 }
 
-.previewAvatar {
+.previewFlat .previewStage {
+  margin-top: 0;
+}
+
+
+/* The real page, drawn at desktop width and scaled into this column. */
+.previewStage {
   position: relative;
-  z-index: 2;
-  display: flex;
-  width: 112px;
-  height: 112px;
-  align-items: center;
-  justify-content: center;
   overflow: hidden;
-  margin: -46px 0 0 16px;
-  border: 1px solid #8bdcff;
-  border-radius: 50%;
-  background: #0b2234;
-  color: #fff;
-  font-size: 26px;
+  margin-top: 16px;
+  border: 1px solid rgba(126, 186, 225, 0.25);
+  border-radius: 10px;
+  background: #050a12;
 }
 
-.previewName {
-  margin: 14px 16px 0;
-  font-family: var(--serif);
-  font-size: 34px;
-  font-weight: 400;
+.previewPage {
+  transform-origin: top left;
+  /* A preview, not a second copy of the page to click through. */
+  pointer-events: none;
+  user-select: none;
 }
 
-.previewHandle {
-  margin: 0 16px;
-  color: #9eb0c6;
-  font-size: 13px;
-}
-
-.previewMeta {
-  margin: 7px 16px 0;
-  color: #c1ccdc;
-  font-size: 13px;
-}
-
-.previewMeta span {
-  margin: 0 5px;
-}
-
-.previewBio {
-  margin: 22px 16px 0;
-  color: rgba(237, 243, 250, 0.8);
-  font-family: var(--serif);
-  font-size: 15px;
-  line-height: 1.45;
-}
-
-.previewTags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 7px;
-  margin: 19px 16px 0;
-}
-
-.previewTags span {
-  padding: 6px 10px;
-  border: 1px solid rgba(132, 188, 226, 0.3);
-  border-radius: 999px;
-  color: rgba(224, 234, 246, 0.72);
-  font-size: 10px;
-  text-transform: capitalize;
+/* The page sets its own full-height background; inside the frame it only
+   needs to be as tall as what it draws. */
+.previewPage > * {
+  min-height: 0;
+  padding-bottom: 0;
 }
 
 /* ---- Leaving OONA: a dialog over the page ---- */
@@ -1371,20 +1337,6 @@ textarea.input {
 
   .preview {
     padding: 16px;
-  }
-
-  .previewBanner {
-    height: 120px;
-  }
-
-  .previewAvatar {
-    width: 88px;
-    height: 88px;
-    margin-top: -38px;
-  }
-
-  .previewName {
-    font-size: 28px;
   }
 
   .actions > .btn {

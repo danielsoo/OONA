@@ -2424,6 +2424,14 @@ export const uiMessages: Record<string, readonly [string, string]> = {
     "작품 바꾸기",
     "作品を変える"
   ],
+  "no headline yet": [
+    "아직 한 줄 소개가 없어요",
+    "まだ肩書きがありません"
+  ],
+  "no bio yet": [
+    "아직 소개글이 없어요",
+    "まだ自己紹介がありません"
+  ],
   "nothing here is saved in the demo.": [
     "데모에서는 아무것도 저장되지 않아요.",
     "デモでは何も保存されません。"

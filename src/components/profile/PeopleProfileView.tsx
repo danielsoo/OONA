@@ -11,6 +11,7 @@ import PeopleProfileSkeleton from "@/components/profile/PeopleProfileSkeleton";
 import { PortfolioShareDialog } from "@/components/portfolio/PortfolioSharePanel";
 import { DEMO_SOCIETY_HREF, isDemoHandle, isDemoVisit } from "@/lib/demo-flags";
 import { profilePreview } from "@/lib/profilePreview";
+import { buildProfileConstellation } from "@/lib/profileHeroLook";
 import type { HeroBackgroundId } from "@/lib/heroBackgroundPresets";
 import type { DirectorNameChangeRequest } from "@/types/user";
 import styles from "@/components/society/EditorialProfile.module.css";
@@ -182,21 +183,7 @@ export default function PeopleProfileView({ handle }: Props) {
     const label = t(key);
     return label === key ? role : label;
   };
-  // Their own works first, then the ones they're credited on, each once, with
-  // the people they made them with.
-  const seen = new Set<string>();
-  const constellation = [...data.directed, ...data.credited].flatMap((work) => {
-    const key = `${work.ownerUid}:${work.workId}`;
-    if (seen.has(key)) return [];
-    seen.add(key);
-    return [{
-      key,
-      title: work.title,
-      role: roleLabel(work.role),
-      watchPath: work.watchPath,
-      people: (work.collaborators ?? []).map((c) => ({ uid: c.uid, name: c.displayName, role: c.characterName ?? roleLabel(c.role), href: c.profileHref })),
-    }];
-  });
+  const constellation = buildProfileConstellation(data.directed, data.credited, roleLabel);
 
   return (
     <main className={styles.page}>

@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import UiText, { useUiCopy } from "@/components/i18n/UiText";
 import ProfileAvatar from "@/components/profile/ProfileAvatar";
-import { displayLines, PROFILE_SKY, PROFILE_SKY_POSITION } from "@/components/society/SocietyPublicProfileHero";
+import { displayLines, PROFILE_SKY, PROFILE_SKY_POSITION } from "@/lib/profileHeroLook";
 import { useTranslations } from "@/context/LocaleContext";
 import type { ProfilePreview } from "@/lib/profilePreview";
 import styles from "@/components/society/EditorialProfile.module.css";
