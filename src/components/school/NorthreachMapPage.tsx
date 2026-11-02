@@ -26,7 +26,6 @@ import "@/components/school/northreach-map.css";
 import SpaceControls from "@/components/school/space/SpaceControls";
 import { DEFAULT_TUNING, type SpaceTuning, type SpaceView } from "@/components/school/space/spaceTuning";
 import type { SpaceLabelSchool } from "@/components/school/space/SchoolsSpace";
-import { useAdminAccess } from "@/hooks/useAdminAccess";
 import UiText from "@/components/i18n/UiText";
 import { useUiCopy } from "@/components/i18n/UiText";
 
@@ -70,7 +69,6 @@ const SchoolsSpace = dynamic(() => import("@/components/school/space/SchoolsSpac
 const SPACE_AVOID = ["header", ".nr .ranking-rail", ".nr .legend", ".nr .space-toolbar"];
 const SPACE_PANEL = ".nr .ranking-rail";
 const SPACE_SETTINGS_KEY = "oona-schools-space";
-const SPACE_TUNE_KEY = "oona-schools-tune";
 
 type SpaceSettings = { view: SpaceView; level: SpaceTuning; open: SpaceTuning };
 
@@ -294,21 +292,11 @@ export default function NorthreachMapPage() {
   const { items: campusStories } = useShowcaseCatalog("movies", 8);
   const mapDiagnosticsEnabled = coordinateGuide;
   const mapViewport = MAP_VIEWPORTS[region];
-  const { isAdmin } = useAdminAccess();
   const [space, setSpace] = useState<SpaceSettings>({ view: "level", ...DEFAULT_TUNING });
-  const [tuneAsked, setTuneAsked] = useState(false);
 
-  // The view and the team's adjustments are kept in this browser; /schools?tune opens the adjust panel (and remembers it, ?tune=0 forgets).
+  // The view and anyone's adjustments are kept in their own browser.
   useEffect(() => {
     setSpace(readSpaceSettings());
-    try {
-      const asked = new URLSearchParams(window.location.search).get("tune");
-      if (asked === "0") window.localStorage.removeItem(SPACE_TUNE_KEY);
-      else if (asked !== null) window.localStorage.setItem(SPACE_TUNE_KEY, "1");
-      setTuneAsked(window.localStorage.getItem(SPACE_TUNE_KEY) === "1");
-    } catch {
-      /* the panel stays closed */
-    }
   }, []);
 
   const updateSpace = (next: SpaceSettings) => {
@@ -434,7 +422,6 @@ export default function NorthreachMapPage() {
                 onView={(view) => updateSpace({ ...space, view })}
                 tuning={spaceTuning}
                 onTuning={(tuning) => updateSpace({ ...space, [space.view]: tuning })}
-                canTune={isAdmin || tuneAsked}
               />
             ) : null}
 

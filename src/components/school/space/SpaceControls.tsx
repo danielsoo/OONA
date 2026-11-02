@@ -21,12 +21,10 @@ type Props = {
   onView: (view: SpaceView) => void;
   tuning: SpaceTuning;
   onTuning: (tuning: SpaceTuning) => void;
-  /** The adjust panel is for the team (admins, or a visit through /schools?tune). */
-  canTune: boolean;
 };
 
-/** The two views of the schools space, and, for the team, the knobs that shape them. */
-export default function SpaceControls({ view, onView, tuning, onTuning, canTune }: Props) {
+/** The two views of the schools space, and the knobs that shape them (open to everyone while the look is being settled). */
+export default function SpaceControls({ view, onView, tuning, onTuning }: Props) {
   const copy = useUiCopy();
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -51,14 +49,12 @@ export default function SpaceControls({ view, onView, tuning, onTuning, canTune 
             {v === "level" ? <UiText text="Level view" /> : <UiText text="Open space" />}
           </button>
         ))}
-        {canTune ? (
-          <button type="button" className={`space-adjust${open ? " on" : ""}`} aria-expanded={open} onClick={() => setOpen((o) => !o)}>
-            <UiText text="Adjust" />
-          </button>
-        ) : null}
+        <button type="button" className={`space-adjust${open ? " on" : ""}`} aria-expanded={open} onClick={() => setOpen((o) => !o)}>
+          <UiText text="Adjust" />
+        </button>
       </div>
 
-      {canTune && open ? (
+      {open ? (
         <div className="space-tune">
           {SLIDERS.filter((s) => !s.levelOnly || view === "level").map((s) => (
             <label key={s.key}>
