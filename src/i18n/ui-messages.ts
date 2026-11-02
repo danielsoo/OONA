@@ -84,6 +84,66 @@ export const uiMessages: Record<string, readonly [string, string]> = {
     "함께할 사람들에게 나를 소개하세요.",
     "制作仲間に、あなたの活動を伝えましょう。"
   ],
+  "view": [
+    "보기",
+    "表示"
+  ],
+  "level view": [
+    "수평 원근",
+    "水平ビュー"
+  ],
+  "open space": [
+    "열린 우주",
+    "オープンスペース"
+  ],
+  "adjust": [
+    "조정",
+    "調整"
+  ],
+  "camera height": [
+    "카메라 높이",
+    "カメラの高さ"
+  ],
+  "planet size": [
+    "행성 크기",
+    "惑星のサイズ"
+  ],
+  "depth of field": [
+    "피사계 심도",
+    "被写界深度"
+  ],
+  "distance haze": [
+    "거리 안개",
+    "距離のかすみ"
+  ],
+  "night-side light": [
+    "밤면 밝기",
+    "夜側の明るさ"
+  ],
+  "milky way": [
+    "은하수",
+    "天の川"
+  ],
+  "brightness": [
+    "밝기",
+    "明るさ"
+  ],
+  "slow spin": [
+    "천천히 자전",
+    "ゆっくり自転"
+  ],
+  "reset": [
+    "초기화",
+    "リセット"
+  ],
+  "copied": [
+    "복사됨",
+    "コピーしました"
+  ],
+  "copy settings": [
+    "설정 복사",
+    "設定をコピー"
+  ],
   "upload a photo": [
     "사진 올리기",
     "写真をアップロード"

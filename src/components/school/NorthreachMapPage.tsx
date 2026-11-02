@@ -23,6 +23,10 @@ import { promoCropToVideoStyle } from "@/lib/works/promo-crop-interaction";
 import { watchHref } from "@/lib/works/catalog-ui";
 import type { SchoolListItem } from "@/types/school";
 import "@/components/school/northreach-map.css";
+import SpaceControls from "@/components/school/space/SpaceControls";
+import { DEFAULT_TUNING, type SpaceTuning, type SpaceView } from "@/components/school/space/spaceTuning";
+import type { SpaceLabelSchool } from "@/components/school/space/SchoolsSpace";
+import { useAdminAccess } from "@/hooks/useAdminAccess";
 import UiText from "@/components/i18n/UiText";
 import { useUiCopy } from "@/components/i18n/UiText";
 
@@ -38,6 +42,8 @@ type MapSchool = {
   count: string;
   countDetail?: string;
   students: number;
+  /** Published works, for schools without a student count. */
+  works?: number;
   region: SchoolRegion;
   countryCode?: string;
   latitude?: number;
@@ -51,8 +57,37 @@ type MapSchool = {
 };
 
 const REGIONS: Region[] = ["All Regions", "United States", "North America", "Europe", "Asia-Pacific"];
-const ACTIVE_MAP_MODE: "fictional" | "geographic" =
-  process.env.NEXT_PUBLIC_SCHOOL_MAP_MODE === "geographic" ? "geographic" : "fictional";
+// "space" (the default): every school a world in space, schools/space/. The island
+// art and the real-world map stay behind NEXT_PUBLIC_SCHOOL_MAP_MODE.
+const ACTIVE_MAP_MODE: "space" | "fictional" | "geographic" =
+  process.env.NEXT_PUBLIC_SCHOOL_MAP_MODE === "geographic"
+    ? "geographic"
+    : process.env.NEXT_PUBLIC_SCHOOL_MAP_MODE === "fictional" ? "fictional" : "space";
+
+const SchoolsSpace = dynamic(() => import("@/components/school/space/SchoolsSpace"), { ssr: false });
+
+/** What the space keeps its names clear of, and the panel it centres beside. */
+const SPACE_AVOID = ["header", ".nr .ranking-rail", ".nr .legend", ".nr .space-toolbar"];
+const SPACE_PANEL = ".nr .ranking-rail";
+const SPACE_SETTINGS_KEY = "oona-schools-space";
+const SPACE_TUNE_KEY = "oona-schools-tune";
+
+type SpaceSettings = { view: SpaceView; level: SpaceTuning; open: SpaceTuning };
+
+function readSpaceSettings(): SpaceSettings {
+  const fallback: SpaceSettings = { view: "level", ...DEFAULT_TUNING };
+  try {
+    const saved = JSON.parse(window.localStorage.getItem(SPACE_SETTINGS_KEY) ?? "null") as Partial<SpaceSettings> | null;
+    if (!saved) return fallback;
+    return {
+      view: saved.view === "open" ? "open" : "level",
+      level: { ...DEFAULT_TUNING.level, ...saved.level },
+      open: { ...DEFAULT_TUNING.open, ...saved.open },
+    };
+  } catch {
+    return fallback;
+  }
+}
 
 type FictionalMapPosition = {
   x: number;
@@ -186,6 +221,7 @@ function registeredMapSchool(school: SchoolListItem): MapSchool {
     count: works > 0 ? `${works} works` : "New",
     countDetail: works > 0 ? `${works} published works` : "Newly registered school",
     students: 0,
+    works,
     region: regionForSchool(school),
     countryCode: school.location?.countryCode?.toUpperCase(),
     latitude: school.location?.latitude,
@@ -258,6 +294,31 @@ export default function NorthreachMapPage() {
   const { items: campusStories } = useShowcaseCatalog("movies", 8);
   const mapDiagnosticsEnabled = coordinateGuide;
   const mapViewport = MAP_VIEWPORTS[region];
+  const { isAdmin } = useAdminAccess();
+  const [space, setSpace] = useState<SpaceSettings>({ view: "level", ...DEFAULT_TUNING });
+  const [tuneAsked, setTuneAsked] = useState(false);
+
+  // The view and the team's adjustments are kept in this browser; /schools?tune opens the adjust panel (and remembers it, ?tune=0 forgets).
+  useEffect(() => {
+    setSpace(readSpaceSettings());
+    try {
+      const asked = new URLSearchParams(window.location.search).get("tune");
+      if (asked === "0") window.localStorage.removeItem(SPACE_TUNE_KEY);
+      else if (asked !== null) window.localStorage.setItem(SPACE_TUNE_KEY, "1");
+      setTuneAsked(window.localStorage.getItem(SPACE_TUNE_KEY) === "1");
+    } catch {
+      /* the panel stays closed */
+    }
+  }, []);
+
+  const updateSpace = (next: SpaceSettings) => {
+    setSpace(next);
+    try {
+      window.localStorage.setItem(SPACE_SETTINGS_KEY, JSON.stringify(next));
+    } catch {
+      /* kept for this page only */
+    }
+  };
   const mapGuides = MAP_GUIDES[region];
 
   const allSchools = useMemo(() => {
@@ -279,7 +340,7 @@ export default function NorthreachMapPage() {
 
   const filteredSchools = useMemo(
     () => allSchools.filter((school) => {
-      if (ACTIVE_MAP_MODE === "fictional") return true;
+      if (ACTIVE_MAP_MODE !== "geographic") return true;
       if (region === "All Regions") return true;
       if (region === "United States") return school.countryCode === "US";
       return school.region === region;
@@ -304,6 +365,16 @@ export default function NorthreachMapPage() {
       return [{ school, point, zoneSize: point.zoneSize }];
     });
   const rankedSchools = visibleSchools;
+  const spaceSchools = useMemo<SpaceLabelSchool[]>(
+    () => allSchools.map((school) => ({
+      id: school.id,
+      name: FICTIONAL_MAP_LABELS[school.id] ?? school.name,
+      value: school.students > 0 ? school.students : Math.max(40, (school.works ?? 0) * 20),
+      meta: school.students > 0 ? _copy("{count} creators", { count: school.count }) : school.count,
+    })),
+    [allSchools, _copy]
+  );
+  const spaceTuning = space[space.view];
   const selectedSchool = allSchools.find((school) => school.id === selectedId) ?? null;
 
   useEffect(() => {
@@ -351,11 +422,21 @@ export default function NorthreachMapPage() {
   }
 
   return (
-    <div className="nr">
+    <div className={`nr${ACTIVE_MAP_MODE === "space" ? " nr-space" : ""}`}>
       <main className={`atlas-shell${ACTIVE_MAP_MODE === "fictional" ? " fictional-atlas" : ""}`}>
         <section className="map-panel" aria-label={_copy("Interactive school map")}>
           <div className="schools-intro">
             <h1 className="map-heading-visually-hidden"><UiText text={"Schools on OONA"} /></h1>
+
+            {ACTIVE_MAP_MODE === "space" ? (
+              <SpaceControls
+                view={space.view}
+                onView={(view) => updateSpace({ ...space, view })}
+                tuning={spaceTuning}
+                onTuning={(tuning) => updateSpace({ ...space, [space.view]: tuning })}
+                canTune={isAdmin || tuneAsked}
+              />
+            ) : null}
 
             {ACTIVE_MAP_MODE === "geographic" ? (
               <div className="map-controls">
@@ -400,6 +481,17 @@ export default function NorthreachMapPage() {
             ) : null}
           </div>
 
+          {ACTIVE_MAP_MODE === "space" ? (
+            <SchoolsSpace
+              schools={spaceSchools}
+              view={space.view}
+              tuning={spaceTuning}
+              selectedId={selectedId}
+              onSelect={chooseSchool}
+              avoid={SPACE_AVOID}
+              panel={SPACE_PANEL}
+            />
+          ) : (
           <div
             className={`geo-map-stage ${ACTIVE_MAP_MODE === "fictional" ? "fictional-focus" : region === "United States" ? "regional-focus" : ""}`}
             onPointerMove={inspectCoordinate}
@@ -499,8 +591,9 @@ export default function NorthreachMapPage() {
               })}
             </div>
           </div>
+          )}
 
-          <aside className="legend" aria-label={_copy("Student creator legend")}>
+          <aside className={`legend${ACTIVE_MAP_MODE === "space" ? " space-legend" : ""}`} aria-label={_copy("Student creator legend")}>
             <p><UiText text={"Student creators"} /></p>
             <div className="legend-line"><i className="legend-orb orb-xl" /><span>2.0K+</span></div>
             <div className="legend-line"><i className="legend-orb orb-lg" /><span>1.0K – 2.0K</span></div>

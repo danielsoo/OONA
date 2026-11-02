@@ -817,3 +817,133 @@
 @media (prefers-reduced-motion: reduce) {
   .nr *, .nr *::before, .nr *::after { scroll-behavior: auto !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
 }
+
+/* ---- Space (the default view): every school a world, schools/space/ ---- */
+.nr-space .atlas-shell { background: #010307; }
+.nr-space .atlas-shell::before,
+.nr-space .atlas-shell::after { display: none; }
+.nr-space .map-panel { background: #010307; }
+
+.nr .space-stage { position: absolute; inset: 0; z-index: 2; overflow: hidden; }
+.nr .space-canvas { position: absolute; inset: 0; display: block; width: 100%; height: 100%; touch-action: pan-y; }
+.nr .space-labels { position: absolute; inset: 0; pointer-events: none; }
+
+.nr .space-label {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: rgba(244, 248, 255, 0.95);
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.95), 0 0 2px rgba(0, 0, 0, 0.9);
+  white-space: nowrap;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: color 150ms ease;
+}
+.nr .space-label.is-center { align-items: center; text-align: center; }
+.nr .space-label.is-right { align-items: flex-end; text-align: right; }
+.nr .space-label.is-left { align-items: flex-start; text-align: left; }
+.nr .space-label strong { font-size: 12.5px; font-weight: 500; }
+.nr .space-label small { color: rgba(196, 214, 236, 0.68); font-size: 11px; }
+.nr .space-label.is-minor strong { font-size: 11.5px; font-weight: 400; color: rgba(225, 234, 246, 0.72); }
+.nr .space-label.is-minor small { color: rgba(196, 214, 236, 0.5); }
+.nr .space-label.is-on { z-index: 1; }
+.nr .space-label.is-on strong { color: #fff; font-weight: 600; }
+.nr .space-label.is-on small { color: #bfe6ff; }
+.nr .space-label:focus-visible { outline: 2px solid #9fdcff; outline-offset: 4px; border-radius: 4px; }
+
+/* The world you picked (and the one under the pointer): a thin ring, nothing more. */
+.nr .space-ring {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  border: 1px solid rgba(159, 220, 255, 0.35);
+  border-radius: 50%;
+  pointer-events: none;
+}
+.nr .space-ring.is-selected { border-color: rgba(159, 220, 255, 0.85); box-shadow: 0 0 18px rgba(100, 190, 255, 0.25); }
+
+.nr .space-toolbar { position: relative; display: grid; gap: 10px; justify-items: start; pointer-events: auto; }
+.nr .space-views {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 4px 4px 14px;
+  border: 1px solid rgba(150, 190, 230, 0.22);
+  border-radius: 999px;
+  background: rgba(2, 9, 16, 0.58);
+  backdrop-filter: blur(12px);
+}
+.nr .space-views > span { margin-right: 6px; color: #9bb9dc; font-size: 10px; font-weight: 600; letter-spacing: 0.24em; text-transform: uppercase; }
+.nr .space-views button {
+  height: 30px;
+  padding: 0 14px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: none;
+  color: rgba(225, 234, 246, 0.66);
+  font-size: 12.5px;
+  cursor: pointer;
+  transition: background 150ms ease, color 150ms ease, border-color 150ms ease;
+}
+.nr .space-views button:hover { color: #fff; }
+.nr .space-views button.on { border-color: rgba(119, 203, 255, 0.7); background: rgba(49, 119, 168, 0.24); color: #fff; }
+.nr .space-views .space-adjust { margin-left: 4px; border-color: rgba(150, 190, 230, 0.22); }
+.nr .space-views button:focus-visible { outline: 2px solid #9fdcff; outline-offset: 2px; }
+
+.nr .space-tune {
+  display: grid;
+  width: 280px;
+  gap: 12px;
+  padding: 16px 18px;
+  border: 1px solid rgba(150, 190, 230, 0.22);
+  border-radius: 12px;
+  background: rgba(2, 9, 16, 0.86);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(14px);
+  color: #eef3fa;
+  font-size: 12px;
+}
+.nr .space-tune label { display: grid; gap: 6px; }
+.nr .space-tune label > span { display: flex; justify-content: space-between; color: rgba(196, 214, 236, 0.75); }
+.nr .space-tune output { color: #fff; font-variant-numeric: tabular-nums; }
+.nr .space-tune input[type="range"] { width: 100%; accent-color: #5fbfff; }
+.nr .space-tune .space-tune-check { display: flex; align-items: center; gap: 8px; color: rgba(225, 234, 246, 0.85); }
+.nr .space-tune .space-tune-check input { accent-color: #5fbfff; }
+.nr .space-tune-actions { display: flex; gap: 8px; }
+.nr .space-tune-actions button {
+  flex: 1;
+  height: 32px;
+  border: 1px solid rgba(179, 206, 230, 0.24);
+  border-radius: 999px;
+  background: rgba(4, 17, 28, 0.36);
+  color: rgba(240, 246, 253, 0.86);
+  font-size: 12px;
+  cursor: pointer;
+}
+.nr .space-tune-actions button:hover { background: rgba(49, 119, 168, 0.24); color: #fff; }
+
+/* The size key as small worlds rather than rings. */
+.nr .space-legend .legend-orb {
+  border-color: rgba(143, 207, 255, 0.25);
+  background: radial-gradient(circle at 34% 30%, #cfe3f7, #5f86b8 38%, #1c3458 70%, #050b14 100%);
+  box-shadow: inset -6px -4px 10px rgba(0, 0, 0, 0.55), 0 0 12px rgba(80, 150, 230, 0.18);
+}
+.nr .space-legend .orb-xl { width: 34px; height: 34px; margin-left: 0; }
+.nr .space-legend .orb-lg { width: 26px; height: 26px; margin-left: 4px; }
+.nr .space-legend .orb-md { width: 19px; height: 19px; margin-left: 7.5px; }
+.nr .space-legend .orb-sm { width: 12px; height: 12px; margin-left: 11px; }
+.nr .space-legend .legend-line { height: 30px; }
+
+@media (max-width: 960px) {
+  .nr-space .map-panel { min-height: clamp(560px, 82svh, 720px); }
+  .nr .space-views { padding-left: 10px; }
+  .nr .space-views > span { display: none; }
+  .nr .space-tune { width: min(280px, calc(100vw - 44px)); }
+  .nr .space-legend .orb-xl { width: 16px; height: 16px; }
+  .nr .space-legend .orb-lg { width: 13px; height: 13px; margin-left: 0; }
+  .nr .space-legend .orb-md { width: 10px; height: 10px; margin-left: 0; }
+  .nr .space-legend .orb-sm { width: 7px; height: 7px; margin-left: 0; }
+}
