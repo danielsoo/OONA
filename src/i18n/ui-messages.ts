@@ -144,6 +144,10 @@ export const uiMessages: Record<string, readonly [string, string]> = {
     "설정 복사",
     "設定をコピー"
   ],
+  "sky": [
+    "하늘",
+    "空"
+  ],
   "upload a photo": [
     "사진 올리기",
     "写真をアップロード"

@@ -26,6 +26,7 @@ import "@/components/school/northreach-map.css";
 import SpaceControls from "@/components/school/space/SpaceControls";
 import { DEFAULT_TUNING, type SpaceTuning, type SpaceView } from "@/components/school/space/spaceTuning";
 import type { SpaceLabelSchool } from "@/components/school/space/SchoolsSpace";
+import { worldSwatch } from "@/components/school/space/worldLook";
 import UiText from "@/components/i18n/UiText";
 import { useUiCopy } from "@/components/i18n/UiText";
 
@@ -68,7 +69,7 @@ const SchoolsSpace = dynamic(() => import("@/components/school/space/SchoolsSpac
 /** What the space keeps its names clear of, and the panel it centres beside. */
 const SPACE_AVOID = ["header", ".nr .ranking-rail", ".nr .legend", ".nr .space-toolbar"];
 const SPACE_PANEL = ".nr .ranking-rail";
-const SPACE_SETTINGS_KEY = "oona-schools-space";
+const SPACE_SETTINGS_KEY = "oona-schools-space-v2";
 
 type SpaceSettings = { view: SpaceView; level: SpaceTuning; open: SpaceTuning };
 
@@ -251,6 +252,12 @@ const SCHOOLS: MapSchool[] = [
 
 function Chevron({ direction = "right" }: { direction?: "right" | "down" }) {
   return <span className={`nr-chevron ${direction === "down" ? "down" : ""}`} aria-hidden="true" />;
+}
+
+/** In the space, each school is shown as its own world rather than its crest. */
+function SchoolMark({ school }: { school: MapSchool }) {
+  if (ACTIVE_MAP_MODE === "space") return <span className="world-chip" style={{ background: worldSwatch(school.id) }} aria-hidden="true" />;
+  return <SchoolCrest school={school} />;
 }
 
 function SchoolCrest({ school }: { school: MapSchool }) {
@@ -603,7 +610,7 @@ export default function NorthreachMapPage() {
                     aria-pressed={selectedId === school.id}
                   >
                     <span className="rank-number">{index + 1}</span>
-                    <SchoolCrest school={school} />
+                    <SchoolMark school={school} />
                     <span className="rank-school-info">
                       <span className="rank-name">{school.name}</span>
                       {mapDiagnosticsEnabled && school.latitude !== undefined && school.longitude !== undefined ? (
@@ -636,7 +643,7 @@ export default function NorthreachMapPage() {
         <div className={`selection-toast${toastVisible && selectedSchool ? " show" : ""}`} role="status" aria-live="polite">
           {selectedSchool ? (
             <>
-              <SchoolCrest school={selectedSchool} />
+              <SchoolMark school={selectedSchool} />
               <span>
                 <strong>{selectedSchool.name}</strong>
                 <small>

@@ -2,14 +2,14 @@ import * as THREE from "three";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
-import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
 import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
 import { BokehPass } from "three/examples/jsm/postprocessing/BokehPass.js";
 import {
-  AIR_FRAG, AIR_VERT, DISC_FRAG, DISC_VERT, GRAIN_FRAG, GRAIN_VERT, NOISE, PLANET_FRAG, PLANET_VERT,
-  RING_FRAG, RING_VERT, SKY_FRAG, SKY_VERT, STAR_FRAG, STAR_VERT,
+  AIR_FRAG, AIR_VERT, DISC_FRAG, DISC_VERT, NOISE, PLANET_FRAG, PLANET_VERT,
+  RING_FRAG, RING_VERT, STAR_FRAG, STAR_VERT,
 } from "./shaders";
 import type { SpaceTuning, SpaceView } from "./spaceTuning";
+import { AIR, PAL, RELIEF, SHADER_KIND, hash, kindOf, type Kind } from "./worldLook";
 
 export type { SpaceTuning, SpaceView } from "./spaceTuning";
 
@@ -31,41 +31,6 @@ export type ProjectedWorld = { id: string; rank: number; x: number; y: number; r
 
 export type SpaceFrame = { worlds: ProjectedWorld[]; star: { x: number; y: number; r: number } | null };
 
-type Kind = "gas" | "ringgas" | "ice" | "terran" | "desert" | "rock" | "lava" | "ocean" | "frozen";
-
-const PAL: Record<Kind, [number, number, number][]> = {
-  gas: [[0.04, 0.10, 0.27], [0.16, 0.33, 0.60], [0.60, 0.74, 0.90], [0.86, 0.93, 0.99]],
-  ringgas: [[0.10, 0.19, 0.38], [0.30, 0.47, 0.70], [0.70, 0.80, 0.91], [0.18, 0.29, 0.52]],
-  ice: [[0.05, 0.16, 0.50], [0.11, 0.30, 0.72], [0.45, 0.65, 0.92], [0.03, 0.09, 0.32]],
-  terran: [[0.01, 0.04, 0.14], [0.20, 0.27, 0.36], [0.52, 0.60, 0.69], [0.84, 0.88, 0.92]],
-  desert: [[0.11, 0.17, 0.27], [0.27, 0.37, 0.51], [0.50, 0.60, 0.72], [0.07, 0.11, 0.19]],
-  rock: [[0.13, 0.15, 0.19], [0.29, 0.33, 0.39], [0.51, 0.55, 0.61], [0.09, 0.10, 0.13]],
-  lava: [[0.03, 0.04, 0.06], [0.08, 0.10, 0.14], [0.18, 0.21, 0.27], [0.30, 0.68, 1.00]],
-  ocean: [[0.01, 0.05, 0.16], [0.03, 0.14, 0.30], [0.10, 0.30, 0.45], [0.80, 0.85, 0.90]],
-  frozen: [[0.52, 0.63, 0.77], [0.72, 0.83, 0.92], [0.90, 0.95, 0.99], [0.33, 0.53, 0.77]],
-};
-const AIR: Record<Kind, [number, number, number] | null> = {
-  gas: [0.45, 0.65, 1.0], ringgas: [0.55, 0.72, 1.0], ice: [0.35, 0.6, 1.0], terran: [0.35, 0.6, 1.0], desert: [0.5, 0.65, 0.95],
-  rock: null, lava: [0.35, 0.65, 1.0], ocean: [0.4, 0.68, 1.0], frozen: [0.65, 0.82, 1.0],
-};
-const SHADER_KIND: Record<Kind, number> = { gas: 0, ringgas: 0, ice: 1, terran: 2, desert: 3, rock: 4, lava: 5, ocean: 6, frozen: 7 };
-const RELIEF: Partial<Record<Kind, number>> = { rock: 1, desert: 0.9, terran: 0.45, ocean: 0.3, frozen: 0.7, lava: 0.7 };
-
-/** The schools we know get the world that suits them; the rest one picked from their id. */
-const KIND_BY_ID: Record<string, Kind> = {
-  "penn-state": "ringgas", snu: "gas", ucla: "terran", pku: "desert", nyu: "ice", tokyo: "ringgas", tsinghua: "ocean",
-  berkeley: "desert", toronto: "frozen", melbourne: "terran", oxford: "rock", nus: "lava", sydney: "desert", mit: "ice", mcgill: "rock",
-};
-const KINDS_FOR_OTHERS: Kind[] = ["rock", "frozen", "desert", "ice", "rock", "frozen", "terran", "lava"];
-
-function hash(text: string): number {
-  let h = 2166136261;
-  for (let i = 0; i < text.length; i++) h = Math.imul(h ^ text.charCodeAt(i), 16777619);
-  return h >>> 0;
-}
-
-const kindOf = (id: string): Kind => KIND_BY_ID[id] ?? KINDS_FOR_OTHERS[hash(id) % KINDS_FOR_OTHERS.length]!;
-
 /** Screen spots for the open view (x, y in -1..1 across the part of the canvas left of the panel). */
 const OPEN_SPOTS = [[0.12, 0.42], [-0.28, 0.6], [0.33, -0.12], [-0.05, 0.12], [0.3, 0.62], [-0.42, 0.3], [0.18, -0.45], [-0.15, 0.82], [0.02, -0.2], [0.4, 0.25], [-0.22, 0.38], [0.1, 0.72], [0.38, -0.62], [-0.4, 0.82], [0.22, 0.1], [-0.8, 0.12], [-0.72, -0.4], [-0.48, 0.55], [-0.2, -0.66], [0.25, 0.32]];
 const OPEN_SPOTS_NARROW = [[0.45, 0.62], [-0.35, 0.72], [0.55, 0.3], [-0.05, 0.42], [0.1, 0.82], [0.2, 0.18], [0.75, 0.78], [-0.3, 0.3], [0.3, 0.48], [-0.72, 0.82], [0.8, 0.12], [-0.45, 0.55], [0.82, 0.5], [0.0, 0.65], [0.55, 0.12], [0.4, 0.9], [-0.15, 0.58], [0.7, 0.4], [-0.6, 0.66], [0.25, 0.7]];
@@ -82,11 +47,27 @@ export type BuildInput = {
   panelLeft: number | null;
 };
 
+const SKY_PHOTO = "/images/society/society_space.webp";
+const SKY_ASPECT = 1915 / 821;
+/** Where the photo is anchored when the screen crops it (Society's own framing). */
+const SKY_X = 0.64;
+
 export function createSchoolsScene(canvas: HTMLCanvasElement) {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: "high-performance" });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  // Full resolution, and a tone curve that leaves the sky photo's colours as they are.
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.toneMapping = THREE.NeutralToneMapping;
   renderer.toneMappingExposure = 1;
+
+  // Society's photographed sky (society/discover/SocietySky.tsx), so the two pages share one night.
+  const NIGHT = new THREE.Color("#07111b");
+  let sky: THREE.Texture | null = null;
+  new THREE.TextureLoader().load(SKY_PHOTO, (texture) => {
+    texture.colorSpace = THREE.SRGBColorSpace;
+    sky = texture;
+    if (lastInput) build(lastInput);
+  });
+  let lastInput: BuildInput | null = null;
 
   let scene = new THREE.Scene();
   let camera = new THREE.PerspectiveCamera(42, 1, 0.1, 20000);
@@ -159,6 +140,7 @@ export function createSchoolsScene(canvas: HTMLCanvasElement) {
 
   function build(input: BuildInput): SpaceFrame {
     const { schools, view, tuning: t, width: W, height: H } = input;
+    lastInput = input;
     disposeScene();
     scene = new THREE.Scene();
     worlds = [];
@@ -176,21 +158,16 @@ export function createSchoolsScene(canvas: HTMLCanvasElement) {
     // Centre the scene in the part of the canvas the panel leaves open.
     const sx = narrow ? 0 : Math.max(0, Math.round((W - panelLeft + 24) / 2));
 
-    const sky = new THREE.Mesh(
-      new THREE.SphereGeometry(9000, 64, 64),
-      new THREE.ShaderMaterial({
-        uniforms: {
-          uMW: { value: t.milkyWay },
-          uG: { value: (view === "open" ? new THREE.Vector3(0.55, 0.83, 0.05) : new THREE.Vector3(0.85, 0.3, -0.2)).normalize() },
-          uCore: { value: (view === "open" ? new THREE.Vector3(-0.45, 0.28, -0.85) : new THREE.Vector3(-0.3, -0.6, -0.74)).normalize() },
-        },
-        vertexShader: SKY_VERT,
-        fragmentShader: NOISE + SKY_FRAG,
-        side: THREE.BackSide,
-        depthWrite: false,
-      })
-    );
-    scene.add(sky);
+    if (sky) {
+      // Cover the canvas the way Society covers its page.
+      const aspect = W / H;
+      sky.repeat.set(aspect > SKY_ASPECT ? 1 : aspect / SKY_ASPECT, aspect > SKY_ASPECT ? SKY_ASPECT / aspect : 1);
+      sky.offset.set((1 - sky.repeat.x) * SKY_X, (1 - sky.repeat.y) * 0.5);
+      scene.background = sky;
+      scene.backgroundIntensity = t.sky;
+    } else {
+      scene.background = NIGHT;
+    }
 
     const addWorld = (school: SpaceSchool, i: number, pos: THREE.Vector3, r: number, ring?: { tilt: number; yaw: number }) => {
       const kind = kindOf(school.id);
@@ -327,8 +304,10 @@ export function createSchoolsScene(canvas: HTMLCanvasElement) {
       }
     }
 
-    composer = new EffectComposer(renderer);
-    composer.setPixelRatio(renderer.getPixelRatio());
+    const pr = renderer.getPixelRatio();
+    // Multisampled, so the edges of the worlds and the orbit lines stay crisp through the passes.
+    composer = new EffectComposer(renderer, new THREE.WebGLRenderTarget(W * pr, H * pr, { type: THREE.HalfFloatType, samples: pr < 1.5 ? 4 : 2 }));
+    composer.setPixelRatio(pr);
     composer.setSize(W, H);
     composer.addPass(new RenderPass(scene, camera));
     if (t.depth > 0) {
@@ -338,12 +317,7 @@ export function createSchoolsScene(canvas: HTMLCanvasElement) {
         maxblur: 0.0018 * Math.min(2, t.depth),
       }));
     }
-    composer.addPass(new UnrealBloomPass(new THREE.Vector2(W, H), view === "open" ? 0.45 : 0.22, 0.5, 0.92));
-    composer.addPass(new ShaderPass({
-      uniforms: { tDiffuse: { value: null }, uRes: { value: new THREE.Vector2(W, H) } },
-      vertexShader: GRAIN_VERT,
-      fragmentShader: GRAIN_FRAG,
-    }));
+    composer.addPass(new UnrealBloomPass(new THREE.Vector2(W, H), view === "open" ? 0.28 : 0.16, 0.4, 0.94));
     composer.addPass(new OutputPass());
 
     spinning = t.spin && !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -373,6 +347,8 @@ export function createSchoolsScene(canvas: HTMLCanvasElement) {
   /** One frame of slow spin; the caller drives it from requestAnimationFrame while the scene is on screen. */
   function tick(now: number) {
     if (!spinning) return false;
+    // The spin is slow, so 30 frames a second is plenty and halves the work.
+    if (last && now - last < 32) return true;
     const dt = last ? Math.min(0.1, (now - last) / 1000) : 0;
     last = now;
     for (const world of worlds) {
@@ -393,6 +369,8 @@ export function createSchoolsScene(canvas: HTMLCanvasElement) {
   }
 
   function dispose() {
+    lastInput = null;
+    sky?.dispose();
     disposeScene();
     renderer.dispose();
   }

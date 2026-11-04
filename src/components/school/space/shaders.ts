@@ -1,5 +1,5 @@
-/* The schools space (SchoolsSpace.tsx): GLSL for the worlds, their air and rings, the sky,
-   the dust of the orbital plane and the film grain over it all. Noise is Ashima/Gustavson simplex. */
+/* The schools space (SchoolsSpace.tsx): GLSL for the worlds, their air and rings, the quiet
+   star and the dust of the orbital plane. Noise is Ashima/Gustavson simplex. */
 
 export const NOISE = /* glsl */ `
 vec3 mod289(vec3 x){return x-floor(x*(1./289.))*289.;}
@@ -144,7 +144,7 @@ export const RING_VERT = /* glsl */ `varying vec3 vP; varying vec3 vW; void main
 
 export const RING_FRAG = /* glsl */ `uniform float uIn, uOut, uR, uSat; uniform vec3 uSun, uC; varying vec3 vP; varying vec3 vW;
       void main(){ float t = (length(vP.xy) - uIn) / (uOut - uIn);
-        float d = snoise(vec3(t * 40., 0., 1.)) * .5 + snoise(vec3(t * 160., 0., 3.)) * .3 + snoise(vec3(t * 520., 0., 5.)) * .2;
+        float d = snoise(vec3(t * 28., 0., 1.)) * .6 + snoise(vec3(t * 90., 0., 3.)) * .4;
         float dens = .55 + .45 * d;
         dens *= smoothstep(0., .04, t) * smoothstep(1., .9, t);
         dens *= 1. - .92 * smoothstep(.52, .54, t) * smoothstep(.6, .58, t);   // a dark division
@@ -156,33 +156,6 @@ export const RING_FRAG = /* glsl */ `uniform float uIn, uOut, uR, uSat; uniform 
         vec3 col = mix(vec3(.42, .52, .66), vec3(.78, .85, .93), .5 + .5 * d) * 1.8;
         float l = dot(col, vec3(.3,.59,.11)); col = mix(vec3(l), col, uSat);
         gl_FragColor = vec4(col * shadow * (.35 + .65 * abs(dot(L, vec3(0.,1.,0.)))), dens * .85); }`;
-
-export const SKY_VERT = /* glsl */ `varying vec3 vD; void main(){ vD = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.); gl_Position.z = gl_Position.w * .9999; }`;
-
-export const SKY_FRAG = /* glsl */ `uniform float uMW; uniform vec3 uG, uCore; varying vec3 vD;
-    float stars(vec3 d, float scale, float thresh, float k){ vec3 c = d * scale; vec3 i = floor(c); vec3 f = fract(c); vec3 h = hash3(i);
-      float b = step(thresh, h.x); vec3 sp = vec3(.5) + (h - .5) * .7; float dist = length(f - sp);
-      return b * exp(-dist * dist * k) * (.3 + .7 * hash3(i + 7.).y); }
-    vec3 starCol(vec3 d, float scale){ float t = hash3(floor(d * scale) + 3.).z; return t < .2 ? vec3(.7,.8,1.) : t < .75 ? vec3(1.) : t < .92 ? vec3(1.,.9,.75) : vec3(1.,.75,.6); }
-    void main(){ vec3 d = normalize(vD);
-      vec3 g = uG; float lat = dot(d, g);
-      float band = exp(-lat * lat / .028) * uMW; float core = exp(-pow(length(d - uCore), 2.) / .35) * uMW;
-      float dens = .985 - band * .03;
-      vec3 c = vec3(0.);
-      c += starCol(d, 380.) * stars(d, 380., dens, 90.) * 1.3;
-      c += starCol(d, 900.) * stars(d, 900., dens - .01, 140.) * .9;
-      c += vec3(1.) * stars(d, 1800., .93 - band * .35, 180.) * .45 * (.4 + band * 1.6);
-      c += starCol(d, 150.) * stars(d, 150., .997, 60.) * 2.4;
-      if (uMW > 0.) {
-        float n = fbm(d * 3.2 + 1.7) * .5 + .5;
-        float dust = smoothstep(.45, .8, fbm(d * 6.5 + 4.) * .5 + .5) * smoothstep(.06, .0, abs(lat - .02 * fbm3(d * 9.)));
-        vec3 glow = mix(vec3(.10, .14, .26), vec3(.26, .32, .44), core) * band * (.35 + .65 * n) * (.08 + .18 * core);
-        glow *= 1. - dust * .85;
-        float ha = smoothstep(.62, .85, fbm(d * 4. + 13.) * .5 + .5) * band; glow += vec3(.06, .1, .25) * ha * .2;
-        float refl = smoothstep(.66, .9, fbm(d * 3.5 + 27.) * .5 + .5) * band; glow += vec3(.08, .14, .3) * refl * .2;
-        c += glow;
-      }
-      gl_FragColor = vec4(c, 1.); }`;
 
 export const DISC_VERT = /* glsl */ `varying vec3 vP; void main(){ vP = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.); }`;
 
@@ -199,10 +172,3 @@ export const STAR_VERT = /* glsl */ `varying vec3 vN; void main(){ vN = normaliz
 
 export const STAR_FRAG = /* glsl */ `varying vec3 vN; void main(){ float mu = max(vN.z, 0.); vec3 c = vec3(.86, .93, 1.) * (.35 + .5 * pow(mu, .55)); gl_FragColor = vec4(c * .95, 1.); }`;
 
-export const GRAIN_VERT = /* glsl */ `varying vec2 vU; void main(){ vU = uv; gl_Position = vec4(position.xy, 0., 1.); }`;
-
-export const GRAIN_FRAG = /* glsl */ `uniform sampler2D tDiffuse; uniform vec2 uRes; varying vec2 vU;
-    float h(vec2 p){ return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
-    void main(){ vec3 c = texture2D(tDiffuse, vU).rgb;
-      float v = smoothstep(1.25, .35, length((vU - .5) * vec2(uRes.x / uRes.y, 1.))); c *= mix(.55, 1., v);
-      c += (h(vU * uRes) - .5) * .028; gl_FragColor = vec4(c, 1.); }`;

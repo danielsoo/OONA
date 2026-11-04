@@ -9,7 +9,8 @@ export type SpaceTuning = {
   /** Depth of field; 0 turns it off. */
   depth: number;
   haze: number;
-  milkyWay: number;
+  /** How bright the photographed sky behind the worlds is. */
+  sky: number;
   /** Light on the night side of each world, so its shape still reads. */
   night: number;
   brightness: number;
@@ -17,6 +18,6 @@ export type SpaceTuning = {
 };
 
 export const DEFAULT_TUNING: Record<SpaceView, SpaceTuning> = {
-  level: { cameraHeight: 20, size: 1, depth: 1, haze: 1, milkyWay: 1, night: 1, brightness: 1, spin: true },
-  open: { cameraHeight: 20, size: 1, depth: 1, haze: 1, milkyWay: 1, night: 1, brightness: 1, spin: true },
+  level: { cameraHeight: 20, size: 1, depth: 0, haze: 0.4, sky: 1, night: 1.4, brightness: 1, spin: true },
+  open: { cameraHeight: 20, size: 1, depth: 0, haze: 0.4, sky: 1, night: 1.4, brightness: 1, spin: true },
 };
