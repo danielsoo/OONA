@@ -6,7 +6,7 @@ import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
 import { BokehPass } from "three/examples/jsm/postprocessing/BokehPass.js";
 import {
   AIR_FRAG, AIR_VERT, DISC_FRAG, DISC_VERT, NOISE, PLANET_FRAG, PLANET_VERT,
-  RING_FRAG, RING_VERT, STAR_FRAG, STAR_VERT,
+  RING_FRAG, RING_VERT, SKY_FRAG, SKY_VERT, STAR_FRAG, STAR_VERT,
 } from "./shaders";
 import type { SpaceTuning, SpaceView } from "./spaceTuning";
 import { AIR, PAL, RELIEF, SHADER_KIND, hash, kindOf, type Kind } from "./worldLook";
@@ -54,8 +54,8 @@ const SKY_X = 0.64;
 
 export function createSchoolsScene(canvas: HTMLCanvasElement) {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: "high-performance" });
-  // Full resolution, and a tone curve that leaves the sky photo's colours as they are.
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  // The display's own resolution (to 3x), and a tone curve that leaves the sky photo's colours as they are.
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 3));
   renderer.toneMapping = THREE.NeutralToneMapping;
   renderer.toneMappingExposure = 1;
 
@@ -64,6 +64,7 @@ export function createSchoolsScene(canvas: HTMLCanvasElement) {
   let sky: THREE.Texture | null = null;
   new THREE.TextureLoader().load(SKY_PHOTO, (texture) => {
     texture.colorSpace = THREE.SRGBColorSpace;
+    texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
     sky = texture;
     if (lastInput) build(lastInput);
   });
@@ -158,23 +159,33 @@ export function createSchoolsScene(canvas: HTMLCanvasElement) {
     // Centre the scene in the part of the canvas the panel leaves open.
     const sx = narrow ? 0 : Math.max(0, Math.round((W - panelLeft + 24) / 2));
 
-    if (sky) {
-      // Cover the canvas the way Society covers its page.
-      const aspect = W / H;
-      sky.repeat.set(aspect > SKY_ASPECT ? 1 : aspect / SKY_ASPECT, aspect > SKY_ASPECT ? SKY_ASPECT / aspect : 1);
-      sky.offset.set((1 - sky.repeat.x) * SKY_X, (1 - sky.repeat.y) * 0.5);
-      scene.background = sky;
-      scene.backgroundIntensity = t.sky;
-    } else {
-      scene.background = NIGHT;
-    }
+    // Cover the canvas the way Society covers its page; the stars are drawn on top at full resolution.
+    const aspect = W / H;
+    const repeat = new THREE.Vector2(aspect > SKY_ASPECT ? 1 : aspect / SKY_ASPECT, aspect > SKY_ASPECT ? SKY_ASPECT / aspect : 1);
+    const backdrop = new THREE.Mesh(
+      new THREE.PlaneGeometry(2, 2),
+      new THREE.ShaderMaterial({
+        uniforms: {
+          uPhoto: { value: sky }, uHasPhoto: { value: sky ? 1 : 0 }, uSky: { value: t.sky }, uPR: { value: renderer.getPixelRatio() },
+          uRepeat: { value: repeat }, uOffset: { value: new THREE.Vector2((1 - repeat.x) * SKY_X, (1 - repeat.y) * 0.5) },
+          uNight: { value: NIGHT.clone() },
+        },
+        vertexShader: SKY_VERT,
+        fragmentShader: SKY_FRAG,
+        depthTest: false,
+        depthWrite: false,
+      })
+    );
+    backdrop.frustumCulled = false;
+    backdrop.renderOrder = -1;
+    scene.add(backdrop);
 
     const addWorld = (school: SpaceSchool, i: number, pos: THREE.Vector3, r: number, ring?: { tilt: number; yaw: number }) => {
       const kind = kindOf(school.id);
       const group = new THREE.Group();
       group.position.copy(pos);
       scene.add(group);
-      const body = new THREE.Mesh(new THREE.SphereGeometry(r, 128, 128), planetMaterial(kind, 1.7 + (hash(school.id) % 997) / 97, t));
+      const body = new THREE.Mesh(new THREE.SphereGeometry(r, 192, 192), planetMaterial(kind, 1.7 + (hash(school.id) % 997) / 97, t));
       body.rotation.set(0.2, (i * 1.7) % 6.28, -0.18);
       group.add(body);
       const air = airShell(r, kind);
@@ -306,7 +317,7 @@ export function createSchoolsScene(canvas: HTMLCanvasElement) {
 
     const pr = renderer.getPixelRatio();
     // Multisampled, so the edges of the worlds and the orbit lines stay crisp through the passes.
-    composer = new EffectComposer(renderer, new THREE.WebGLRenderTarget(W * pr, H * pr, { type: THREE.HalfFloatType, samples: pr < 1.5 ? 4 : 2 }));
+    composer = new EffectComposer(renderer, new THREE.WebGLRenderTarget(W * pr, H * pr, { type: THREE.HalfFloatType, samples: 4 }));
     composer.setPixelRatio(pr);
     composer.setSize(W, H);
     composer.addPass(new RenderPass(scene, camera));
