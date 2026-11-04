@@ -16,7 +16,7 @@ export type Look = {
   map: string;
   /** The map's 1st and 99th percentile brightness, so the blue tone spans its whole range. */
   levels: [number, number];
-  /** Its own colours, a little desaturated or tinted where a kind asks for it. */
+  /** Its own colours, muted the way a photograph through a long lens mutes them, or tinted where a kind asks for it. */
   saturation: number;
   tone: RGB;
   /** Dark, middle and light tones in the page's night blues (linear light), for the blue tone setting. */
@@ -41,42 +41,42 @@ export type Look = {
 
 export const LOOK: Record<Kind, Look> = {
   gas: {
-    map: "jupiter", levels: [0.475, 0.875], saturation: 0.85, tone: [1, 0.98, 0.95],
+    map: "jupiter", levels: [0.475, 0.875], saturation: 0.7, tone: [1, 0.98, 0.95],
     ramp: [[0.02, 0.045, 0.1], [0.17, 0.26, 0.42], [0.72, 0.79, 0.88]], chip: [[0.1, 0.07, 0.05], [0.48, 0.37, 0.27], [0.86, 0.79, 0.69]],
     rocky: 0, limb: 1, bump: 0, air: [0.55, 0.62, 0.8], airStrength: 0.5,
   },
   ringgas: {
-    map: "saturn", levels: [0.576, 0.937], saturation: 0.8, tone: [1, 0.97, 0.92],
+    map: "saturn", levels: [0.576, 0.937], saturation: 0.66, tone: [1, 0.97, 0.92],
     ramp: [[0.07, 0.1, 0.16], [0.32, 0.39, 0.5], [0.74, 0.78, 0.85]], chip: [[0.14, 0.11, 0.07], [0.58, 0.5, 0.37], [0.9, 0.85, 0.72]],
     rocky: 0, limb: 1, bump: 0, air: [0.6, 0.62, 0.72], airStrength: 0.45,
   },
   ice: {
-    map: "neptune", levels: [0.247, 0.525], saturation: 0.9, tone: [0.95, 1, 1.05],
+    map: "neptune", levels: [0.247, 0.525], saturation: 0.68, tone: [0.95, 1, 1.05],
     ramp: [[0.02, 0.05, 0.22], [0.08, 0.2, 0.62], [0.42, 0.6, 0.95]], chip: [[0.02, 0.05, 0.22], [0.08, 0.2, 0.62], [0.42, 0.6, 0.95]],
     rocky: 0, limb: 0.8, bump: 0, air: [0.3, 0.5, 1], airStrength: 0.8,
   },
   terran: {
-    map: "earth", levels: [0.227, 0.925], saturation: 0.92, tone: [0.97, 1, 1.03],
+    map: "earth", levels: [0.227, 0.925], saturation: 0.78, tone: [0.97, 1, 1.03],
     ramp: [[0.01, 0.03, 0.1], [0.1, 0.2, 0.36], [0.7, 0.76, 0.84]], chip: [[0.01, 0.03, 0.12], [0.08, 0.2, 0.38], [0.72, 0.78, 0.85]],
     rocky: 0, limb: 0.2, bump: 0, air: [0.28, 0.52, 1], airStrength: 1, clouds: "earth-clouds", gloss: 1, cities: 1,
   },
   ocean: {
-    map: "uranus", levels: [0.639, 0.863], saturation: 0.85, tone: [0.97, 1, 1],
+    map: "uranus", levels: [0.639, 0.863], saturation: 0.66, tone: [0.97, 1, 1],
     ramp: [[0.08, 0.2, 0.3], [0.26, 0.46, 0.6], [0.58, 0.76, 0.85]], chip: [[0.08, 0.22, 0.28], [0.32, 0.58, 0.64], [0.68, 0.86, 0.88]],
     rocky: 0, limb: 0.9, bump: 0, air: [0.4, 0.7, 0.85], airStrength: 0.7,
   },
   desert: {
-    map: "mars", levels: [0.216, 0.996], saturation: 0.82, tone: [1, 0.97, 0.95],
+    map: "mars", levels: [0.216, 0.996], saturation: 0.58, tone: [1, 0.97, 0.95],
     ramp: [[0.035, 0.05, 0.075], [0.22, 0.26, 0.33], [0.6, 0.64, 0.71]], chip: [[0.09, 0.04, 0.02], [0.42, 0.2, 0.1], [0.8, 0.56, 0.4]],
     rocky: 0.6, limb: 0, bump: 0.6, air: [0.7, 0.55, 0.45], airStrength: 0.3,
   },
   rock: {
-    map: "moon", levels: [0.286, 0.808], saturation: 0.6, tone: [1, 1, 1],
+    map: "moon", levels: [0.286, 0.808], saturation: 0.45, tone: [1, 1, 1],
     ramp: [[0.03, 0.035, 0.045], [0.28, 0.3, 0.34], [0.78, 0.8, 0.84]], chip: [[0.04, 0.04, 0.04], [0.3, 0.3, 0.29], [0.78, 0.77, 0.75]],
     rocky: 1, limb: 0, bump: 1, air: null,
   },
   lava: {
-    map: "mercury", levels: [0.341, 0.725], saturation: 0.7, tone: [1, 0.98, 0.95],
+    map: "mercury", levels: [0.341, 0.725], saturation: 0.5, tone: [1, 0.98, 0.95],
     ramp: [[0.025, 0.03, 0.045], [0.19, 0.22, 0.27], [0.56, 0.6, 0.67]], chip: [[0.04, 0.035, 0.03], [0.25, 0.23, 0.21], [0.62, 0.6, 0.57]],
     rocky: 1, limb: 0, bump: 1, air: null,
   },

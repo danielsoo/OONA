@@ -3,9 +3,10 @@ import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
+import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
 import { BokehPass } from "three/examples/jsm/postprocessing/BokehPass.js";
 import {
-  AIR_FRAG, AIR_VERT, DISC_FRAG, DISC_VERT, NOISE, PLANET_FRAG, PLANET_VERT,
+  AIR_FRAG, AIR_VERT, DISC_FRAG, DISC_VERT, LENS_FRAG, LENS_VERT, NOISE, PLANET_FRAG, PLANET_VERT,
   RING_FRAG, RING_PROFILE, RING_VERT, SKY_FRAG, SKY_VERT, STAR_FRAG, STAR_VERT,
 } from "./shaders";
 import type { SpaceTuning, SpaceView } from "./spaceTuning";
@@ -130,6 +131,7 @@ export function createSchoolsScene(canvas: HTMLCanvasElement) {
         uSaturation: { value: look.saturation },
         uTone: { value: new THREE.Vector3(...toneFor(id)) },
         uTint: { value: t.tint },
+        uBias: { value: t.soft * 1.3 },
         uLevels: { value: new THREE.Vector2(...look.levels) },
         uC: { value: rampFor(id).map((c) => new THREE.Vector3(...c)) },
         uRocky: { value: look.rocky },
@@ -388,7 +390,16 @@ export function createSchoolsScene(canvas: HTMLCanvasElement) {
         maxblur: 0.0018 * Math.min(2, t.depth),
       }));
     }
-    composer.addPass(new UnrealBloomPass(new THREE.Vector2(W, H), view === "open" ? 0.28 : 0.16, 0.4, 0.94));
+    if (t.soft > 0) {
+      composer.addPass(new ShaderPass({
+        uniforms: { tDiffuse: { value: null }, uTexel: { value: new THREE.Vector2(1 / (W * pr), 1 / (H * pr)) }, uRadius: { value: t.soft * 2.2 * pr } },
+        vertexShader: LENS_VERT,
+        fragmentShader: LENS_FRAG,
+      }));
+    }
+    // Halation: the sunlit limbs bleed a little light into the dark around them, as on film.
+    const glow = (view === "open" ? 0.24 : 0.18) * (0.35 + t.soft * 1.6);
+    composer.addPass(new UnrealBloomPass(new THREE.Vector2(W, H), glow, 0.55, 0.72 + (1 - t.soft) * 0.2));
     composer.addPass(new OutputPass());
 
     spinning = t.spin && !window.matchMedia("(prefers-reduced-motion: reduce)").matches;

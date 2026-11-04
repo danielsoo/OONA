@@ -55,7 +55,7 @@ export const PLANET_VERT = /* glsl */ `uniform vec3 uSun; varying vec2 vUv; vary
    the night side; and a night side that is truly dark. */
 export const PLANET_FRAG = /* glsl */ `
       uniform sampler2D uMap, uCloudMap; uniform float uHasMap, uHasClouds, uMirror, uFlip, uRocky, uLimb, uBump, uGloss, uCities, uSeed, uR;
-      uniform float uSaturation, uTint, uAirK; uniform vec3 uTone; uniform vec2 uLevels; uniform vec3 uC[3];
+      uniform float uSaturation, uTint, uAirK, uBias; uniform vec3 uTone; uniform vec2 uLevels; uniform vec3 uC[3];
       uniform vec3 uSun, uAtmo; uniform vec2 uFog; uniform float uSat, uNight, uHaze, uLift;
       uniform vec3 uRingN, uCenter; uniform vec2 uRingR;
       varying vec2 vUv; varying vec3 vO; varying vec3 vN; varying vec3 vW; varying vec3 vLo;
@@ -68,7 +68,7 @@ export const PLANET_FRAG = /* glsl */ `
       float luma(vec3 c){ return dot(c, vec3(.2126, .7152, .0722)); }
       void main(){
         vec2 uv = vec2(uMirror > .5 ? 1. - vUv.x : vUv.x, uFlip > .5 ? 1. - vUv.y : vUv.y);
-        vec3 tex = texture2D(uMap, uv).rgb;   // linear light
+        vec3 tex = texture2D(uMap, uv, uBias).rgb;   // linear light; read a touch soft, as a lens resolves it
         float lt = luma(tex);
         vec3 col = mix(vec3(lt), tex, uSaturation) * uTone;
         float level = clamp((pow(lt, 1. / 2.2) - uLevels.x) / (uLevels.y - uLevels.x), 0., 1.);
@@ -78,7 +78,7 @@ export const PLANET_FRAG = /* glsl */ `
         vec3 N = normalize(vN); vec3 L = normalize(uSun); vec3 V = normalize(cameraPosition - vW);
         if (uBump > 0. && uHasMap > .5) {
           vec2 dx = dFdx(uv), dy = dFdy(uv);
-          vec2 dH = vec2(luma(texture2D(uMap, uv + dx).rgb) - lt, luma(texture2D(uMap, uv + dy).rgb) - lt);
+          vec2 dH = vec2(luma(texture2D(uMap, uv + dx, uBias).rgb) - lt, luma(texture2D(uMap, uv + dy, uBias).rgb) - lt);
           N = bumped(vW, N, dH * uBump * uR * .02);
         }
         float ndl = dot(N, L), mu0 = max(ndl, 0.), mu = max(dot(N, V), 1e-3);
@@ -95,7 +95,7 @@ export const PLANET_FRAG = /* glsl */ `
         if (uGloss > 0. && uHasMap > .5) {   // open water: darker, with the sun's glint
           water = smoothstep(.03, .1, tex.b - max(tex.r, tex.g)) * (1. - smoothstep(.3, .6, tex.r)) * uGloss;
           vec3 H = normalize(L + V);
-          lit += water * (pow(max(dot(N, H), 0.), 420.) * .8 + pow(max(dot(N, H), 0.), 30.) * .05) * mu0 * sunC;
+          lit += water * (pow(max(dot(N, H), 0.), 140.) * .22 + pow(max(dot(N, H), 0.), 24.) * .05) * mu0 * sunC;
         }
         float cloud = 0.;
         if (uHasClouds > .5) {
@@ -105,8 +105,8 @@ export const PLANET_FRAG = /* glsl */ `
           vec3 Lo = normalize(vLo);
           vec2 cuv = vUv + vec2(fract(uSeed * .37), 0.);
           vec2 off = vec2(dot(Lo, east) / (6.2832 * st), dot(Lo, north) / 3.1416) * .01;
-          cloud = texture2D(uCloudMap, cuv).r;
-          float shade = texture2D(uCloudMap, cuv + off).r;
+          cloud = texture2D(uCloudMap, cuv, uBias).r;
+          float shade = texture2D(uCloudMap, cuv + off, uBias + 1.).r;
           lit *= 1. - .6 * shade * smoothstep(-.1, .2, ndl);
           float cl = clamp((ndl + .1) / 1.1, 0., 1.);
           lit = mix(lit, vec3(.95, .96, .98) * cl * sunAtGround, cloud);
@@ -195,4 +195,18 @@ void main(){
     col = max(col, photo * uSky);
   }
   gl_FragColor = vec4(col, 1.);
+}`;
+
+/* A camera's softness over the whole frame: a small optical blur (a nine-tap kernel, its radius
+   in device pixels), so the worlds' edges sit in the image the way a lens draws them rather than
+   cut out and laid on top. */
+export const LENS_VERT = /* glsl */ `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.); }`;
+
+export const LENS_FRAG = /* glsl */ `uniform sampler2D tDiffuse; uniform vec2 uTexel; uniform float uRadius; varying vec2 vUv;
+void main(){
+  vec2 o = uTexel * uRadius;
+  vec4 c = texture2D(tDiffuse, vUv) * .36;
+  c += (texture2D(tDiffuse, vUv + vec2(o.x, 0.)) + texture2D(tDiffuse, vUv - vec2(o.x, 0.)) + texture2D(tDiffuse, vUv + vec2(0., o.y)) + texture2D(tDiffuse, vUv - vec2(0., o.y))) * .11;
+  c += (texture2D(tDiffuse, vUv + o) + texture2D(tDiffuse, vUv - o) + texture2D(tDiffuse, vUv + vec2(o.x, -o.y)) + texture2D(tDiffuse, vUv + vec2(-o.x, o.y))) * .05;
+  gl_FragColor = c;
 }`;

@@ -16,10 +16,12 @@ export type SpaceTuning = {
   brightness: number;
   /** How far the worlds lean from their own colours toward the page's night blues. */
   tint: number;
+  /** A camera's softness: 0 is a clean render, 1 a long lens through a little haze. */
+  soft: number;
   spin: boolean;
 };
 
 export const DEFAULT_TUNING: Record<SpaceView, SpaceTuning> = {
-  level: { cameraHeight: 20, size: 1, depth: 0, haze: 0.4, sky: 0.9, night: 1, brightness: 1, tint: 0, spin: true },
-  open: { cameraHeight: 20, size: 1, depth: 0, haze: 0.4, sky: 0.9, night: 1, brightness: 1, tint: 0, spin: true },
+  level: { cameraHeight: 20, size: 1, depth: 0, haze: 0.4, sky: 0.9, night: 1, brightness: 1, tint: 0, soft: 0.5, spin: true },
+  open: { cameraHeight: 20, size: 1, depth: 0, haze: 0.4, sky: 0.9, night: 1, brightness: 1, tint: 0, soft: 0.5, spin: true },
 };

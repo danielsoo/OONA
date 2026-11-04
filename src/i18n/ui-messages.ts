@@ -108,6 +108,10 @@ export const uiMessages: Record<string, readonly [string, string]> = {
     "행성 크기",
     "惑星のサイズ"
   ],
+  "lens softness": [
+    "렌즈 부드러움",
+    "レンズの柔らかさ"
+  ],
   "blue tone": [
     "파란 톤",
     "ブルートーン"
