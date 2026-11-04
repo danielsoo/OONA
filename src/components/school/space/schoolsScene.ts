@@ -159,14 +159,14 @@ export function createSchoolsScene(canvas: HTMLCanvasElement) {
     // Centre the scene in the part of the canvas the panel leaves open.
     const sx = narrow ? 0 : Math.max(0, Math.round((W - panelLeft + 24) / 2));
 
-    // Cover the canvas the way Society covers its page; the stars are drawn on top at full resolution.
+    // Cover the canvas the way Society covers its page.
     const aspect = W / H;
     const repeat = new THREE.Vector2(aspect > SKY_ASPECT ? 1 : aspect / SKY_ASPECT, aspect > SKY_ASPECT ? SKY_ASPECT / aspect : 1);
     const backdrop = new THREE.Mesh(
       new THREE.PlaneGeometry(2, 2),
       new THREE.ShaderMaterial({
         uniforms: {
-          uPhoto: { value: sky }, uHasPhoto: { value: sky ? 1 : 0 }, uSky: { value: t.sky }, uPR: { value: renderer.getPixelRatio() },
+          uPhoto: { value: sky }, uHasPhoto: { value: sky ? 1 : 0 }, uSky: { value: t.sky },
           uRepeat: { value: repeat }, uOffset: { value: new THREE.Vector2((1 - repeat.x) * SKY_X, (1 - repeat.y) * 0.5) },
           uNight: { value: NIGHT.clone() },
         },

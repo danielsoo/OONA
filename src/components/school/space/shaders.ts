@@ -173,42 +173,17 @@ export const STAR_VERT = /* glsl */ `varying vec3 vN; void main(){ vN = normaliz
 export const STAR_FRAG = /* glsl */ `varying vec3 vN; void main(){ float mu = max(vN.z, 0.); vec3 c = vec3(.86, .93, 1.) * (.35 + .5 * pow(mu, .55)); gl_FragColor = vec4(c * .95, 1.); }`;
 
 
-/* The sky behind the worlds: Society's photo for the nebula, read a little soft so its own
-   (upscaled, blurry) stars melt away, and a field of stars drawn here at the screen's own
-   resolution, so the points stay sharp on any display. */
+/* The sky behind the worlds: Society's photo for the nebula, read soft so its own
+   (upscaled, blurry) stars melt away and only the glow is left. No stars of its own. */
 export const SKY_VERT = /* glsl */ `varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 1., 1.); }`;
 
-export const SKY_FRAG = /* glsl */ `uniform sampler2D uPhoto; uniform float uHasPhoto, uSky, uPR; uniform vec2 uRepeat, uOffset; uniform vec3 uNight;
+export const SKY_FRAG = /* glsl */ `uniform sampler2D uPhoto; uniform float uHasPhoto, uSky; uniform vec2 uRepeat, uOffset; uniform vec3 uNight;
 varying vec2 vUv;
-float h21(vec2 p){ p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
-vec2 h22(vec2 p){ float n = h21(p); return vec2(n, h21(p + n + 17.17)); }
-// One layer of stars: a cell grid in CSS pixels, at most one star per cell, drawn by distance in device pixels.
-vec3 stars(vec2 css, float cell, float chance, float size, float glow){
-  vec2 id = floor(css / cell), f = css - id * cell;
-  vec3 c = vec3(0.);
-  for (int y = -1; y <= 1; y++) for (int x = -1; x <= 1; x++) {
-    vec2 g = id + vec2(x, y);
-    if (h21(g + 3.1) > chance) continue;
-    vec2 at = (vec2(x, y) + h22(g)) * cell;
-    float d = length(f - at) * uPR;                         // device pixels
-    float r = size * uPR * (.45 + .9 * h21(g + 9.7));
-    float b = .35 + .65 * pow(h21(g + 5.3), 3.);
-    float core = smoothstep(r + .9, r - .4, d);
-    float halo = glow * exp(-d / (r * 3.2 + 1.));
-    float t = h21(g + 1.9);
-    vec3 tint = t < .25 ? vec3(.72, .84, 1.) : t < .85 ? vec3(.93, .96, 1.) : vec3(1., .93, .84);
-    c += tint * b * (core + halo * .35);
-  }
-  return c;
-}
 void main(){
   vec3 col = uNight;
   if (uHasPhoto > .5) {
     vec3 photo = texture2D(uPhoto, vUv * uRepeat + uOffset, 1.6).rgb;
     col = max(col, photo * uSky);
   }
-  vec2 css = gl_FragCoord.xy / uPR;
-  vec3 s = stars(css, 11., .16, .5, 0.) * .55 + stars(css + 400., 37., .42, .75, .3) * .9 + stars(css + 900., 160., .5, 1.15, 1.);
-  col += s * (.55 + .45 * uSky);
   gl_FragColor = vec4(col, 1.);
 }`;
