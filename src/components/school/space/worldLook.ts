@@ -1,35 +1,53 @@
 /**
- * What each school's world looks like: its kind and colours. Kept apart from
- * three.js so the ranking can show the same world as a small chip without
- * loading the scene.
+ * What each school's world looks like. Every world is a real planetary
+ * surface map (Solar System Scope, CC BY 4.0, from NASA data), recoloured
+ * into the page's night blues, and lit the way that kind of body is lit.
+ * Kept apart from three.js so the ranking can show the same world as a small
+ * chip without loading the scene.
  */
 
 export type Kind = "gas" | "ringgas" | "ice" | "terran" | "desert" | "rock" | "lava" | "ocean" | "frozen";
 
-export const PAL: Record<Kind, [number, number, number][]> = {
-  gas: [[0.04, 0.10, 0.27], [0.16, 0.33, 0.60], [0.60, 0.74, 0.90], [0.86, 0.93, 0.99]],
-  ringgas: [[0.10, 0.19, 0.38], [0.30, 0.47, 0.70], [0.70, 0.80, 0.91], [0.18, 0.29, 0.52]],
-  ice: [[0.05, 0.16, 0.50], [0.11, 0.30, 0.72], [0.45, 0.65, 0.92], [0.03, 0.09, 0.32]],
-  terran: [[0.01, 0.04, 0.14], [0.20, 0.27, 0.36], [0.52, 0.60, 0.69], [0.84, 0.88, 0.92]],
-  desert: [[0.11, 0.17, 0.27], [0.27, 0.37, 0.51], [0.50, 0.60, 0.72], [0.07, 0.11, 0.19]],
-  rock: [[0.13, 0.15, 0.19], [0.29, 0.33, 0.39], [0.51, 0.55, 0.61], [0.09, 0.10, 0.13]],
-  lava: [[0.03, 0.04, 0.06], [0.08, 0.10, 0.14], [0.18, 0.21, 0.27], [0.30, 0.68, 1.00]],
-  ocean: [[0.01, 0.05, 0.16], [0.03, 0.14, 0.30], [0.10, 0.30, 0.45], [0.80, 0.85, 0.90]],
-  frozen: [[0.52, 0.63, 0.77], [0.72, 0.83, 0.92], [0.90, 0.95, 0.99], [0.33, 0.53, 0.77]],
+type RGB = [number, number, number];
+
+export type Look = {
+  /** The surface map, under /images/schools/worlds. */
+  map: string;
+  /** Natural colour maps are kept in colour (and cooled); the rest are greyscale, mapped onto `ramp`. */
+  natural?: boolean;
+  /** Dark, middle and light tones of the surface, in linear light. Also the chip in the ranking. */
+  ramp: [RGB, RGB, RGB];
+  /** 1 for airless rock (a full moon stays bright out to its edge), 0 for a world wrapped in gas. */
+  rocky: number;
+  /** How much the limb darkens, as it does on a gas giant. */
+  limb: number;
+  /** Relief read from the map, raking across craters near the terminator. */
+  bump: number;
+  /** The colour of its air at the limb, if it has any. */
+  air: RGB | null;
+  clouds?: number;
+  /** Sun glint off open water. */
+  gloss?: number;
 };
-export const AIR: Record<Kind, [number, number, number] | null> = {
-  gas: [0.45, 0.65, 1.0], ringgas: [0.55, 0.72, 1.0], ice: [0.35, 0.6, 1.0], terran: [0.35, 0.6, 1.0], desert: [0.5, 0.65, 0.95],
-  rock: null, lava: [0.35, 0.65, 1.0], ocean: [0.4, 0.68, 1.0], frozen: [0.65, 0.82, 1.0],
+
+export const LOOK: Record<Kind, Look> = {
+  gas: { map: "jupiter", ramp: [[0.02, 0.045, 0.1], [0.17, 0.26, 0.42], [0.72, 0.79, 0.88]], rocky: 0, limb: 1, bump: 0, air: [0.22, 0.36, 0.7] },
+  ringgas: { map: "saturn", ramp: [[0.07, 0.1, 0.16], [0.32, 0.39, 0.5], [0.74, 0.78, 0.85]], rocky: 0, limb: 1, bump: 0, air: [0.25, 0.38, 0.68] },
+  ice: { map: "neptune", natural: true, ramp: [[0.02, 0.05, 0.22], [0.08, 0.2, 0.62], [0.42, 0.6, 0.95]], rocky: 0, limb: 0.8, bump: 0, air: [0.28, 0.48, 1] },
+  terran: { map: "earth", natural: true, ramp: [[0.01, 0.03, 0.1], [0.1, 0.2, 0.36], [0.7, 0.76, 0.84]], rocky: 0, limb: 0.25, bump: 0, air: [0.3, 0.55, 1], clouds: 1, gloss: 1 },
+  ocean: { map: "uranus", ramp: [[0.08, 0.2, 0.3], [0.26, 0.46, 0.6], [0.58, 0.76, 0.85]], rocky: 0, limb: 0.9, bump: 0, air: [0.35, 0.62, 0.85] },
+  desert: { map: "mars", ramp: [[0.035, 0.05, 0.075], [0.22, 0.26, 0.33], [0.6, 0.64, 0.71]], rocky: 0.6, limb: 0, bump: 0.6, air: [0.3, 0.42, 0.62] },
+  rock: { map: "moon", ramp: [[0.03, 0.035, 0.045], [0.28, 0.3, 0.34], [0.78, 0.8, 0.84]], rocky: 1, limb: 0, bump: 1, air: null },
+  lava: { map: "mercury", ramp: [[0.025, 0.03, 0.045], [0.19, 0.22, 0.27], [0.56, 0.6, 0.67]], rocky: 1, limb: 0, bump: 1, air: null },
+  frozen: { map: "venus", ramp: [[0.13, 0.18, 0.25], [0.44, 0.52, 0.62], [0.8, 0.85, 0.91]], rocky: 0.8, limb: 0, bump: 0.5, air: [0.45, 0.62, 0.9] },
 };
-export const SHADER_KIND: Record<Kind, number> = { gas: 0, ringgas: 0, ice: 1, terran: 2, desert: 3, rock: 4, lava: 5, ocean: 6, frozen: 7 };
-export const RELIEF: Partial<Record<Kind, number>> = { rock: 1, desert: 0.9, terran: 0.45, ocean: 0.3, frozen: 0.7, lava: 0.7 };
 
 /** The schools we know get the world that suits them; the rest one picked from their id. */
 const KIND_BY_ID: Record<string, Kind> = {
   "penn-state": "ringgas", snu: "gas", ucla: "terran", pku: "desert", nyu: "ice", tokyo: "ringgas", tsinghua: "ocean",
-  berkeley: "desert", toronto: "frozen", melbourne: "terran", oxford: "rock", nus: "lava", sydney: "desert", mit: "ice", mcgill: "rock",
+  berkeley: "desert", toronto: "frozen", melbourne: "gas", oxford: "rock", nus: "lava", sydney: "desert", mit: "ice", mcgill: "rock",
 };
-const KINDS_FOR_OTHERS: Kind[] = ["rock", "frozen", "desert", "ice", "rock", "frozen", "terran", "lava"];
+const KINDS_FOR_OTHERS: Kind[] = ["rock", "frozen", "desert", "lava", "rock", "frozen", "ocean", "lava"];
 
 export function hash(text: string): number {
   let h = 2166136261;
@@ -39,10 +57,19 @@ export function hash(text: string): number {
 
 export const kindOf = (id: string): Kind => KIND_BY_ID[id] ?? KINDS_FOR_OTHERS[hash(id) % KINDS_FOR_OTHERS.length]!;
 
-const rgb = (c: [number, number, number]) => `rgb(${c.map((v) => Math.round(Math.min(1, v) * 255)).join(",")})`;
+/** Two worlds of the same kind still differ a little: a touch lighter or darker, a touch greener or bluer. */
+export function rampFor(id: string): [RGB, RGB, RGB] {
+  const h = hash(id + "#tone");
+  const light = 0.9 + ((h % 1000) / 1000) * 0.22;
+  const cool = (((h >>> 10) % 1000) / 1000 - 0.5) * 0.12;
+  return LOOK[kindOf(id)].ramp.map(([r, g, b]) => [r * light * (1 - cool), g * light, b * light * (1 + cool)] as RGB) as [RGB, RGB, RGB];
+}
+
+const srgb = (v: number) => Math.round(255 * Math.min(1, v <= 0.0031308 ? v * 12.92 : 1.055 * Math.pow(v, 1 / 2.4) - 0.055));
+const css = (c: RGB) => `rgb(${c.map(srgb).join(",")})`;
 
 /** A world as a small lit chip, for the ranking and the size key. */
 export function worldSwatch(id: string): string {
-  const [deep, mid, light] = PAL[kindOf(id)];
-  return `radial-gradient(circle at 34% 30%, ${rgb(light!)}, ${rgb(mid!)} 42%, ${rgb(deep!)} 74%, #02060c 100%)`;
+  const [deep, mid, light] = rampFor(id);
+  return `radial-gradient(circle at 34% 30%, ${css(light)}, ${css(mid)} 40%, ${css(deep)} 72%, #02060c 100%)`;
 }

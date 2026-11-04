@@ -593,6 +593,13 @@ export default function NorthreachMapPage() {
             <div className="legend-line"><i className="legend-orb orb-lg" /><span>1.0K – 2.0K</span></div>
             <div className="legend-line"><i className="legend-orb orb-md" /><span>500 – 1.0K</span></div>
             <div className="legend-line"><i className="legend-orb orb-sm" /><span>&lt; 500</span></div>
+            {ACTIVE_MAP_MODE === "space" ? (
+              <small className="space-credit">
+                <UiText text={"Planet surfaces"} />{" "}
+                <a href="https://www.solarsystemscope.com/textures/" target="_blank" rel="noreferrer">Solar System Scope</a>{" "}
+                <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">(CC BY 4.0)</a>
+              </small>
+            ) : null}
           </aside>
         </section>
 

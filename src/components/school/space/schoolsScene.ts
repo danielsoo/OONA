@@ -6,17 +6,18 @@ import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
 import { BokehPass } from "three/examples/jsm/postprocessing/BokehPass.js";
 import {
   AIR_FRAG, AIR_VERT, DISC_FRAG, DISC_VERT, NOISE, PLANET_FRAG, PLANET_VERT,
-  RING_FRAG, RING_VERT, SKY_FRAG, SKY_VERT, STAR_FRAG, STAR_VERT,
+  RING_FRAG, RING_PROFILE, RING_VERT, SKY_FRAG, SKY_VERT, STAR_FRAG, STAR_VERT,
 } from "./shaders";
 import type { SpaceTuning, SpaceView } from "./spaceTuning";
-import { AIR, PAL, RELIEF, SHADER_KIND, hash, kindOf, type Kind } from "./worldLook";
+import { LOOK, hash, kindOf, rampFor } from "./worldLook";
 
 export type { SpaceTuning, SpaceView } from "./spaceTuning";
 
 /**
  * The schools space: every school a world, its size what its students have
- * made, all of them in shades of blue and told apart by what is on them —
- * cloud bands, storms, oceans, craters, ice, glowing fissures.
+ * made. Each world wears a real planetary surface (worldLook.ts), recoloured
+ * into the page's night blues and lit by one sun the way that kind of body
+ * is lit, so the system reads as photographed rather than drawn.
  *
  * Two views. "level" sits nearly in the plane of the system, so the orbits lie
  * flat and perspective carries the depth; "open" looks out into open space,
@@ -35,7 +36,7 @@ export type SpaceFrame = { worlds: ProjectedWorld[]; star: { x: number; y: numbe
 const OPEN_SPOTS = [[0.12, 0.42], [-0.28, 0.6], [0.33, -0.12], [-0.05, 0.12], [0.3, 0.62], [-0.42, 0.3], [0.18, -0.45], [-0.15, 0.82], [0.02, -0.2], [0.4, 0.25], [-0.22, 0.38], [0.1, 0.72], [0.38, -0.62], [-0.4, 0.82], [0.22, 0.1], [-0.8, 0.12], [-0.72, -0.4], [-0.48, 0.55], [-0.2, -0.66], [0.25, 0.32]];
 const OPEN_SPOTS_NARROW = [[0.45, 0.62], [-0.35, 0.72], [0.55, 0.3], [-0.05, 0.42], [0.1, 0.82], [0.2, 0.18], [0.75, 0.78], [-0.3, 0.3], [0.3, 0.48], [-0.72, 0.82], [0.8, 0.12], [-0.45, 0.55], [0.82, 0.5], [0.0, 0.65], [0.55, 0.12], [0.4, 0.9], [-0.15, 0.58], [0.7, 0.4], [-0.6, 0.66], [0.25, 0.7]];
 
-type World = { id: string; rank: number; r: number; group: THREE.Group; body: THREE.Mesh<THREE.SphereGeometry, THREE.ShaderMaterial> };
+type World = { id: string; rank: number; r: number; map: string; group: THREE.Group; body: THREE.Mesh<THREE.SphereGeometry, THREE.ShaderMaterial> };
 
 export type BuildInput = {
   schools: SpaceSchool[];
@@ -51,6 +52,7 @@ const SKY_PHOTO = "/images/society/society_space.webp";
 const SKY_ASPECT = 1915 / 821;
 /** Where the photo is anchored when the screen crops it (Society's own framing). */
 const SKY_X = 0.64;
+const WORLD_MAPS = "/images/schools/worlds/";
 
 export function createSchoolsScene(canvas: HTMLCanvasElement) {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: "high-performance" });
@@ -69,6 +71,26 @@ export function createSchoolsScene(canvas: HTMLCanvasElement) {
     if (lastInput) build(lastInput);
   });
   let lastInput: BuildInput | null = null;
+
+  // The surface maps, fetched the first time a world needs one; worlds already built pick it up when it lands.
+  const maps = new Map<string, THREE.Texture | null>();
+  const mapFor = (name: string, natural: boolean) => {
+    if (maps.has(name)) return maps.get(name) ?? null;
+    maps.set(name, null);
+    new THREE.TextureLoader().load(`${WORLD_MAPS}${name}.webp`, (texture) => {
+      texture.colorSpace = natural ? THREE.SRGBColorSpace : THREE.NoColorSpace;
+      texture.wrapS = THREE.RepeatWrapping;
+      texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+      maps.set(name, texture);
+      for (const world of worlds) {
+        if (world.map !== name) continue;
+        world.body.material.uniforms.uMap!.value = texture;
+        world.body.material.uniforms.uHasMap!.value = 1;
+      }
+      render();
+    });
+    return null;
+  };
 
   let scene = new THREE.Scene();
   let camera = new THREE.PerspectiveCamera(42, 1, 0.1, 20000);
@@ -90,32 +112,46 @@ export function createSchoolsScene(canvas: HTMLCanvasElement) {
     composer?.dispose();
   };
 
-  const planetMaterial = (kind: Kind, seed: number, t: SpaceTuning) =>
-    new THREE.ShaderMaterial({
+  const planetMaterial = (id: string, r: number, t: SpaceTuning) => {
+    const look = LOOK[kindOf(id)];
+    const map = mapFor(look.map, !!look.natural);
+    return new THREE.ShaderMaterial({
       uniforms: {
-        uC: { value: PAL[kind].map((c) => new THREE.Vector3(...c)) },
-        uKind: { value: SHADER_KIND[kind] },
-        uSeed: { value: seed },
+        uMap: { value: map },
+        uHasMap: { value: map ? 1 : 0 },
+        uNatural: { value: look.natural ? 1 : 0 },
+        uMirror: { value: look.natural && look.clouds ? 1 : hash(id + "#mirror") % 2 },
+        // An Earth-like world is turned over too, so its continents read as a world of its own rather than ours.
+        uFlip: { value: look.natural && look.clouds ? 1 : 0 },
+        uC: { value: rampFor(id).map((c) => new THREE.Vector3(...c)) },
+        uRocky: { value: look.rocky },
+        uLimb: { value: look.limb },
+        uBump: { value: look.bump },
+        uGloss: { value: look.gloss ?? 0 },
+        uClouds: { value: look.clouds ?? 0 },
+        uSeed: { value: 1.7 + (hash(id) % 997) / 97 },
+        uR: { value: r },
         uSun: { value: new THREE.Vector3() },
-        uAtmo: { value: new THREE.Vector3(...(AIR[kind] ?? [0, 0, 0])) },
+        uAtmo: { value: new THREE.Vector3(...(look.air ?? [0, 0, 0])) },
         uSat: { value: 1 },
-        uCity: { value: kind === "terran" ? 1 : 0 },
-        uBump: { value: RELIEF[kind] ?? 0 },
-        uRot: { value: new THREE.Matrix3() },
         uFog: { value: new THREE.Vector2(1e5, 2e5) },
         uNight: { value: t.night },
         uHaze: { value: t.haze },
         uLift: { value: t.brightness },
+        uRingN: { value: new THREE.Vector3(0, 1, 0) },
+        uCenter: { value: new THREE.Vector3() },
+        uRingR: { value: new THREE.Vector2(0, 0) },
       },
       vertexShader: PLANET_VERT,
-      fragmentShader: NOISE + PLANET_FRAG,
+      fragmentShader: NOISE + RING_PROFILE + PLANET_FRAG,
     });
+  };
 
-  const airShell = (r: number, kind: Kind) => {
-    const color = AIR[kind];
-    if (!color) return null;
+  const airShell = (r: number, id: string) => {
+    const look = LOOK[kindOf(id)];
+    if (!look.air) return null;
     const material = new THREE.ShaderMaterial({
-      uniforms: { uCol: { value: new THREE.Vector3(...color) }, uSun: { value: new THREE.Vector3() }, uSat: { value: 1 } },
+      uniforms: { uCol: { value: new THREE.Vector3(...look.air) }, uSun: { value: new THREE.Vector3() }, uSat: { value: 1 }, uK: { value: look.rocky > 0 ? 0.45 : 0.6 } },
       vertexShader: AIR_VERT,
       fragmentShader: AIR_FRAG,
       side: THREE.BackSide,
@@ -123,7 +159,7 @@ export function createSchoolsScene(canvas: HTMLCanvasElement) {
       blending: THREE.AdditiveBlending,
       depthWrite: false,
     });
-    return new THREE.Mesh(new THREE.SphereGeometry(r * 1.035, 96, 96), material);
+    return new THREE.Mesh(new THREE.SphereGeometry(r * (look.rocky > 0 ? 1.018 : 1.03), 96, 96), material);
   };
 
   const ringBand = (r: number, center: THREE.Vector3) => {
@@ -131,7 +167,7 @@ export function createSchoolsScene(canvas: HTMLCanvasElement) {
     const material = new THREE.ShaderMaterial({
       uniforms: { uIn: { value: inner }, uOut: { value: outer }, uSun: { value: new THREE.Vector3() }, uC: { value: center.clone() }, uR: { value: r }, uSat: { value: 1 } },
       vertexShader: RING_VERT,
-      fragmentShader: NOISE + RING_FRAG,
+      fragmentShader: NOISE + RING_PROFILE + RING_FRAG,
       side: THREE.DoubleSide,
       transparent: true,
       depthWrite: false,
@@ -185,18 +221,30 @@ export function createSchoolsScene(canvas: HTMLCanvasElement) {
       const group = new THREE.Group();
       group.position.copy(pos);
       scene.add(group);
-      const body = new THREE.Mesh(new THREE.SphereGeometry(r, 192, 192), planetMaterial(kind, 1.7 + (hash(school.id) % 997) / 97, t));
-      body.rotation.set(0.2, (i * 1.7) % 6.28, -0.18);
-      group.add(body);
-      const air = airShell(r, kind);
+      // Each world turns about its own tilted axis; a ringed one about the axis its rings circle.
+      const axis = new THREE.Group();
+      group.add(axis);
+      const body = new THREE.Mesh(new THREE.SphereGeometry(r, 192, 192), planetMaterial(school.id, r, t));
+      body.rotation.y = (i * 1.7 + (hash(school.id) % 628) / 100) % 6.28;
+      axis.add(body);
+      const air = airShell(r, school.id);
       if (air) group.add(air);
       if (kind === "ringgas" && ring) {
         const band = ringBand(r, pos);
         band.rotation.x = Math.PI / 2 - ring.tilt;
         band.rotation.y = ring.yaw;
         group.add(band);
+        const normal = new THREE.Vector3(0, 0, 1).applyEuler(band.rotation).normalize();
+        axis.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), normal);
+        const u = body.material.uniforms;
+        u.uRingN!.value.copy(normal);
+        u.uCenter!.value.copy(pos);
+        u.uRingR!.value.set(r * 1.28, r * 2.35);
+      } else {
+        const h = hash(school.id + "#axis");
+        axis.rotation.set(((h % 100) / 100 - 0.5) * 0.5, 0, (((h >>> 8) % 100) / 100 - 0.5) * 0.6);
       }
-      worlds.push({ id: school.id, rank: i + 1, r, group, body });
+      worlds.push({ id: school.id, rank: i + 1, r, map: LOOK[kind].map, group, body });
     };
 
     let sunDir: (pos: THREE.Vector3) => THREE.Vector3;
@@ -224,7 +272,7 @@ export function createSchoolsScene(canvas: HTMLCanvasElement) {
         const dist = Math.min(110 + k * 48 + k * k * 4, 5200);
         addWorld(school, i, at(spot[0]!, spot[1]!, dist), radiusOf(school.value) * (2.2 + k * 0.08), { tilt: 0.42, yaw: 0.12 });
       });
-      const sun = new THREE.Vector3(0.86, 0.42, -0.22).normalize();
+      const sun = new THREE.Vector3(0.84, 0.42, -0.08).normalize();
       sunDir = () => sun.clone();
       fog = new THREE.Vector2(220, 1500);
     } else {
@@ -236,7 +284,7 @@ export function createSchoolsScene(canvas: HTMLCanvasElement) {
       camera.updateMatrixWorld();
       camera.updateProjectionMatrix();
 
-      const starMesh = new THREE.Mesh(new THREE.SphereGeometry(2, 64, 64), new THREE.ShaderMaterial({ vertexShader: STAR_VERT, fragmentShader: STAR_FRAG }));
+      const starMesh = new THREE.Mesh(new THREE.SphereGeometry(0.65, 48, 48), new THREE.ShaderMaterial({ vertexShader: STAR_VERT, fragmentShader: STAR_FRAG }));
       scene.add(starMesh);
       star = new THREE.Vector3();
 
@@ -298,20 +346,20 @@ export function createSchoolsScene(canvas: HTMLCanvasElement) {
       dust.rotation.x = -Math.PI / 2;
       scene.add(dust);
 
-      sunDir = (pos) => pos.clone().negate().normalize().add(camera.position.clone().sub(pos).normalize().multiplyScalar(0.75)).normalize();
+      // Lit from the star at the centre, with a key from the upper left and front, so every world shows a phase and its shape.
+      const key = new THREE.Vector3(-0.35, 0.45, 0.8).normalize();
+      sunDir = (pos) => pos.clone().negate().normalize().multiplyScalar(0.7).add(key.clone().multiplyScalar(0.8)).normalize();
       fog = narrow ? new THREE.Vector2(250, 520) : new THREE.Vector2(190, 420);
     }
 
     for (const world of worlds) {
-      world.body.updateMatrixWorld(true);
       const u = world.body.material.uniforms;
-      u.uRot!.value.setFromMatrix4(world.body.matrixWorld);
       u.uFog!.value.copy(fog);
       const light = sunDir(world.group.position);
       u.uSun!.value.copy(light);
       for (const child of world.group.children) {
         const m = (child as THREE.Mesh).material as THREE.ShaderMaterial;
-        if (m !== world.body.material && m.uniforms?.uSun) m.uniforms.uSun.value.copy(light);
+        if (m && m !== world.body.material && m.uniforms?.uSun) m.uniforms.uSun.value.copy(light);
       }
     }
 
@@ -362,11 +410,7 @@ export function createSchoolsScene(canvas: HTMLCanvasElement) {
     if (last && now - last < 32) return true;
     const dt = last ? Math.min(0.1, (now - last) / 1000) : 0;
     last = now;
-    for (const world of worlds) {
-      world.body.rotation.y += dt * 0.035;
-      world.body.updateMatrixWorld(true);
-      world.body.material.uniforms.uRot!.value.setFromMatrix4(world.body.matrixWorld);
-    }
+    for (const world of worlds) world.body.rotation.y += dt * 0.035;
     render();
     return true;
   }
@@ -382,6 +426,7 @@ export function createSchoolsScene(canvas: HTMLCanvasElement) {
   function dispose() {
     lastInput = null;
     sky?.dispose();
+    maps.forEach((texture) => texture?.dispose());
     disposeScene();
     renderer.dispose();
   }

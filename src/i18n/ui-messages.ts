@@ -108,6 +108,10 @@ export const uiMessages: Record<string, readonly [string, string]> = {
     "행성 크기",
     "惑星のサイズ"
   ],
+  "planet surfaces": [
+    "행성 표면 이미지",
+    "惑星の表面画像"
+  ],
   "depth of field": [
     "피사계 심도",
     "被写界深度"

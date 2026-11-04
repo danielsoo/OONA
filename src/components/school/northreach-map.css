@@ -967,6 +967,10 @@
 .nr .space-legend .orb-md { width: 19px; height: 19px; margin-left: 7.5px; }
 .nr .space-legend .orb-sm { width: 12px; height: 12px; margin-left: 11px; }
 .nr .space-legend .legend-line { height: 30px; }
+/* The planet maps are Solar System Scope's, under CC BY 4.0, which asks for this credit. */
+.nr .space-credit { display: block; margin-top: 8px; color: rgba(170, 194, 222, 0.5); font-size: 10px; line-height: 1.4; letter-spacing: 0.01em; }
+.nr .space-credit a { white-space: nowrap; color: inherit; text-decoration: underline; text-decoration-color: rgba(170, 194, 222, 0.3); text-underline-offset: 2px; }
+.nr .space-credit a:hover { color: #cfe3f7; }
 
 @media (max-width: 960px) {
   .nr-space .map-panel { min-height: clamp(560px, 82svh, 720px); }
