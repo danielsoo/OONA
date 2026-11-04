@@ -9,15 +9,16 @@ import {
   RING_FRAG, RING_PROFILE, RING_VERT, SKY_FRAG, SKY_VERT, STAR_FRAG, STAR_VERT,
 } from "./shaders";
 import type { SpaceTuning, SpaceView } from "./spaceTuning";
-import { LOOK, hash, kindOf, rampFor } from "./worldLook";
+import { LOOK, hash, kindOf, rampFor, toneFor } from "./worldLook";
 
 export type { SpaceTuning, SpaceView } from "./spaceTuning";
 
 /**
  * The schools space: every school a world, its size what its students have
- * made. Each world wears a real planetary surface (worldLook.ts), recoloured
- * into the page's night blues and lit by one sun the way that kind of body
- * is lit, so the system reads as photographed rather than drawn.
+ * made. Each world wears a real planetary surface in its own colours
+ * (worldLook.ts) and is lit by one sun the way that kind of body is lit, with
+ * air, weather and city lights where it has them, so the system reads as
+ * photographed rather than drawn.
  *
  * Two views. "level" sits nearly in the plane of the system, so the orbits lie
  * flat and perspective carries the depth; "open" looks out into open space,
@@ -36,7 +37,7 @@ export type SpaceFrame = { worlds: ProjectedWorld[]; star: { x: number; y: numbe
 const OPEN_SPOTS = [[0.12, 0.42], [-0.28, 0.6], [0.33, -0.12], [-0.05, 0.12], [0.3, 0.62], [-0.42, 0.3], [0.18, -0.45], [-0.15, 0.82], [0.02, -0.2], [0.4, 0.25], [-0.22, 0.38], [0.1, 0.72], [0.38, -0.62], [-0.4, 0.82], [0.22, 0.1], [-0.8, 0.12], [-0.72, -0.4], [-0.48, 0.55], [-0.2, -0.66], [0.25, 0.32]];
 const OPEN_SPOTS_NARROW = [[0.45, 0.62], [-0.35, 0.72], [0.55, 0.3], [-0.05, 0.42], [0.1, 0.82], [0.2, 0.18], [0.75, 0.78], [-0.3, 0.3], [0.3, 0.48], [-0.72, 0.82], [0.8, 0.12], [-0.45, 0.55], [0.82, 0.5], [0.0, 0.65], [0.55, 0.12], [0.4, 0.9], [-0.15, 0.58], [0.7, 0.4], [-0.6, 0.66], [0.25, 0.7]];
 
-type World = { id: string; rank: number; r: number; map: string; group: THREE.Group; body: THREE.Mesh<THREE.SphereGeometry, THREE.ShaderMaterial> };
+type World = { id: string; rank: number; r: number; map: string; clouds: string | null; group: THREE.Group; body: THREE.Mesh<THREE.SphereGeometry, THREE.ShaderMaterial> };
 
 export type BuildInput = {
   schools: SpaceSchool[];
@@ -74,18 +75,18 @@ export function createSchoolsScene(canvas: HTMLCanvasElement) {
 
   // The surface maps, fetched the first time a world needs one; worlds already built pick it up when it lands.
   const maps = new Map<string, THREE.Texture | null>();
-  const mapFor = (name: string, natural: boolean) => {
+  const mapFor = (name: string, colour: boolean) => {
     if (maps.has(name)) return maps.get(name) ?? null;
     maps.set(name, null);
     new THREE.TextureLoader().load(`${WORLD_MAPS}${name}.webp`, (texture) => {
-      texture.colorSpace = natural ? THREE.SRGBColorSpace : THREE.NoColorSpace;
+      texture.colorSpace = colour ? THREE.SRGBColorSpace : THREE.NoColorSpace;
       texture.wrapS = THREE.RepeatWrapping;
       texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
       maps.set(name, texture);
       for (const world of worlds) {
-        if (world.map !== name) continue;
-        world.body.material.uniforms.uMap!.value = texture;
-        world.body.material.uniforms.uHasMap!.value = 1;
+        const u = world.body.material.uniforms;
+        if (world.map === name) { u.uMap!.value = texture; u.uHasMap!.value = 1; }
+        if (world.clouds === name) { u.uCloudMap!.value = texture; u.uHasClouds!.value = 1; }
       }
       render();
     });
@@ -114,21 +115,29 @@ export function createSchoolsScene(canvas: HTMLCanvasElement) {
 
   const planetMaterial = (id: string, r: number, t: SpaceTuning) => {
     const look = LOOK[kindOf(id)];
-    const map = mapFor(look.map, !!look.natural);
+    const map = mapFor(look.map, true);
+    const clouds = look.clouds ? mapFor(look.clouds, false) : null;
+    const earthlike = !!look.clouds;
     return new THREE.ShaderMaterial({
       uniforms: {
         uMap: { value: map },
         uHasMap: { value: map ? 1 : 0 },
-        uNatural: { value: look.natural ? 1 : 0 },
-        uMirror: { value: look.natural && look.clouds ? 1 : hash(id + "#mirror") % 2 },
+        uCloudMap: { value: clouds },
+        uHasClouds: { value: clouds ? 1 : 0 },
+        uMirror: { value: earthlike ? 1 : hash(id + "#mirror") % 2 },
         // An Earth-like world is turned over too, so its continents read as a world of its own rather than ours.
-        uFlip: { value: look.natural && look.clouds ? 1 : 0 },
+        uFlip: { value: earthlike ? 1 : 0 },
+        uSaturation: { value: look.saturation },
+        uTone: { value: new THREE.Vector3(...toneFor(id)) },
+        uTint: { value: t.tint },
+        uLevels: { value: new THREE.Vector2(...look.levels) },
         uC: { value: rampFor(id).map((c) => new THREE.Vector3(...c)) },
         uRocky: { value: look.rocky },
         uLimb: { value: look.limb },
         uBump: { value: look.bump },
         uGloss: { value: look.gloss ?? 0 },
-        uClouds: { value: look.clouds ?? 0 },
+        uCities: { value: look.cities ?? 0 },
+        uAirK: { value: look.air ? look.airStrength ?? 0.5 : 0 },
         uSeed: { value: 1.7 + (hash(id) % 997) / 97 },
         uR: { value: r },
         uSun: { value: new THREE.Vector3() },
@@ -151,7 +160,7 @@ export function createSchoolsScene(canvas: HTMLCanvasElement) {
     const look = LOOK[kindOf(id)];
     if (!look.air) return null;
     const material = new THREE.ShaderMaterial({
-      uniforms: { uCol: { value: new THREE.Vector3(...look.air) }, uSun: { value: new THREE.Vector3() }, uSat: { value: 1 }, uK: { value: look.rocky > 0 ? 0.45 : 0.6 } },
+      uniforms: { uCol: { value: new THREE.Vector3(...look.air) }, uSun: { value: new THREE.Vector3() }, uSat: { value: 1 }, uK: { value: look.airStrength ?? 0.5 } },
       vertexShader: AIR_VERT,
       fragmentShader: AIR_FRAG,
       side: THREE.BackSide,
@@ -162,10 +171,10 @@ export function createSchoolsScene(canvas: HTMLCanvasElement) {
     return new THREE.Mesh(new THREE.SphereGeometry(r * (look.rocky > 0 ? 1.018 : 1.03), 96, 96), material);
   };
 
-  const ringBand = (r: number, center: THREE.Vector3) => {
+  const ringBand = (r: number, center: THREE.Vector3, tint: number) => {
     const inner = r * 1.28, outer = r * 2.35;
     const material = new THREE.ShaderMaterial({
-      uniforms: { uIn: { value: inner }, uOut: { value: outer }, uSun: { value: new THREE.Vector3() }, uC: { value: center.clone() }, uR: { value: r }, uSat: { value: 1 } },
+      uniforms: { uIn: { value: inner }, uOut: { value: outer }, uSun: { value: new THREE.Vector3() }, uC: { value: center.clone() }, uR: { value: r }, uSat: { value: 1 }, uTint: { value: tint } },
       vertexShader: RING_VERT,
       fragmentShader: NOISE + RING_PROFILE + RING_FRAG,
       side: THREE.DoubleSide,
@@ -230,7 +239,7 @@ export function createSchoolsScene(canvas: HTMLCanvasElement) {
       const air = airShell(r, school.id);
       if (air) group.add(air);
       if (kind === "ringgas" && ring) {
-        const band = ringBand(r, pos);
+        const band = ringBand(r, pos, t.tint);
         band.rotation.x = Math.PI / 2 - ring.tilt;
         band.rotation.y = ring.yaw;
         group.add(band);
@@ -244,7 +253,7 @@ export function createSchoolsScene(canvas: HTMLCanvasElement) {
         const h = hash(school.id + "#axis");
         axis.rotation.set(((h % 100) / 100 - 0.5) * 0.5, 0, (((h >>> 8) % 100) / 100 - 0.5) * 0.6);
       }
-      worlds.push({ id: school.id, rank: i + 1, r, map: LOOK[kind].map, group, body });
+      worlds.push({ id: school.id, rank: i + 1, r, map: LOOK[kind].map, clouds: LOOK[kind].clouds ?? null, group, body });
     };
 
     let sunDir: (pos: THREE.Vector3) => THREE.Vector3;
@@ -346,9 +355,12 @@ export function createSchoolsScene(canvas: HTMLCanvasElement) {
       dust.rotation.x = -Math.PI / 2;
       scene.add(dust);
 
-      // Lit from the star at the centre, with a key from the upper left and front, so every world shows a phase and its shape.
-      const key = new THREE.Vector3(-0.35, 0.45, 0.8).normalize();
-      sunDir = (pos) => pos.clone().negate().normalize().multiplyScalar(0.7).add(key.clone().multiplyScalar(0.8)).normalize();
+      // Lit from the star at the centre, turned partly toward you and lifted a little from the upper left,
+      // so every world shows a phase (the near ones a half, the far ones nearly full) and none is lost to the dark.
+      const key = new THREE.Vector3(-0.5, 0.6, 0.2);
+      sunDir = (pos) => pos.clone().negate().normalize().multiplyScalar(0.6)
+        .add(camera.position.clone().sub(pos).normalize().multiplyScalar(0.5))
+        .add(key.clone().multiplyScalar(0.5)).normalize();
       fog = narrow ? new THREE.Vector2(250, 520) : new THREE.Vector2(190, 420);
     }
 

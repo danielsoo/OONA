@@ -69,7 +69,8 @@ const SchoolsSpace = dynamic(() => import("@/components/school/space/SchoolsSpac
 /** What the space keeps its names clear of, and the panel it centres beside. */
 const SPACE_AVOID = ["header", ".nr .ranking-rail", ".nr .legend", ".nr .space-toolbar"];
 const SPACE_PANEL = ".nr .ranking-rail";
-const SPACE_SETTINGS_KEY = "oona-schools-space-v2";
+// v3: the worlds became real planets in their own colours, so earlier settings start fresh.
+const SPACE_SETTINGS_KEY = "oona-schools-space-v3";
 
 type SpaceSettings = { view: SpaceView; level: SpaceTuning; open: SpaceTuning };
 

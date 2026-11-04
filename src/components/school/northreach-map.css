@@ -956,11 +956,11 @@
 .nr-space .legend p { color: #9bb9dc; font-size: 10px; font-weight: 600; letter-spacing: 0.24em; text-transform: uppercase; }
 .nr-space .selection-toast { border-color: rgba(150, 190, 230, 0.2); background: rgba(4, 13, 22, 0.78); }
 
-/* The size key as small worlds rather than rings. */
+/* The size key as small, moon-grey worlds rather than rings. */
 .nr .space-legend .legend-orb {
-  border-color: rgba(143, 207, 255, 0.25);
-  background: radial-gradient(circle at 34% 30%, #cfe3f7, #5f86b8 38%, #1c3458 70%, #050b14 100%);
-  box-shadow: inset -6px -4px 10px rgba(0, 0, 0, 0.55), 0 0 12px rgba(80, 150, 230, 0.18);
+  border-color: rgba(200, 210, 225, 0.2);
+  background: radial-gradient(circle at 34% 30%, #f1ece4, #a69d90 38%, #3d3934 70%, #0a0908 100%);
+  box-shadow: inset -6px -4px 10px rgba(0, 0, 0, 0.6), 0 0 10px rgba(180, 200, 230, 0.1);
 }
 .nr .space-legend .orb-xl { width: 34px; height: 34px; margin-left: 0; }
 .nr .space-legend .orb-lg { width: 26px; height: 26px; margin-left: 4px; }

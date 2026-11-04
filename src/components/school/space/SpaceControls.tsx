@@ -14,6 +14,7 @@ const SLIDERS: Slider[] = [
   { key: "night", label: "Night-side light", min: 0, max: 4, step: 0.1 },
   { key: "sky", label: "Sky", min: 0, max: 2, step: 0.05 },
   { key: "brightness", label: "Brightness", min: 0.5, max: 1.8, step: 0.05 },
+  { key: "tint", label: "Blue tone", min: 0, max: 1, step: 0.05 },
 ];
 
 type Props = {

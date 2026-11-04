@@ -42,65 +42,92 @@ float ringDensity(float t, float fw){
 }
 `;
 
-export const PLANET_VERT = /* glsl */ `varying vec2 vUv; varying vec3 vO; varying vec3 vN; varying vec3 vW;
-      void main(){ vUv = uv; vO = normalize(position); vN = normalize(mat3(modelMatrix) * normal); vec4 w = modelMatrix * vec4(position,1.); vW = w.xyz; gl_Position = projectionMatrix * viewMatrix * w; }`;
+export const PLANET_VERT = /* glsl */ `uniform vec3 uSun; varying vec2 vUv; varying vec3 vO; varying vec3 vN; varying vec3 vW; varying vec3 vLo;
+      void main(){ vUv = uv; vO = normalize(position); vN = normalize(mat3(modelMatrix) * normal);
+        vLo = transpose(mat3(modelMatrix)) * uSun;   // the sun in the world's own frame, for cloud shadows
+        vec4 w = modelMatrix * vec4(position,1.); vW = w.xyz; gl_Position = projectionMatrix * viewMatrix * w; }`;
 
-/* A world: a real surface map, recoloured (or, for Earth and Neptune, cooled), lit by one sun.
-   Airless rock follows Lommel-Seeliger, so a full moon stays bright to its edge; worlds of gas
-   follow Lambert with a darkening limb. Relief comes from the map itself. */
+/* A world, lit by one sun the way orbital photographs and space games show them (EVE Online's
+   planets are the touchstone): its own colours from a real surface map; airless rock by
+   Lommel-Seeliger, so a full moon stays bright to its edge, with relief from the map; gas by
+   Lambert with a darkening limb; air that reddens the light at the terminator and lets it creep
+   past it; clouds with their shadows cast on the ground, offset toward the sun; city lights on
+   the night side; and a night side that is truly dark. */
 export const PLANET_FRAG = /* glsl */ `
-      uniform sampler2D uMap; uniform float uHasMap, uNatural, uMirror, uFlip, uRocky, uLimb, uBump, uGloss, uClouds, uSeed, uR;
-      uniform vec3 uC[3]; uniform vec3 uSun, uAtmo; uniform vec2 uFog; uniform float uSat, uNight, uHaze, uLift;
+      uniform sampler2D uMap, uCloudMap; uniform float uHasMap, uHasClouds, uMirror, uFlip, uRocky, uLimb, uBump, uGloss, uCities, uSeed, uR;
+      uniform float uSaturation, uTint, uAirK; uniform vec3 uTone; uniform vec2 uLevels; uniform vec3 uC[3];
+      uniform vec3 uSun, uAtmo; uniform vec2 uFog; uniform float uSat, uNight, uHaze, uLift;
       uniform vec3 uRingN, uCenter; uniform vec2 uRingR;
-      varying vec2 vUv; varying vec3 vO; varying vec3 vN; varying vec3 vW;
+      varying vec2 vUv; varying vec3 vO; varying vec3 vN; varying vec3 vW; varying vec3 vLo;
       vec3 ramp(float t){ return t < .5 ? mix(uC[0], uC[1], t * 2.) : mix(uC[1], uC[2], t * 2. - 1.); }
       vec3 bumped(vec3 pos, vec3 n, vec2 dH){ // three.js's perturbNormalArb
         vec3 sx = dFdx(pos), sy = dFdy(pos); vec3 r1 = cross(sy, n), r2 = cross(n, sx);
         float det = dot(sx, r1); vec3 g = sign(det) * (dH.x * r1 + dH.y * r2);
         return normalize(abs(det) * n - g);
       }
+      float luma(vec3 c){ return dot(c, vec3(.2126, .7152, .0722)); }
       void main(){
         vec2 uv = vec2(uMirror > .5 ? 1. - vUv.x : vUv.x, uFlip > .5 ? 1. - vUv.y : vUv.y);
-        vec3 tex = texture2D(uMap, uv).rgb;
-        vec3 col;
+        vec3 tex = texture2D(uMap, uv).rgb;   // linear light
+        float lt = luma(tex);
+        vec3 col = mix(vec3(lt), tex, uSaturation) * uTone;
+        float level = clamp((pow(lt, 1. / 2.2) - uLevels.x) / (uLevels.y - uLevels.x), 0., 1.);
+        col = mix(col, ramp(level), uTint);
         if (uHasMap < .5) col = ramp(.45 + .2 * vO.y);
-        else if (uNatural > .5) { float l = dot(tex, vec3(.2126, .7152, .0722)); col = mix(tex, l * vec3(.8, .92, 1.16), .32); }
-        else col = ramp(tex.r);
 
         vec3 N = normalize(vN); vec3 L = normalize(uSun); vec3 V = normalize(cameraPosition - vW);
         if (uBump > 0. && uHasMap > .5) {
           vec2 dx = dFdx(uv), dy = dFdy(uv);
-          vec2 dH = vec2(texture2D(uMap, uv + dx).r - tex.r, texture2D(uMap, uv + dy).r - tex.r);
-          N = bumped(vW, N, dH * uBump * uR * .012);
+          vec2 dH = vec2(luma(texture2D(uMap, uv + dx).rgb) - lt, luma(texture2D(uMap, uv + dy).rgb) - lt);
+          N = bumped(vW, N, dH * uBump * uR * .02);
         }
         float ndl = dot(N, L), mu0 = max(ndl, 0.), mu = max(dot(N, V), 1e-3);
-        float lambert = clamp((ndl + .03) / 1.03, 0., 1.);
+        // Air bends a little light past the terminator and reddens what reaches the ground there.
+        float wrap = .07 * uAirK;
+        float lambert = clamp((ndl + wrap) / (1. + wrap), 0., 1.);
         float lommel = min(2. * mu0 / (mu0 + mu), 1.2);
         float diffuse = mix(lambert, lommel, uRocky) * mix(1., pow(mu, .4), uLimb);
-        vec3 sunC = vec3(1., .985, .96) * 1.6;
-        vec3 lit = col * diffuse * sunC;
+        vec3 sunC = vec3(1., .975, .94) * 1.75;
+        vec3 sunAtGround = sunC * mix(vec3(1., .5, .26), vec3(1.), mix(1., smoothstep(-.05, .32, ndl), min(uAirK, 1.)));
+        vec3 lit = col * diffuse * sunAtGround;
 
-        if (uGloss > 0. && uHasMap > .5) {   // the sun's glint on open water
-          float water = smoothstep(.03, .1, tex.b - max(tex.r, tex.g)) * (1. - smoothstep(.3, .6, tex.r));
+        float water = 0.;
+        if (uGloss > 0. && uHasMap > .5) {   // open water: darker, with the sun's glint
+          water = smoothstep(.03, .1, tex.b - max(tex.r, tex.g)) * (1. - smoothstep(.3, .6, tex.r)) * uGloss;
           vec3 H = normalize(L + V);
-          lit += water * uGloss * pow(max(dot(N, H), 0.), 180.) * mu0 * .45 * sunC;
+          lit += water * (pow(max(dot(N, H), 0.), 420.) * .8 + pow(max(dot(N, H), 0.), 30.) * .05) * mu0 * sunC;
         }
-        if (uClouds > 0.) {   // weather, drawn out along the latitudes
-          vec3 q = vO * vec3(1.5, 3.6, 1.5) + uSeed;
-          vec3 w = vec3(fbm3(q * 1.1), fbm3(q * 1.1 + 5.2), fbm3(q * 1.1 + 9.4));
-          float c = fbm(q * 1.4 + w * 1.4);
-          float cover = smoothstep(.1, .7, c) * .62 * uClouds;
-          lit = mix(lit, vec3(.9, .93, .97) * lambert * sunC, cover);
+        float cloud = 0.;
+        if (uHasClouds > .5) {
+          // Clouds ride with the world; their shadow falls on the ground a step away from the sun.
+          vec3 n = normalize(vO); float st = max(length(n.xz), .02);
+          vec3 east = vec3(n.z, 0., -n.x) / st, north = normalize(vec3(0., 1., 0.) - n * n.y);
+          vec3 Lo = normalize(vLo);
+          vec2 cuv = vUv + vec2(fract(uSeed * .37), 0.);
+          vec2 off = vec2(dot(Lo, east) / (6.2832 * st), dot(Lo, north) / 3.1416) * .01;
+          cloud = texture2D(uCloudMap, cuv).r;
+          float shade = texture2D(uCloudMap, cuv + off).r;
+          lit *= 1. - .6 * shade * smoothstep(-.1, .2, ndl);
+          float cl = clamp((ndl + .1) / 1.1, 0., 1.);
+          lit = mix(lit, vec3(.95, .96, .98) * cl * sunAtGround, cloud);
+        }
+        if (uCities > 0. && uHasMap > .5) {   // the night side's cities, along the land, under the cloud
+          float land = (1. - water / max(uGloss, .01)) * (1. - smoothstep(.45, .7, tex.r));
+          float c = smoothstep(.62, .86, fbm3(vO * 46. + uSeed)) * smoothstep(-.05, .35, fbm3(vO * 6. + uSeed + 3.));
+          float dark = 1. - smoothstep(-.2, .02, ndl);
+          lit += vec3(1., .64, .3) * c * land * dark * (1. - cloud * .8) * 1.1 * uCities;
         }
         if (uRingR.y > 0.) {   // the rings' shadow across the globe
           float den = dot(L, uRingN);
           if (abs(den) > 1e-4) {
             float tt = dot(uCenter - vW, uRingN) / den;
-            if (tt > 0.) { float t = (length(vW + L * tt - uCenter) - uRingR.x) / (uRingR.y - uRingR.x); lit *= 1. - .7 * ringDensity(t, .004); }
+            if (tt > 0.) { float t = (length(vW + L * tt - uCenter) - uRingR.x) / (uRingR.y - uRingR.x); lit *= 1. - .75 * ringDensity(t, .004); }
           }
         }
-        lit += col * .03 * uNight * (1. - smoothstep(-.1, .15, ndl)) * smoothstep(-.2, 1., mu);   // the faintest shine on the night side
-        lit += uAtmo * pow(1. - mu, 3.5) * smoothstep(-.2, .4, ndl) * .55;                            // air, bright at the limb on the day side
+        lit += col * .012 * uNight * smoothstep(-.2, 1., mu) * (1. - smoothstep(-.1, .15, ndl));   // only the faintest earthshine on the night side
+        // Air seen edge-on: a thin haze over the limb, lit where the sun reaches it.
+        float edge = pow(1. - mu, 2.6);
+        lit = mix(lit, uAtmo * 1.2 * smoothstep(-.25, .3, ndl), edge * .55 * min(uAirK, 1.));
         float l = dot(lit, vec3(.299, .587, .114)); lit = mix(vec3(l), lit, uSat);
         float far = smoothstep(uFog.x, uFog.y, length(cameraPosition - vW));
         lit = mix(lit, lit * .4 + vec3(.003, .006, .013), clamp(far * .75 * uHaze, 0., 1.));
@@ -110,16 +137,22 @@ export const PLANET_FRAG = /* glsl */ `
 
 export const AIR_VERT = /* glsl */ `varying vec3 vN; varying vec3 vW; void main(){ vN = normalize(mat3(modelMatrix)*normal); vec4 w = modelMatrix*vec4(position,1.); vW = w.xyz; gl_Position = projectionMatrix*viewMatrix*w; }`;
 
+/* The air beyond the limb: brightest where the sun lights it, reaching a little past the
+   terminator and reddened there, and glowing all the way round when the sun is behind the world. */
 export const AIR_FRAG = /* glsl */ `uniform vec3 uCol, uSun; uniform float uSat, uK; varying vec3 vN; varying vec3 vW;
-      void main(){ vec3 N = normalize(vN); vec3 V = normalize(cameraPosition - vW); float dv = dot(N, V);
-        float f = pow(clamp(-dv / .3, 0., 1.), 3.);
-        float sunSide = smoothstep(-.35, .5, dot(N, normalize(uSun)));
-        vec3 c = uCol * f * sunSide * uK; float l = dot(c, vec3(.3,.59,.11)); c = mix(vec3(l), c, uSat);
+      void main(){ vec3 N = normalize(vN); vec3 V = normalize(cameraPosition - vW); vec3 L = normalize(uSun);
+        float f = pow(clamp(-dot(N, V) / .26, 0., 1.), 2.4);
+        float sl = dot(N, L);
+        float day = smoothstep(-.3, .35, sl);
+        float behind = pow(max(dot(-V, L), 0.), 5.);
+        vec3 c = uCol * (day + behind * 1.6);
+        c *= mix(vec3(1.), vec3(1.3, .7, .45), (1. - smoothstep(0., .35, abs(sl))) * .7);
+        c *= f * uK; float l = dot(c, vec3(.3,.59,.11)); c = mix(vec3(l), c, uSat);
         gl_FragColor = vec4(c, 1.); }`;
 
 export const RING_VERT = /* glsl */ `varying vec3 vP; varying vec3 vW; varying vec3 vRN; void main(){ vP = position; vRN = normalize(mat3(modelMatrix) * vec3(0., 0., 1.)); vec4 w = modelMatrix*vec4(position,1.); vW = w.xyz; gl_Position = projectionMatrix*viewMatrix*w; }`;
 
-export const RING_FRAG = /* glsl */ `uniform float uIn, uOut, uR, uSat; uniform vec3 uSun, uC; varying vec3 vP; varying vec3 vW; varying vec3 vRN;
+export const RING_FRAG = /* glsl */ `uniform float uIn, uOut, uR, uSat, uTint; uniform vec3 uSun, uC; varying vec3 vP; varying vec3 vW; varying vec3 vRN;
       void main(){ float t = (length(vP.xy) - uIn) / (uOut - uIn);
         float dens = ringDensity(t, fwidth(t));
         vec3 L = normalize(uSun), V = normalize(cameraPosition - vW);
@@ -128,7 +161,7 @@ export const RING_FRAG = /* glsl */ `uniform float uIn, uOut, uR, uSat; uniform 
         float light = sl * sv > 0. ? .3 + .7 * pow(abs(sl), .4) : (.08 + .4 * (1. - dens)) * pow(abs(sl), .4);
         vec3 toC = uC - vW; float tt = dot(toC, L); float miss = length(vW + L * tt - uC);
         float shadow = (tt > 0. && miss < uR) ? .04 : 1.;
-        vec3 col = mix(vec3(.36, .42, .52), vec3(.8, .84, .9), smoothstep(.15, .5, t)) * mix(.8, 1.1, smoothstep(.62, .7, t) * (1. - smoothstep(.85, .93, t)) + .5 * (1. - step(.62, t)));
+        vec3 col = mix(mix(vec3(.4, .36, .3), vec3(.88, .82, .7), smoothstep(.15, .5, t)), mix(vec3(.36, .42, .52), vec3(.8, .84, .9), smoothstep(.15, .5, t)), uTint) * mix(.8, 1.1, smoothstep(.62, .7, t) * (1. - smoothstep(.85, .93, t)) + .5 * (1. - step(.62, t)));
         col *= 1.5 * light * shadow;
         float l = dot(col, vec3(.3,.59,.11)); col = mix(vec3(l), col, uSat);
         gl_FragColor = vec4(col, dens * .92); }`;
