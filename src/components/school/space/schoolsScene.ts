@@ -132,6 +132,8 @@ export function createSchoolsScene(canvas: HTMLCanvasElement) {
         uTone: { value: new THREE.Vector3(...toneFor(id)) },
         uTint: { value: t.tint },
         uBias: { value: t.soft * 1.3 },
+        uContrast: { value: look.contrast ?? 1 },
+        uSmooth: { value: look.smooth ?? 0 },
         uLevels: { value: new THREE.Vector2(...look.levels) },
         uC: { value: rampFor(id).map((c) => new THREE.Vector3(...c)) },
         uRocky: { value: look.rocky },

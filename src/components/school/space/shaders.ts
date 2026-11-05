@@ -55,7 +55,7 @@ export const PLANET_VERT = /* glsl */ `uniform vec3 uSun; varying vec2 vUv; vary
    the night side; and a night side that is truly dark. */
 export const PLANET_FRAG = /* glsl */ `
       uniform sampler2D uMap, uCloudMap; uniform float uHasMap, uHasClouds, uMirror, uFlip, uRocky, uLimb, uBump, uGloss, uCities, uSeed, uR;
-      uniform float uSaturation, uTint, uAirK, uBias; uniform vec3 uTone; uniform vec2 uLevels; uniform vec3 uC[3];
+      uniform float uSaturation, uTint, uAirK, uBias, uContrast, uSmooth; uniform vec3 uTone; uniform vec2 uLevels; uniform vec3 uC[3];
       uniform vec3 uSun, uAtmo; uniform vec2 uFog; uniform float uSat, uNight, uHaze, uLift;
       uniform vec3 uRingN, uCenter; uniform vec2 uRingR;
       varying vec2 vUv; varying vec3 vO; varying vec3 vN; varying vec3 vW; varying vec3 vLo;
@@ -68,9 +68,10 @@ export const PLANET_FRAG = /* glsl */ `
       float luma(vec3 c){ return dot(c, vec3(.2126, .7152, .0722)); }
       void main(){
         vec2 uv = vec2(uMirror > .5 ? 1. - vUv.x : vUv.x, uFlip > .5 ? 1. - vUv.y : vUv.y);
-        vec3 tex = texture2D(uMap, uv, uBias).rgb;   // linear light; read a touch soft, as a lens resolves it
+        vec3 tex = texture2D(uMap, uv, uBias + uSmooth).rgb;   // linear light; read a touch soft, as a lens resolves it
         float lt = luma(tex);
-        vec3 col = mix(vec3(lt), tex, uSaturation) * uTone;
+        vec3 col = mix(vec3(lt), tex, uSaturation);
+        col = max(mix(vec3(pow((uLevels.x + uLevels.y) * .5, 2.2)), col, uContrast), 0.) * uTone;
         float level = clamp((pow(lt, 1. / 2.2) - uLevels.x) / (uLevels.y - uLevels.x), 0., 1.);
         col = mix(col, ramp(level), uTint);
         if (uHasMap < .5) col = ramp(.45 + .2 * vO.y);
@@ -78,7 +79,7 @@ export const PLANET_FRAG = /* glsl */ `
         vec3 N = normalize(vN); vec3 L = normalize(uSun); vec3 V = normalize(cameraPosition - vW);
         if (uBump > 0. && uHasMap > .5) {
           vec2 dx = dFdx(uv), dy = dFdy(uv);
-          vec2 dH = vec2(luma(texture2D(uMap, uv + dx, uBias).rgb) - lt, luma(texture2D(uMap, uv + dy, uBias).rgb) - lt);
+          vec2 dH = vec2(luma(texture2D(uMap, uv + dx, uBias + uSmooth).rgb) - lt, luma(texture2D(uMap, uv + dy, uBias + uSmooth).rgb) - lt);
           N = bumped(vW, N, dH * uBump * uR * .02);
         }
         float ndl = dot(N, L), mu0 = max(ndl, 0.), mu = max(dot(N, V), 1e-3);
@@ -87,7 +88,7 @@ export const PLANET_FRAG = /* glsl */ `
         float lambert = clamp((ndl + wrap) / (1. + wrap), 0., 1.);
         float lommel = min(2. * mu0 / (mu0 + mu), 1.2);
         float diffuse = mix(lambert, lommel, uRocky) * mix(1., pow(mu, .4), uLimb);
-        vec3 sunC = vec3(1., .975, .94) * 1.75;
+        vec3 sunC = vec3(1., .935, .83) * 1.85;   // a warm, low sun
         vec3 sunAtGround = sunC * mix(vec3(1., .5, .26), vec3(1.), mix(1., smoothstep(-.05, .32, ndl), min(uAirK, 1.)));
         vec3 lit = col * diffuse * sunAtGround;
 
